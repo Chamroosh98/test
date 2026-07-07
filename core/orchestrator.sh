@@ -3,32 +3,31 @@
 set -euo pipefail
 
 DAYPASS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-source "$DAYPASS_ROOT/core/context.sh"
 
 ###############################################################################
 # Core
 ###############################################################################
 
-source "$ROOT_DIR/core/context.sh"
-source "$ROOT_DIR/core/cache.sh"
+source "$DAYPASS_ROOT/core/context.sh"
+source "$DAYPASS_ROOT/core/cache.sh"
 
 ###############################################################################
 # UI
 ###############################################################################
 
-source "$ROOT_DIR/ui/colors.sh"
-source "$ROOT_DIR/ui/banner.sh"
+source "$DAYPASS_ROOT/ui/colors.sh"
+source "$DAYPASS_ROOT/ui/banner.sh"
 
 ###############################################################################
 # Engines
 ###############################################################################
 
-source "$ROOT_DIR/core/fetcher.sh"
-source "$ROOT_DIR/core/template_gen.sh"
+source "$DAYPASS_ROOT/core/fetcher.sh"
+source "$DAYPASS_ROOT/core/template_gen.sh"
 
-source "$ROOT_DIR/metadata/manifest.sh"
+source "$DAYPASS_ROOT/metadata/manifest.sh"
 
-source "$ROOT_DIR/metadata/catalog.sh"
+source "$DAYPASS_ROOT/metadata/catalog.sh"
 
 ###############################################################################
 # Main
