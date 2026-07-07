@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# DayPass Installer Builder
 
 set -euo pipefail
 
@@ -18,7 +17,7 @@ generate_install_script() {
 # DayPass Installer
 ###############################################################################
 
-REPO_URL="https://chamroosh98.github.io/DayPass"
+REPO_URL="https://chamroosh98.github.io/test"
 
 EOF
 
@@ -188,6 +187,6 @@ EOF
 # Standalone Execution
 ###############################################################################
 
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    generate_install_script
-fi
+# if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+#     generate_install_script
+# fi
