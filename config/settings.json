@@ -1,0 +1,7 @@
+{
+  "cache": true,
+  "verify_checksum": true,
+  "parallel_download": false,
+  "retry": 3,
+  "timeout": 15
+}

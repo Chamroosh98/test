@@ -1,0 +1,8 @@
+{
+  "default": "sourceforge",
+  "providers": {
+    "sourceforge": {
+      "enabled": true
+    }
+  }
+}
