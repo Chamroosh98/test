@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-# Root
 DAYPASS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export DAYPASS_ROOT
 
 # Directories
 DAYPASS_CONFIG_DIR="$DAYPASS_ROOT/config"

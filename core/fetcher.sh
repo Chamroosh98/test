@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-source "$ROOT_DIR/core/context.sh"
+source "$DAYPASS_ROOT/core/context.sh"
 source "$DAYPASS_PROVIDER_DIR/sourceforge.sh"
 
 fetch_all_packages() {

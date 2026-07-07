@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source "$DAYPASS_CORE_DIR/context.sh"
+source "$DAYPASS_ROOT/core/context.sh"
 
 provider_name() {
     echo "SourceForge"
