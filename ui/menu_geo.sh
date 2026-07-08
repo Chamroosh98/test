@@ -28,7 +28,11 @@ show_geo_database_menu() {
             add_package "v2ray-geoip"
             add_package "v2ray-geosite"
             ;;
-
+        4)
+            ;;
+        *)
+            echo "Invalid choice."
+            ;;
     esac
 
 }

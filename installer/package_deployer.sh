@@ -48,15 +48,13 @@ install_package() {
 
         opkg)
 
-            opkg install "$file"
+            pkg_install "$file"
 
             ;;
 
         apk)
 
-            apk add \
-                --allow-untrusted \
-                "$file"
+            pkg_install "$file"
 
             ;;
 
@@ -70,6 +68,8 @@ deploy_targeted_packages() {
 
         echo "Installing: $pkg"
 
+        mkdir -p "$TMP_DIR"
+        
         download_package "$pkg" || {
 
             echo "Download failed: $pkg"

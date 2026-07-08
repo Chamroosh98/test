@@ -16,6 +16,8 @@ initialize_installer() {
         "$REPO_URL/manifest.json" \
         -o "$MANIFEST_FILE"
 
+    [ -f "$MANIFEST_FILE" ] || exit 1
+
     ARCH="$(uname -m)"
 
     case "$ARCH" in

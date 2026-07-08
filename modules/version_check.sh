@@ -13,4 +13,9 @@ check_version() {
 
     echo "OpenWrt Version : ${OPENWRT_VERSION:-Unknown}"
 
+    [ -z "$OPENWRT_VERSION" ] && {
+        echo "Unable to detect OpenWrt."
+        exit 1
+    }
+
 }

@@ -12,7 +12,7 @@ handle_custom_profile() {
 
     printf "> "
 
-    read -r packages
+    read -r packages </dev/tty
 
     for pkg in $packages
     do
