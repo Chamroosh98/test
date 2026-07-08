@@ -71,7 +71,10 @@ main() {
 
     log_info "Phase 2/3 : Generate Installer"
 
-    generate_install_script
+    generate_install_script || {
+        echo "template_gen failed!"
+        exit 1
+    }
 
     echo -e "${GRAY}------------------------------------------------------------${NC}"
 
