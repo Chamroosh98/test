@@ -27,3 +27,11 @@ EOF
     log_success "install.sh generated."
 
 }
+
+
+echo
+echo "Downloading selected packages..."
+deploy_targeted_packages
+
+echo
+echo "Done."

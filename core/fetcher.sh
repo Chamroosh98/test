@@ -70,13 +70,13 @@ fetch_all_packages() {
             # packages.adb
             ####################################################################
 
-            if ! provider_download_database \
-                "$feed_url" \
-                "$feed_dir/packages.adb" \
-                "$proxy"
-            then
-                log_warning "packages.adb not available."
-            fi
+            # if ! provider_download_database \
+            #     "$feed_url" \
+            #     "$feed_dir/packages.adb" \
+            #     "$proxy"
+            # then
+            #     log_warning "packages.adb not available."
+            # fi
 
             ####################################################################
             # Parse Packages
@@ -130,21 +130,21 @@ fetch_all_packages() {
         done
 
         ########################################################################
-        # Generate Catalog
+        # Generate Catalog.txt
         ########################################################################
 
-        (
-            cd "$arch_dir" || exit
+        # (
+        #     cd "$arch_dir" || exit
 
-            find . \
-                -type f \
-                -name "*.apk" \
-                | sed 's#^\./##' \
-                | sort \
-                > catalog.txt
-        )
+        #     find . \
+        #         -type f \
+        #         -name "*.apk" \
+        #         | sed 's#^\./##' \
+        #         | sort \
+        #         > catalog.txt
+        # )
 
-        log_success "Catalog generated for ${arch_name}"
+        # log_success "Catalog generated for ${arch_name}"
 
     done
 
