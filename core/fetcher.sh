@@ -129,50 +129,75 @@ fetch_all_packages() {
                 continue
             }
 
-            ####################################################################
+            ###############################################################################
             # Download Packages
-            ####################################################################
+            ###############################################################################
 
             while read -r pkg; do
 
                 [[ -z "$pkg" ]] && continue
 
-                local pkg_file="$feed_dir/$pkg"
+                local cache_pkg="$DAYPASS_PACKAGE_CACHE/$arch_name/$feed_name/$pkg"
+                local target_pkg="$feed_dir/$pkg"
 
-                if [[ -f "$pkg_file" ]]; then
-                    continue
+                mkdir -p "$(dirname "$cache_pkg")"
+
+                ###############################################################################
+                # Check Repository Changes
+                ###############################################################################
+
+                local repository_changed=1
+
+                if cache_has "$cache_sha"; then
+
+                    if ! cache_is_changed "$index_file" "$cache_sha"; then
+
+                        repository_changed=0
+
+                        log_info "Repository unchanged."
+
+                    fi
+
                 fi
 
-                log_info "Downloading ${GREEN}${pkg}${NC}"
+                cache_save_checksum \
+                    "$index_file" \
+                    "$cache_sha"
 
-                provider_download_package \
-                    "$feed_url" \
-                    "$pkg" \
-                    "$pkg_file" \
-                    "$proxy"
+                ###########################################################################
+                # Download (Only if Repository Changed)
+                ###########################################################################
+
+                if [[ "$repository_changed" -eq 1 ]]; then
+
+                    log_info "Downloading ${GREEN}${pkg}${NC}"
+
+                    provider_download_package \
+                        "$feed_url" \
+                        "$pkg" \
+                        "$target_pkg" \
+                        "$proxy"
+
+                    cache_put \
+                        "$target_pkg" \
+                        "$cache_pkg"
+
+                else
+
+                    log_info "Restored ${GREEN}${pkg}${NC} from cache"
+
+                    cache_get \
+                        "$cache_pkg" \
+                        "$target_pkg"
+
+                fi                
 
             done <<< "$packages"
 
-            log_success "Feed synchronized."
+            log_success "Feed synchronized!"
 
         done
 
-        ########################################################################
-        # Generate Catalog.txt
-        ########################################################################
-
-        # (
-        #     cd "$arch_dir" || exit
-
-        #     find . \
-        #         -type f \
-        #         -name "*.apk" \
-        #         | sed 's#^\./##' \
-        #         | sort \
-        #         > catalog.txt
-        # )
-
-        # log_success "Catalog generated for ${arch_name}"
 
     done
 
