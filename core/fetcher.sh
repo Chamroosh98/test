@@ -105,14 +105,16 @@ fetch_all_packages() {
 
                 log_info "Repository unchanged."
 
-                cache_feed_restore \
+                if cache_feed_restore \
                     "$arch_name" \
                     "$feed_name" \
                     "$feed_dir"
+                then
+                    log_success "Feed restored from cache."
+                    continue
+                fi
 
-                log_success "Feed restored from cache."
-
-                continue
+                log_warn "Feed cache missing. Rebuilding..."
 
             fi
 
