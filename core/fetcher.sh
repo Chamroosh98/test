@@ -41,7 +41,6 @@ fetch_all_packages() {
             local feed_dir
             local index_file
             local checksum_file
-            local repository_changed=1
 
             feed_name=$(jq -r ".architectures[$i].feeds[$j]" "$DAYPASS_ARCH_FILE")
 
@@ -51,7 +50,6 @@ fetch_all_packages() {
             mkdir -p "$feed_dir"
 
             index_file="$feed_dir/index.json"
-            checksum_file="$DAYPASS_CHECKSUM_CACHE/${arch_name}_${feed_name}.sha"
 
             log_info "Feed ${CYAN}${feed_name}${NC}"
 
@@ -65,27 +63,6 @@ fetch_all_packages() {
                 "$proxy"
 
             ####################################################################
-            # Repository changed?
-            ####################################################################
-
-            if cache_has "$checksum_file"; then
-
-                if ! cache_checksum_changed \
-                    "$index_file" \
-                    "$checksum_file"
-                then
-
-                    repository_changed=0
-
-                fi
-
-            fi
-
-            cache_save_checksum \
-                "$index_file" \
-                "$checksum_file"
-
-            ####################################################################
             # Package List
             ####################################################################
 
@@ -97,44 +74,36 @@ fetch_all_packages() {
                 "$index_file"
             )
 
-            ####################################################################
-            # Restore Feed
-            ####################################################################
-
-            if [[ "$repository_changed" -eq 0 ]]; then
-
-                log_info "Repository unchanged."
-
-                if cache_feed_restore \
-                    "$arch_name" \
-                    "$feed_name" \
-                    "$feed_dir"
-                then
-                    log_success "Feed restored from cache."
-                    continue
-                fi
-
-                log_warn "Feed cache missing. Rebuilding..."
-
-            fi
-
             log_info "Repository updated."
 
-            ####################################################################
+            
+            ###############################################################################
             # Sync Packages
-            ####################################################################
+            ###############################################################################
 
             while read -r pkg; do
 
                 [[ -z "$pkg" ]] && continue
 
-                local target="$feed_dir/$pkg"
+                package_full="${pkg%.apk}"
+                package_version="$(echo "$package_full" | grep -oE '[0-9].*$')"
+                package_name="${package_full%"$package_version"}"
+                package_name="${package_name%-}"
 
-                if cache_package_has \
-                    "$arch_name" \
-                    "$feed_name" \
-                    "$pkg"
-                then
+                target="$feed_dir/$pkg"
+
+                cached_version="$(
+                    cache_package_version \
+                        "$arch_name" \
+                        "$feed_name" \
+                        "$package_name"
+                )"
+
+                ###########################################################################
+                # Cache Hit
+                ###########################################################################
+
+                if [[ "$cached_version" == "$package_version" ]]; then
 
                     log_info "Cached ${GREEN}${pkg}${NC}"
 
@@ -147,6 +116,10 @@ fetch_all_packages() {
                     continue
 
                 fi
+
+                ###########################################################################
+                # Download Updated Package
+                ###########################################################################
 
                 log_info "Downloading ${GREEN}${pkg}${NC}"
 
@@ -162,16 +135,14 @@ fetch_all_packages() {
                     "$pkg" \
                     "$target"
 
+                cache_package_set_version \
+                    "$arch_name" \
+                    "$feed_name" \
+                    "$package_name" \
+                    "$package_version"
+
             done <<< "$packages"
-
-            ####################################################################
-            # Save Feed Cache
-            ####################################################################
-
-            cache_feed_save \
-                "$arch_name" \
-                "$feed_name" \
-                "$feed_dir"
+            
 
             log_success "Feed synchronized."
 

@@ -167,3 +167,36 @@ cache_package_save() {
     cp -af "$source" "$dst"
 
 }
+
+###############################################################################
+# Package Version Metadata
+###############################################################################
+
+cache_package_version() {
+
+    local arch="$1"
+    local feed="$2"
+    local package="$3"
+
+    local version_file="$DAYPASS_METADATA_CACHE/$arch/$feed/$package.version"
+
+    [[ -f "$version_file" ]] || return 0
+
+    cat "$version_file"
+
+}
+
+cache_package_set_version() {
+
+    local arch="$1"
+    local feed="$2"
+    local package="$3"
+    local version="$4"
+
+    local version_file="$DAYPASS_METADATA_CACHE/$arch/$feed/$package.version"
+
+    mkdir -p "$(dirname "$version_file")"
+
+    printf "%s" "$version" > "$version_file"
+
+}
