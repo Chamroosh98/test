@@ -3,6 +3,7 @@
 set -euo pipefail
 
 source "$DAYPASS_ROOT/core/context.sh"
+source "$DAYPASS_ROOT/core/cache.sh"
 source "$DAYPASS_PROVIDER_DIR/sourceforge.sh"
 
 fetch_all_packages() {
@@ -53,18 +54,39 @@ fetch_all_packages() {
 
             log_info "Fetching Feed: ${CYAN}${feed_name}${NC}"
 
-            ####################################################################
+            ###############################################################################
             # index.json
-            ####################################################################
+            ###############################################################################
+
+            local index_file="$feed_dir/index.json"
+            local cache_sha="$DAYPASS_CHECKSUM_CACHE/${arch_name}_${feed_name}.sha"
 
             if ! provider_download_index \
                 "$feed_url" \
-                "$feed_dir/index.json" \
+                "$index_file" \
                 "$proxy"
             then
                 log_error "Unable to fetch index.json"
                 continue
             fi
+
+            if cache_has "$cache_sha"; then
+
+                if ! cache_is_changed "$index_file" "$cache_sha"; then
+
+                    log_info "No changes detected."
+
+                    continue
+
+                fi
+
+            fi
+
+            cache_save_checksum \
+                "$index_file" \
+                "$cache_sha"
+
+            log_info "Repository updated."
 
             ####################################################################
             # packages.adb
@@ -115,12 +137,18 @@ fetch_all_packages() {
 
                 [[ -z "$pkg" ]] && continue
 
+                local pkg_file="$feed_dir/$pkg"
+
+                if [[ -f "$pkg_file" ]]; then
+                    continue
+                fi
+
                 log_info "Downloading ${GREEN}${pkg}${NC}"
 
                 provider_download_package \
                     "$feed_url" \
                     "$pkg" \
-                    "$feed_dir/$pkg" \
+                    "$pkg_file" \
                     "$proxy"
 
             done <<< "$packages"

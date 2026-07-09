@@ -27,16 +27,28 @@ jobs:
 
     steps:
 
+      # Checkout
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # Restore Cache
+      - name: Restore DayPass Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            cache
+          key: daypass-${{ runner.os }}-${{ hashFiles('config/architectures.json') }}
+          restore-keys: |
+            daypass-${{ runner.os }}-
+
+      # GitHub Pages
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      # Install Tools
       - name: Install Dependencies
         run: |
           sudo apt-get update
-
           sudo apt-get install -y \
             bash \
             curl \
@@ -44,23 +56,25 @@ jobs:
             coreutils \
             findutils
 
+      # chmod
       - name: Make Scripts Executable
         run: |
           find . -type f -name "*.sh" -exec chmod +x {} \;
 
+      # Build
       - name: Build DayPass
         shell: bash
         run: |
           ./core/orchestrator.sh
 
+      # Validate
       - name: Validate Build
         shell: bash
         run: |
-
           test -f output/install.sh
-
           test -f output/manifest.json
 
+      # Upload Pages
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -78,6 +92,7 @@ jobs:
 
     steps:
 
+      # Deploy Pages
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4

@@ -19,9 +19,15 @@ detect_package_manager() {
 pkg_update() {
 
     case "$PKG_MANAGER" in
-        opkg) opkg update ;;
-        apk) apk update ;;
+        opkg)
+            opkg update || true
+            ;;
+
+        apk)
+            apk update || true
+            ;;
     esac
+
 }
 
 pkg_install() {
