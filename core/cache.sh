@@ -4,6 +4,10 @@ set -euo pipefail
 
 source "$DAYPASS_ROOT/core/context.sh"
 
+###############################################################################
+# Init
+###############################################################################
+
 cache_init() {
 
     mkdir -p \
@@ -14,82 +18,152 @@ cache_init() {
 
 }
 
+###############################################################################
+# Generic
+###############################################################################
+
 cache_has() {
 
-    local file="$1"
-
-    [[ -f "$file" ]]
+    [[ -f "$1" ]]
 
 }
 
 cache_put() {
 
-    local source="$1"
-    local target="$2"
+    local src="$1"
+    local dst="$2"
 
-    mkdir -p "$(dirname "$target")"
+    mkdir -p "$(dirname "$dst")"
 
-    cp -f "$source" "$target"
+    cp -af "$src" "$dst"
 
 }
 
 cache_get() {
 
-    local source="$1"
-    local target="$2"
+    local src="$1"
+    local dst="$2"
 
-    mkdir -p "$(dirname "$target")"
+    mkdir -p "$(dirname "$dst")"
 
-    cp -f "$source" "$target"
-
-}
-
-cache_remove() {
-
-    local file="$1"
-
-    rm -f "$file"
+    cp -af "$src" "$dst"
 
 }
 
-cache_clear() {
-
-    rm -rf "$DAYPASS_CACHE_DIR"
-
-    cache_init
-
-}
+###############################################################################
+# SHA
+###############################################################################
 
 cache_sha256() {
 
-    local file="$1"
-
-    sha256sum "$file" | awk '{print $1}'
-
-}
-
-cache_is_changed() {
-
-    local file="$1"
-    local checksum_file="$2"
-
-    [[ ! -f "$checksum_file" ]] && return 0
-
-    local current
-    local old
-
-    current=$(cache_sha256 "$file")
-    old=$(cat "$checksum_file")
-
-    [[ "$current" != "$old" ]]
+    sha256sum "$1" | awk '{print $1}'
 
 }
 
 cache_save_checksum() {
 
-    local file="$1"
-    local checksum_file="$2"
+    cache_sha256 "$1" > "$2"
 
-    cache_sha256 "$file" > "$checksum_file"
+}
+
+cache_checksum_changed() {
+
+    local file="$1"
+    local checksum="$2"
+
+    [[ ! -f "$checksum" ]] && return 0
+
+    [[ "$(cache_sha256 "$file")" != "$(cat "$checksum")" ]]
+
+}
+
+###############################################################################
+# Feed Cache
+###############################################################################
+
+cache_feed_dir() {
+
+    local arch="$1"
+    local feed="$2"
+
+    echo "$DAYPASS_PACKAGE_CACHE/$arch/$feed"
+
+}
+
+cache_feed_restore() {
+
+    local arch="$1"
+    local feed="$2"
+    local target="$3"
+
+    local cache_dir
+    cache_dir="$(cache_feed_dir "$arch" "$feed")"
+
+    [[ -d "$cache_dir" ]] || return 1
+
+    mkdir -p "$target"
+
+    cp -af "$cache_dir/." "$target/"
+
+}
+
+cache_feed_save() {
+
+    local arch="$1"
+    local feed="$2"
+    local source="$3"
+
+    local cache_dir
+    cache_dir="$(cache_feed_dir "$arch" "$feed")"
+
+    rm -rf "$cache_dir"
+
+    mkdir -p "$cache_dir"
+
+    cp -af "$source/." "$cache_dir/"
+
+}
+
+###############################################################################
+# Package Cache
+###############################################################################
+
+cache_package_has() {
+
+    local arch="$1"
+    local feed="$2"
+    local pkg="$3"
+
+    [[ -f "$DAYPASS_PACKAGE_CACHE/$arch/$feed/$pkg" ]]
+
+}
+
+cache_package_restore() {
+
+    local arch="$1"
+    local feed="$2"
+    local pkg="$3"
+    local target="$4"
+
+    mkdir -p "$(dirname "$target")"
+
+    cp -af \
+        "$DAYPASS_PACKAGE_CACHE/$arch/$feed/$pkg" \
+        "$target"
+
+}
+
+cache_package_save() {
+
+    local arch="$1"
+    local feed="$2"
+    local pkg="$3"
+    local source="$4"
+
+    local dst="$DAYPASS_PACKAGE_CACHE/$arch/$feed/$pkg"
+
+    mkdir -p "$(dirname "$dst")"
+
+    cp -af "$source" "$dst"
 
 }
