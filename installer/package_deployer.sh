@@ -146,7 +146,7 @@ deploy_targeted_packages() {
             --arg pkg "$pkg" \
             --arg arch "$ARCH" \
             '
-            .architectures[]
+            .architectures[]theme
             | select(.name==$arch)
             | .packages[]
             | select(.package==$pkg)

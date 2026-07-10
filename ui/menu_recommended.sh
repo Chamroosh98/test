@@ -1,20 +1,13 @@
 #!/bin/sh
 
-handle_recommended_profile() {
 
-    while IFS= read -r pkg
-    do
-        [ -z "$pkg" ] && continue
+handle_recommended_profile()
+{
 
-        add_package "$pkg"
+    add_selected_package "luci-app-passwall2"
 
-    done <<EOF
-luci-app-passwall2
-xray-core
-sing-box
-geoview
-v2ray-geoip
-v2ray-geosite
-EOF
+    add_selected_package "xray-core"
+    add_selected_package "geoview"
+    add_selected_package "tcping"
 
 }
