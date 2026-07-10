@@ -4,6 +4,8 @@
 review_install()
 {
 
+resolve_packages
+
 echo
 
 echo "Selected Profile"
@@ -42,11 +44,12 @@ echo "Selected Packages"
 echo "-----------------"
 
 
-for pkg in $SELECTED_PACKAGES
+echo "Resolved Packages"
+echo "-----------------"
+
+for pkg in $FINAL_PACKAGES
 do
-
-echo "[+] $pkg"
-
+    echo "[+] $pkg"
 done
 
 
