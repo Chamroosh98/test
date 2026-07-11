@@ -57,7 +57,10 @@ for file in \
     "$DAYPASS_INSTALLER_DIR/package_resolver.sh" \
     "$DAYPASS_INSTALLER_DIR/package_deployer.sh"
 do
-    [ -f "$file" ] || continue
+    if [ ! -f "$file" ]; then
+        echo "Missing installer module: $file" >&2
+        exit 1
+    fi
 
     grep -v '^#!' "$file" >> "$output"
     printf '\n\n' >> "$output"
@@ -78,6 +81,10 @@ done
         printf '\n\n' >> "$output"
     done
 
+command -v resolve_packages >/dev/null || {
+    echo "ERROR: package resolver missing"
+    exit 1
+}
 
 ###############################################################################
 # Runtime
