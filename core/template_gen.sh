@@ -32,12 +32,15 @@ for file in \
     "$DAYPASS_INSTALLER_DIR/package_resolver.sh" \
     "$DAYPASS_INSTALLER_DIR/package_deployer.sh"
 do
-    [ -f "$file" ] || continue
 
-    grep -v '^#!' "$file" >> "$output"
-    printf '\n\n' >> "$output"
+    echo "$file"
+    ls -l "$file" || true
+    # [ -f "$file" ] || continue
+
+    # grep -v '^#!' "$file" >> "$output"
+    # printf '\n\n' >> "$output"
 done
-
+echo "========================="
 
 ###############################################################################
 # UI
@@ -78,7 +81,7 @@ done
         grep -v '^#!' "$file" >> "$output"
         printf '\n\n' >> "$output"
     done
-    
+
     echo "=== RESOLVER CHECK ==="
     grep -n "resolve_packages" "$output" || true
     echo "======================"

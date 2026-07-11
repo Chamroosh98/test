@@ -9,30 +9,30 @@ resolve_packages()
     add_final()
     {
 
-    pkg="$1"
+        pkg="$1"
 
-    [ -z "$pkg" ] && return
+        [ -z "$pkg" ] && return
 
 
-    case " $FINAL_PACKAGES " in
+        case " $FINAL_PACKAGES " in
 
-    *" $pkg "*)
-        ;;
+        *" $pkg "*)
+            ;;
 
-    *)
+        *)
 
-        FINAL_PACKAGES="$FINAL_PACKAGES $pkg"
+            FINAL_PACKAGES="$FINAL_PACKAGES $pkg"
 
-        ;;
+            ;;
 
-    esac
+        esac
 
-}
+    }
 
     for pkg in $SELECTED_PACKAGES
     do
 
-    add_final "$pkg"
+        add_final "$pkg"
 
     done
 
@@ -56,19 +56,19 @@ resolve_packages()
 
     xray)
 
-    add_final "xray-core"
+        add_final "xray-core"
 
     ;;
 
     sing-box)
 
-    add_final "sing-box"
+        add_final "sing-box"
 
     ;;
 
     auto)
 
-    add_final "xray-core"
+        add_final "xray-core"
 
     ;;
 
@@ -90,19 +90,19 @@ resolve_packages()
 
     fa)
 
-    add_final "luci-i18n-passwall2-fa"
+        add_final "luci-i18n-passwall2-fa"
 
     ;;
 
     zh-cn)
 
-    add_final "luci-i18n-passwall2-zh-cn"
+        add_final "luci-i18n-passwall2-zh-cn"
 
     ;;
 
     ru)
 
-    add_final "luci-i18n-passwall2-ru"
+        add_final "luci-i18n-passwall2-ru"
 
     ;;
 
@@ -116,12 +116,10 @@ resolve_packages()
 
     if [ "$SELECTED_GEO" = "official" ]; then
 
-    add_final "v2ray-geoip"
-    add_final "v2ray-geosite"
+        add_final "v2ray-geoip"
+        add_final "v2ray-geosite"
 
     fi
-
-
 
     export FINAL_PACKAGES
 
