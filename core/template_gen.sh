@@ -78,6 +78,10 @@ done
         grep -v '^#!' "$file" >> "$output"
         printf '\n\n' >> "$output"
     done
+    
+    echo "=== RESOLVER CHECK ==="
+    grep -n "resolve_packages" "$output" || true
+    echo "======================"
 
 ###############################################################################
 # Runtime
