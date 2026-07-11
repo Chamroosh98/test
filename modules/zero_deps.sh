@@ -10,6 +10,7 @@ deploy_system_dependencies() {
 
     REQUIRED_PACKAGES="\
 curl \
+jq \
 ca-bundle \
 ca-certificates"
 

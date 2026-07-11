@@ -1,6 +1,5 @@
 #!/bin/sh
 
-
 handle_recommended_profile()
 {
 

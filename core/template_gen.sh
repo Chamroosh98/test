@@ -26,11 +26,20 @@ EOF
 ###############################################################################
 
     for file in \
-        "$DAYPASS_UI_DIR/colors.sh" \
-        "$DAYPASS_UI_DIR/banner.sh" \
-        "$DAYPASS_UI_DIR/menu_recommended.sh" \
-        "$DAYPASS_UI_DIR/menu_custom.sh" \
-        "$DAYPASS_UI_DIR/menu_geo.sh"
+    "$DAYPASS_UI_DIR/colors.sh" \
+    "$DAYPASS_UI_DIR/banner.sh" \
+    "$DAYPASS_UI_DIR/state.sh" \
+    "$DAYPASS_UI_DIR/system_info.sh" \
+    "$DAYPASS_UI_DIR/progress.sh" \
+    "$DAYPASS_UI_DIR/engine_menu.sh" \
+    "$DAYPASS_UI_DIR/menu_recommended.sh" \
+    "$DAYPASS_UI_DIR/menu_custom.sh" \
+    "$DAYPASS_UI_DIR/menu_language.sh" \
+    "$DAYPASS_UI_DIR/menu_geo.sh" \
+    "$DAYPASS_UI_DIR/review.sh" \
+    "$DAYPASS_UI_DIR/menu_package.sh" \
+    "$DAYPASS_UI_DIR/menu.sh" \
+    "$DAYPASS_UI_DIR/installer_ui.sh"
     do
         [ -f "$file" ] || continue
 
@@ -85,48 +94,13 @@ check_version
 
 initialize_installer
 
-clear
-show_banner
-
-###############################################################################
-# Menu
-###############################################################################
-
-while true
-do
-
-    echo
-    echo "1) Recommended"
-    echo "2) Custom"
-    echo
-
-    printf "Select: "
-
-    read -r choice </dev/tty
-
-    case "$choice" in
-
-        1)
-
-            handle_recommended_profile
-            break
-            ;;
-
-        2)
-
-            handle_custom_profile
-            break
-            ;;
-
-    esac
-
-done
+start_ui
 
 ###############################################################################
 # Geo
 ###############################################################################
 
-show_geo_database_menu
+geo_menu
 
 ###############################################################################
 # Install

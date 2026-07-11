@@ -33,6 +33,11 @@ initialize_installer() {
         aarch64)
             ARCH="aarch64_generic"
             ;;
+            
+        *)
+            echo "Unsupported architecture: $ARCH"
+            exit 1
+            ;;
 
     esac
 }

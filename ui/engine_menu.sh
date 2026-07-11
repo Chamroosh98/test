@@ -1,79 +1,78 @@
 #!/bin/sh
 
-
 engine_menu()
 {
 
-echo
+    echo
 
-echo "Proxy Engine"
+    echo "Proxy Engine"
 
-echo "-------------"
+    echo "-------------"
 
-echo "1) Auto"
-echo "2) Xray"
-echo "3) Sing-box"
+    echo "1) Auto"
+    echo "2) Xray"
+    echo "3) Sing-box"
 
-printf "Choice: "
-read choice
-
-
-case "$choice" in
-
-1)
-
-SELECTED_ENGINE="auto"
-
-;;
-
-2)
-
-SELECTED_ENGINE="xray"
-
-add_selected_package "xray-core"
-
-;;
-
-3)
-
-SELECTED_ENGINE="sing-box"
-
-echo
-echo "WARNING:"
-echo "Sing-box may consume more RAM on low-end devices."
-echo
-
-printf "Continue? [y/N]: "
-read confirm
+    printf "Choice: "
+    read choice
 
 
-case "$confirm" in
+    case "$choice" in
 
-y|Y)
+    1)
 
-add_selected_package "sing-box"
+    SELECTED_ENGINE="auto"
 
-;;
+    ;;
 
-*)
+    2)
 
-SELECTED_ENGINE="auto"
+    SELECTED_ENGINE="xray"
 
-;;
+    add_selected_package "xray-core"
 
-esac
+    ;;
 
-;;
+    3)
 
-*)
+    SELECTED_ENGINE="sing-box"
 
-SELECTED_ENGINE="auto"
+    echo
+    echo "WARNING:"
+    echo "Sing-box may consume more RAM on low-end devices."
+    echo
 
-;;
+    printf "Continue? [y/N]: "
+    read confirm
 
-esac
+
+    case "$confirm" in
+
+    y|Y)
+
+    add_selected_package "sing-box"
+
+    ;;
+
+    *)
+
+    SELECTED_ENGINE="auto"
+
+    ;;
+
+    esac
+
+    ;;
+
+    *)
+
+    SELECTED_ENGINE="auto"
+
+    ;;
+
+    esac
 
 
-export SELECTED_ENGINE
+    export SELECTED_ENGINE
 
 }

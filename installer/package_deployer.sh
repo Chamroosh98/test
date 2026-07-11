@@ -146,7 +146,7 @@ deploy_targeted_packages() {
             --arg pkg "$pkg" \
             --arg arch "$ARCH" \
             '
-            .architectures[]theme
+            .architectures[]
             | select(.name==$arch)
             | .packages[]
             | select(.package==$pkg)
@@ -163,7 +163,6 @@ deploy_targeted_packages() {
             DEPLOYMENT_FAILED=1
 
         fi
-
 
     done
 
