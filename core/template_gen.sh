@@ -79,11 +79,6 @@ done
         printf '\n\n' >> "$output"
     done
 
-command -v resolve_packages >/dev/null || {
-    echo "ERROR: package resolver missing"
-    exit 1
-}
-
 ###############################################################################
 # Runtime
 ###############################################################################
