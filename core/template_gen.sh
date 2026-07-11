@@ -23,6 +23,23 @@ EOF
 
 
 ###############################################################################
+# Installer
+###############################################################################
+
+for file in \
+    "$DAYPASS_INSTALLER_DIR/package_manager.sh" \
+    "$DAYPASS_INSTALLER_DIR/install_core.sh" \
+    "$DAYPASS_INSTALLER_DIR/package_resolver.sh" \
+    "$DAYPASS_INSTALLER_DIR/package_deployer.sh"
+do
+    [ -f "$file" ] || continue
+
+    grep -v '^#!' "$file" >> "$output"
+    printf '\n\n' >> "$output"
+done
+
+
+###############################################################################
 # UI
 ###############################################################################
 
@@ -37,30 +54,11 @@ for file in \
     "$DAYPASS_UI_DIR/menu_custom.sh" \
     "$DAYPASS_UI_DIR/menu_language.sh" \
     "$DAYPASS_UI_DIR/menu_geo.sh" \
+    "$DAYPASS_UI_DIR/review.sh" \
     "$DAYPASS_UI_DIR/menu_package.sh" \
-    "$DAYPASS_UI_DIR/menu.sh" \
-    "$DAYPASS_UI_DIR/review.sh"
+    "$DAYPASS_UI_DIR/menu.sh"
 do
     [ -f "$file" ] || continue
-
-    grep -v '^#!' "$file" >> "$output"
-    printf '\n\n' >> "$output"
-done
-
-###############################################################################
-# Installer
-###############################################################################
-
-for file in \
-    "$DAYPASS_INSTALLER_DIR/package_manager.sh" \
-    "$DAYPASS_INSTALLER_DIR/install_core.sh" \
-    "$DAYPASS_INSTALLER_DIR/package_resolver.sh" \
-    "$DAYPASS_INSTALLER_DIR/package_deployer.sh"
-do
-    if [ ! -f "$file" ]; then
-        echo "Missing installer module: $file" >&2
-        exit 1
-    fi
 
     grep -v '^#!' "$file" >> "$output"
     printf '\n\n' >> "$output"
