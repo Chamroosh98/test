@@ -1,30 +1,28 @@
 #!/bin/sh
 
-
 handle_custom_profile()
 {
 
-clear
+    clear
 
-show_banner
-
-
-echo
-echo "Enter package names separated by spaces."
-echo
+    show_banner
 
 
-printf "> "
+    echo
+    echo "Enter package names separated by spaces."
+    echo
 
-read -r packages </dev/tty
+
+    printf "> "
+
+    read -r packages </dev/tty
 
 
-for pkg in $packages
-do
+    for pkg in $packages
+    do
 
-    add_selected_package "$pkg"
+        add_selected_package "$pkg"
 
-done
-
+    done
 
 }

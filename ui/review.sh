@@ -1,76 +1,75 @@
 #!/bin/sh
 
-
 review_install()
 {
 
-resolve_packages
+    resolve_packages
 
-echo
+    echo
 
-echo "Selected Profile"
-echo "----------------"
+    echo "Selected Profile"
+    echo "----------------"
 
-echo "$SELECTED_PROFILE"
-
-
-echo
-
-echo "Selected Engine"
-echo "---------------"
-
-echo "${SELECTED_ENGINE:-auto}"
+    echo "$SELECTED_PROFILE"
 
 
-echo
+    echo
 
-echo "Language"
-echo "--------"
+    echo "Selected Engine"
+    echo "---------------"
 
-echo "${SELECTED_LANGUAGE:-none}"
-
-
-echo
-
-echo "Geo Database"
-echo "------------"
-
-echo "${SELECTED_GEO:-none}"
+    echo "${SELECTED_ENGINE:-auto}"
 
 
-echo
+    echo
 
-echo "Selected Packages"
-echo "-----------------"
+    echo "Language"
+    echo "--------"
 
-
-echo "Resolved Packages"
-echo "-----------------"
-
-for pkg in $FINAL_PACKAGES
-do
-    echo "[+] $pkg"
-done
+    echo "${SELECTED_LANGUAGE:-none}"
 
 
-echo
+    echo
 
-printf "Continue? [y/N]: "
-read confirm
+    echo "Geo Database"
+    echo "------------"
+
+    echo "${SELECTED_GEO:-none}"
 
 
-case "$confirm" in
+    echo
 
-y|Y)
-    return 0
-    ;;
+    echo "Selected Packages"
+    echo "-----------------"
 
-*)
 
-    exit 0
+    echo "Resolved Packages"
+    echo "-----------------"
 
-    ;;
+    for pkg in $FINAL_PACKAGES
+    do
+        echo "[+] $pkg"
+    done
 
-esac
+
+    echo
+
+    printf "Continue? [y/N]: "
+    read confirm
+
+
+    case "$confirm" in
+
+    y|Y)
+        return 0
+        ;;
+
+    *)
+
+        exit 0
+
+        ;;
+
+    esac
 
 }

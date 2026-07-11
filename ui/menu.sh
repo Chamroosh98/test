@@ -1,54 +1,53 @@
 #!/bin/sh
 
-
 main_menu()
 {
 
-while true
-do
+    while true
+    do
 
-clear
+    clear
 
-show_banner
+    show_banner
 
-show_system_info
-
-
-echo
-echo "1) Install Package"
-echo "2) Exit"
-echo
+    show_system_info
 
 
-printf "Choice: "
-read choice
+    echo
+    echo "1) Install Package"
+    echo "2) Exit"
+    echo
 
 
-case "$choice" in
-
-1)
-
-    package_menu
-
-    ;;
-
-2)
-
-    exit 0
-
-    ;;
-
-*)
-
-    echo "Invalid choice"
-
-    sleep 1
-
-    ;;
-
-esac
+    printf "Choice: "
+    read choice
 
 
-done
+    case "$choice" in
+
+    1)
+
+        package_menu
+
+        ;;
+
+    2)
+
+        exit 0
+
+        ;;
+
+    *)
+
+        echo "Invalid choice"
+
+        sleep 1
+
+        ;;
+
+    esac
+
+
+    done
 
 }

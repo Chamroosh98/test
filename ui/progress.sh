@@ -4,63 +4,61 @@
 show_progress()
 {
 
-title="$1"
-current="$2"
-total="$3"
+    title="$1"
+    current="$2"
+    total="$3"
 
 
-[ "$total" -eq 0 ] && return
+    [ "$total" -eq 0 ] && return
 
 
-percent=$((current * 100 / total))
+    percent=$((current * 100 / total))
 
 
-printf "\r%s [%s%%] (%s/%s)" \
-"$title" \
-"$percent" \
-"$current" \
-"$total"
+    printf "\r%s [%s%%] (%s/%s)" \
+    "$title" \
+    "$percent" \
+    "$current" \
+    "$total"
 
 
-[ "$current" -eq "$total" ] && echo
+    [ "$current" -eq "$total" ] && echo
 
 }
-
-
 
 log_step()
 {
 
-status="$1"
-message="$2"
+    status="$1"
+    message="$2"
 
 
-case "$status" in
+    case "$status" in
 
-ok)
+    ok)
 
-printf "[ OK ] %s\n" "$message"
+    printf "[ OK ] %s\n" "$message"
 
-;;
+    ;;
 
-fail)
+    fail)
 
-printf "[FAIL] %s\n" "$message"
+    printf "[FAIL] %s\n" "$message"
 
-;;
+    ;;
 
-warn)
+    warn)
 
-printf "[WARN] %s\n" "$message"
+    printf "[WARN] %s\n" "$message"
 
-;;
+    ;;
 
-*)
+    *)
 
-printf "[INFO] %s\n" "$message"
+    printf "[INFO] %s\n" "$message"
 
-;;
+    ;;
 
-esac
+    esac
 
 }

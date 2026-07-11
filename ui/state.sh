@@ -16,23 +16,23 @@ GEOSITE_URL=""
 add_selected_package()
 {
 
-pkg="$1"
+    pkg="$1"
 
-[ -z "$pkg" ] && return
+    [ -z "$pkg" ] && return
 
 
-case " $SELECTED_PACKAGES " in
+    case " $SELECTED_PACKAGES " in
 
-*" $pkg "*)
-    ;;
+    *" $pkg "*)
+        ;;
 
-*)
+    *)
 
-    SELECTED_PACKAGES="$SELECTED_PACKAGES $pkg"
+        SELECTED_PACKAGES="$SELECTED_PACKAGES $pkg"
 
-    ;;
+        ;;
 
-esac
+    esac
 
 }
 
@@ -40,14 +40,14 @@ esac
 reset_state()
 {
 
-SELECTED_PROFILE=""
-SELECTED_ENGINE="auto"
-SELECTED_LANGUAGE="none"
-SELECTED_GEO="none"
+    SELECTED_PROFILE=""
+    SELECTED_ENGINE="auto"
+    SELECTED_LANGUAGE="none"
+    SELECTED_GEO="none"
 
-SELECTED_PACKAGES=""
+    SELECTED_PACKAGES=""
 
-GEOIP_URL=""
-GEOSITE_URL=""
+    GEOIP_URL=""
+    GEOSITE_URL=""
 
 }
