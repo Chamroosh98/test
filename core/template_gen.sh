@@ -29,18 +29,18 @@ EOF
 for file in \
     "$DAYPASS_INSTALLER_DIR/package_manager.sh" \
     "$DAYPASS_INSTALLER_DIR/install_core.sh" \
-    "$DAYPASS_INSTALLER_DIR/package_resolver.sh" \
+    "$DAYPASS_ROOT/core/package_resolver.sh" \
     "$DAYPASS_INSTALLER_DIR/package_deployer.sh"
 do
 
-    echo "$file"
-    ls -l "$file" || true
-    # [ -f "$file" ] || continue
+    # echo "$file"
+    # ls -l "$file" || true
+    [ -f "$file" ] || continue
 
-    # grep -v '^#!' "$file" >> "$output"
-    # printf '\n\n' >> "$output"
+    grep -v '^#!' "$file" >> "$output"
+    printf '\n\n' >> "$output"
 done
-echo "========================="
+# echo "========================="
 
 ###############################################################################
 # UI
