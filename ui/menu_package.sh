@@ -14,7 +14,7 @@ package_menu()
     echo "2) Passwall2"
 
     printf "Choice: "
-    read choice
+    read -r choice </dev/tty
 
 
     case "$choice" in

@@ -14,7 +14,7 @@ language_menu()
     echo "4) Russian"
 
     printf "Choice: "
-    read choice
+    read -r choice </dev/tty
 
 
     case "$choice" in

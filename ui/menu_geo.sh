@@ -13,7 +13,7 @@ geo_menu()
     echo "4) Iran Lite"
 
     printf "Choice: "
-    read choice
+    read -r choice </dev/tty
 
 
     GEOIP_URL=""

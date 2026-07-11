@@ -55,7 +55,7 @@ review_install()
     echo
 
     printf "Continue? [y/N]: "
-    read confirm
+    read -r confirm </dev/tty
 
 
     case "$confirm" in

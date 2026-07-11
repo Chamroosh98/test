@@ -20,7 +20,7 @@ main_menu()
 
 
     printf "Choice: "
-    read choice
+    read -r choice </dev/tty
 
 
     case "$choice" in
