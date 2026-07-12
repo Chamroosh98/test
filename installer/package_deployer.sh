@@ -18,13 +18,34 @@ manifest_lookup()
 | select(.name==$arch)
 | .packages[]
 | select(
-    .package==$pkg
-    or (.package | startswith($pkg + "-"))
+    (.package == $pkg)
+    or
+    (.package | startswith($pkg + "-"))
 )
 | .[$field]
 ' \
-"$MANIFEST_FILE"
+"$MANIFEST_FILE" | head -n1
 }
+
+
+
+manifest_info()
+{
+    package="$1"
+
+    jq -r \
+        --arg pkg "$package" \
+        --arg arch "$ARCH" \
+'
+.architectures[]
+| select(.name==$arch)
+| .packages[]
+| select(.package | startswith($pkg))
+| "\(.package) | \(.size) bytes"
+' \
+"$MANIFEST_FILE" | head -n1
+}
+
 
 
 download_package()
@@ -55,9 +76,12 @@ download_package()
 
 
     echo
-    echo "[INFO] Package : $package"
+    echo "[INFO] Package : $(manifest_info "$package")"
     echo "[INFO] File    : $file"
     echo "[INFO] URL     : $REPO_URL/$ARCH/$file"
+
+
+    echo "[INFO] Downloading $package"
 
 
     if ! curl -fsSL \
@@ -128,6 +152,7 @@ install_package()
             INSTALLED_PACKAGES="$INSTALLED_PACKAGES $pkg"
 
             return 0
+
         fi
 
         ;;
@@ -142,6 +167,7 @@ install_package()
             INSTALLED_PACKAGES="$INSTALLED_PACKAGES $pkg"
 
             return 0
+
         fi
 
         ;;
@@ -184,6 +210,17 @@ deploy_targeted_packages()
 
 
         file=$(manifest_lookup "file" "$pkg")
+
+
+        if [ -z "$file" ] || [ "$file" = "null" ]; then
+
+            echo "[ERROR] File lookup failed: $pkg"
+
+            rollback_failed_install
+
+            return 1
+
+        fi
 
 
         if ! install_package "$TMP_DIR/$file"
