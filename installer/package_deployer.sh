@@ -3,53 +3,47 @@
 INSTALL_LOG="/tmp/daypass/install.log"
 INSTALLED_PACKAGES=""
 
-SELECTED_PACKAGES=""
-
-add_package() {
-
-    [ -z "$1" ] && return
-
-    case " $SELECTED_PACKAGES " in
-        *" $1 "*) ;;
-        *)
-            SELECTED_PACKAGES="$SELECTED_PACKAGES $1"
-            ;;
-    esac
-}
 
 
 download_package() {
 
     package="$1"
 
+
     file=$(jq -r \
         --arg pkg "$package" \
         --arg arch "$ARCH" \
-        '
-        .architectures[]
-        | select(.name==$arch)
-        | .packages[]
-        | select(.package==$pkg)
-        | .file
-        ' \
-        "$MANIFEST_FILE")
+'
+.architectures[]
+| select(.name==$arch)
+| .packages[]
+| select(.package|startswith($pkg))
+| .file
+' \
+"$MANIFEST_FILE")
 
 
     sha256=$(jq -r \
         --arg pkg "$package" \
         --arg arch "$ARCH" \
-        '
-        .architectures[]
-        | select(.name==$arch)
-        | .packages[]
-        | select(.package==$pkg)
-        | .sha256
-        ' \
-        "$MANIFEST_FILE")
+'
+.architectures[]
+| select(.name==$arch)
+| .packages[]
+| select(.package|startswith($pkg))
+| .sha256
+' \
+"$MANIFEST_FILE")
 
 
-    [ -z "$file" ] && return 1
-    [ "$file" = "null" ] && return 1
+    if [ -z "$file" ] || [ "$file" = "null" ]; then
+
+        echo "[ERROR] Package not found in manifest: $package"
+
+        return 1
+
+    fi
+
 
 
     target="$TMP_DIR/$file"
@@ -59,77 +53,125 @@ download_package() {
     mkdir -p "$(dirname "$target")"
 
 
-    echo "Downloading $package ..."
+    echo
+    echo "[INFO] Package : $package"
+    echo "[INFO] File    : $file"
+    echo "[INFO] URL     : $REPO_URL/$ARCH/$file"
 
 
-    curl -fsSL \
+    echo "[INFO] Downloading $package"
+
+
+    if ! curl -fsSL \
         "$REPO_URL/$ARCH/$file" \
-        -o "$tmp" || return 1
+        -o "$tmp"
+    then
 
-
-    echo "$sha256  $tmp" | sha256sum -c - || {
-
-        echo "Checksum failed: $package"
+        echo "[ERROR] Download failed"
 
         rm -f "$tmp"
 
         return 1
-    }
+
+    fi
+
+
+
+    if ! echo "$sha256  $tmp" | sha256sum -c -
+    then
+
+        echo "[ERROR] Checksum failed: $package"
+
+        rm -f "$tmp"
+
+        return 1
+
+    fi
+
 
 
     mv "$tmp" "$target"
 
 
-    echo "Verified: $package"
+    echo "[ OK ] Verified $package"
+
 
 }
+
 
 
 install_package() {
 
     file="$1"
+
     pkg="$(basename "$file")"
+
+
+    echo "[INFO] Installing $pkg"
+
 
     case "$PKG_MANAGER" in
 
-        opkg)
 
-            if opkg install "$file"; then
-                echo "$pkg" >> "$INSTALL_LOG"
-                INSTALLED_PACKAGES="$INSTALLED_PACKAGES $pkg"
-                return 0
-            fi
-            ;;
+    opkg)
 
-        apk)
+        if opkg install "$file"
+        then
 
-            if apk add --allow-untrusted "$file"; then
-                echo "$pkg" >> "$INSTALL_LOG"
-                INSTALLED_PACKAGES="$INSTALLED_PACKAGES $pkg"
-                return 0
-            fi
-            ;;
+            echo "$pkg" >> "$INSTALL_LOG"
+
+            INSTALLED_PACKAGES="$INSTALLED_PACKAGES $pkg"
+
+            return 0
+
+        fi
+
+        ;;
+
+
+
+    apk)
+
+        if apk add --allow-untrusted "$file"
+        then
+
+            echo "$pkg" >> "$INSTALL_LOG"
+
+            INSTALLED_PACKAGES="$INSTALLED_PACKAGES $pkg"
+
+            return 0
+
+        fi
+
+        ;;
+
 
     esac
 
 
     return 1
+
 }
+
+
 
 
 deploy_targeted_packages() {
 
+
     mkdir -p "$(dirname "$INSTALL_LOG")"
+
     touch "$INSTALL_LOG"
+
 
     echo
     echo "Starting installation..."
     echo
 
-    for pkg in $SELECTED_PACKAGES
-    do
 
-        echo "[INFO] Installing $pkg"
+
+    for pkg in $FINAL_PACKAGES
+    do
 
 
         if ! download_package "$pkg"
@@ -137,65 +179,88 @@ deploy_targeted_packages() {
 
             echo "[ERROR] Download failed: $pkg"
 
-            DEPLOYMENT_FAILED=1
             rollback_failed_install
-            break
 
-            continue
+            return 1
 
         fi
+
 
 
         file=$(jq -r \
             --arg pkg "$pkg" \
             --arg arch "$ARCH" \
-            '
-            .architectures[]
-            | select(.name==$arch)
-            | .packages[]
-            | select(.package==$pkg)
-            | .file
-            ' \
-            "$MANIFEST_FILE")
+'
+.architectures[]
+| select(.name==$arch)
+| .packages[]
+| select(.package|startswith($pkg))
+| .file
+' \
+"$MANIFEST_FILE")
 
-        echo "[ OK ] Installed $pkg"
-        
+
+
         if ! install_package "$TMP_DIR/$file"
         then
 
             echo "[ERROR] Install failed: $pkg"
 
-            DEPLOYMENT_FAILED=1
+            rollback_failed_install
+
+            return 1
 
         fi
 
+
+        echo "[ OK ] Installed $pkg"
+
+
     done
+
+
+
+    return 0
 
 }
 
+
+
+
 rollback_failed_install() {
 
+
+    echo
     echo "Rolling back..."
+    echo
+
 
     case "$PKG_MANAGER" in
 
-        opkg)
 
-            for pkg in $INSTALLED_PACKAGES
-            do
-                opkg remove "$pkg" || true
-            done
+    opkg)
 
-            ;;
+        for pkg in $INSTALLED_PACKAGES
+        do
 
-        apk)
+            opkg remove "$pkg" || true
 
-            for pkg in $INSTALLED_PACKAGES
-            do
-                apk del "$pkg" || true
-            done
+        done
 
-            ;;
+        ;;
+
+
+    apk)
+
+        for pkg in $INSTALLED_PACKAGES
+        do
+
+            apk del "$pkg" || true
+
+        done
+
+        ;;
+
 
     esac
 

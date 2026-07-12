@@ -13,7 +13,7 @@ engine_menu()
     echo "2) Xray"
     echo "3) Sing-box"
 
-    printf "Choice: "
+    printf "Choice : "
     read -r choice </dev/tty
 
 
