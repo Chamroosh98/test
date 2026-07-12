@@ -19,13 +19,12 @@ manifest_lookup()
 | .packages[]
 | select(
     .package==$pkg
-    or (.package | startswith($pkg"-"))
+    or (.package | startswith($pkg + "-"))
 )
 | .[$field]
 ' \
 "$MANIFEST_FILE"
 }
-
 
 
 download_package()
