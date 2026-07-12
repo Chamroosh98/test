@@ -16,19 +16,19 @@ RESET="\033[0m"
 
 ok()
 {
-    echo -e "${GREEN}[ OK ]${RESET} $1"
+    printf "${GREEN}[ OK ]${RESET} %s\n" "$1"
 }
 
 
 fail()
 {
-    echo -e "${RED}[FAIL]${RESET} $1"
+    printf "${RED}[FAIL]${RESET} %s\n" "$1"
 }
 
 
 info()
 {
-    echo -e "${CYAN}[INFO]${RESET} $1"
+    printf "${CYAN}[INFO]${RESET} %s\n" "$1"
 }
 
 
@@ -38,9 +38,125 @@ line()
 }
 
 
+is_openwrt()
+{
+    [ -f /etc/openwrt_release ]
+}
+
+
+backup_network()
+{
+    mkdir -p /tmp/daypass
+
+    if is_openwrt
+    then
+        cp /etc/config/network \
+        /tmp/daypass/network.backup
+
+        ok "Network backup created"
+    fi
+}
+
+
+get_current_dns()
+{
+    echo
+    info "Current DNS"
+
+    if is_openwrt
+    then
+        uci get network.lan.dns 2>/dev/null || echo "default"
+    else
+        cat /etc/resolv.conf
+    fi
+}
+
+
+apply_dns()
+{
+
+    if ! is_openwrt
+    then
+        fail "Automatic DNS fix only supports OpenWrt"
+        return 1
+    fi
+
+
+    info "Applying DNS"
+
+    uci set network.lan.peerdns='0'
+
+    uci set network.lan.dns='1.1.1.1 8.8.8.8 1.0.0.1 8.8.4.4'
+
+    uci commit network
+
+
+    /etc/init.d/network restart
+
+
+    ok "DNS updated"
+
+}
+
+
+
+dns_fix_menu()
+{
+
+    echo
+    echo "DNS Fix"
+    echo "-------"
+
+    get_current_dns
+
+    echo
+
+    echo "Recommended:"
+    echo " Cloudflare:"
+    echo "   1.1.1.1"
+    echo "   1.0.0.1"
+
+    echo
+
+    echo " Google:"
+    echo "   8.8.8.8"
+    echo "   8.8.4.4"
+
+    echo
+
+
+    printf "Apply DNS fix? [y/N]: "
+
+    read -r answer </dev/tty
+
+
+    case "$answer" in
+
+        y|Y)
+
+            backup_network
+
+            apply_dns
+
+            ;;
+
+
+        *)
+
+            info "DNS fix skipped"
+
+            ;;
+
+    esac
+
+}
+
+
+
 check_ping()
 {
     host="$1"
+
 
     if ping -c 2 -W 2 "$host" >/dev/null 2>&1
     then
@@ -60,7 +176,9 @@ check_https()
     url="$2"
 
 
-    if curl -fsSI --connect-timeout 5 "$url" >/dev/null 2>&1
+    if curl -fsSI \
+        --connect-timeout 5 \
+        "$url" >/dev/null 2>&1
     then
         ok "HTTPS $name"
         return 0
@@ -85,33 +203,6 @@ check_dns()
         fail "DNS $host"
         return 1
     fi
-
-}
-
-
-
-suggest_dns()
-{
-
-    echo
-
-    echo -e "${YELLOW}DNS Problem detected${RESET}"
-
-    echo
-    echo "Recommended DNS:"
-    echo "  1.1.1.1"
-    echo "  1.0.0.1"
-    echo
-
-    echo "You can set it using:"
-    echo
-
-    echo "uci set network.lan.dns='1.1.1.1 1.0.0.1'"
-    echo "uci commit network"
-    echo "service network restart"
-
-    echo
-
 }
 
 
@@ -126,42 +217,42 @@ network_check()
     echo
 
 
-    FAILED=0
+    DNS_FAILED=0
 
 
     info "Checking DNS..."
 
-    check_dns google.com || FAILED=1
-    check_dns github.com || FAILED=1
-    check_dns cloudflare.com || FAILED=1
-    check_dns openwrt.org || FAILED=1
+    check_dns google.com || DNS_FAILED=1
+    check_dns github.com || DNS_FAILED=1
+    check_dns cloudflare.com || DNS_FAILED=1
+    check_dns openwrt.org || DNS_FAILED=1
 
 
     echo
 
     info "Checking connectivity..."
 
-    check_ping google.com || FAILED=1
-    check_ping github.com || FAILED=1
-    check_ping cloudflare.com || FAILED=1
-    check_ping openwrt.org || FAILED=1
+    check_ping google.com
+    check_ping github.com
+    check_ping cloudflare.com
+    check_ping openwrt.org
 
 
     echo
 
     info "Checking HTTPS..."
 
-    check_https "Google" "https://google.com" || FAILED=1
-    check_https "GitHub" "https://github.com" || FAILED=1
-    check_https "Cloudflare" "https://cloudflare.com" || FAILED=1
-    check_https "OpenWrt" "https://openwrt.org" || FAILED=1
+    check_https "Google" "https://google.com"
+    check_https "GitHub" "https://github.com"
+    check_https "Cloudflare" "https://cloudflare.com"
+    check_https "OpenWrt" "https://openwrt.org"
 
 
     echo
     line
 
 
-    if [ "$FAILED" -eq 0 ]
+    if [ "$DNS_FAILED" -eq 0 ]
     then
 
         ok "Network looks good"
@@ -171,16 +262,19 @@ network_check()
     fi
 
 
-
-    fail "Network problems detected"
+    fail "DNS problems detected"
 
 
     if check_ping cloudflare.com
     then
-        suggest_dns
+        dns_fix_menu
     fi
 
 
-    return 1
+    echo
+
+    info "Continuing DayPass..."
+
+    return 0
 
 }
