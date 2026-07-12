@@ -1,5 +1,6 @@
 #!/bin/sh
 
+
 deploy_system_dependencies()
 {
 
@@ -49,33 +50,68 @@ ca-certificates"
         echo
         echo "Checking dnsmasq..."
 
-        if opkg list-installed | grep -q "^dnsmasq "
-        then
 
-            echo "[INFO] Removing dnsmasq..."
-
-            opkg remove dnsmasq
-
-        fi
+        case "$PKG_MANAGER" in
 
 
+        opkg)
 
-        if ! opkg list-installed | grep -q "^dnsmasq-full "
-        then
+            if opkg list-installed | grep -q "^dnsmasq "
+            then
 
-            echo "[INFO] Installing dnsmasq-full..."
+                echo "[INFO] Removing dnsmasq..."
 
-            opkg update
+                pkg_remove dnsmasq
 
-            opkg install dnsmasq-full
+            fi
 
-        else
 
-            echo "[ OK ] dnsmasq-full already installed"
+            if ! pkg_installed dnsmasq-full
+            then
 
-        fi
+                echo "[INFO] Installing dnsmasq-full..."
+
+                pkg_install dnsmasq-full
+
+            else
+
+                echo "[ OK ] dnsmasq-full already installed"
+
+            fi
+
+        ;;
+
+
+        apk)
+
+            if apk info -e dnsmasq >/dev/null 2>&1
+            then
+
+                echo "[INFO] Removing dnsmasq..."
+
+                pkg_remove dnsmasq
+
+            fi
+
+
+            if ! pkg_installed dnsmasq-full
+            then
+
+                echo "[INFO] Installing dnsmasq-full..."
+
+                pkg_install dnsmasq-full
+
+            else
+
+                echo "[ OK ] dnsmasq-full already installed"
+
+            fi
+
+        ;;
+
+
+        esac
 
     fi
-
 
 }
