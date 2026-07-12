@@ -202,7 +202,6 @@ install_package()
 }
 
 
-
 deploy_targeted_packages()
 {
 
@@ -214,6 +213,9 @@ deploy_targeted_packages()
     echo
     echo "Starting installation..."
     echo
+
+
+    INSTALL_FILES=""
 
 
     for pkg in $FINAL_PACKAGES
@@ -234,70 +236,59 @@ deploy_targeted_packages()
         file=$(manifest_lookup "file" "$pkg")
 
 
-        if [ -z "$file" ] || [ "$file" = "null" ]; then
-
-            echo "[ERROR] File lookup failed: $pkg"
-
-            rollback_failed_install
-
-            return 1
-
-        fi
-
-
-        if ! install_package "$TMP_DIR/$file"
-        then
-
-            echo "[ERROR] Install failed: $pkg"
-
-            rollback_failed_install
-
-            return 1
-
-        fi
-
-
-        echo "[ OK ] Installed $pkg"
-
+        INSTALL_FILES="$INSTALL_FILES $TMP_DIR/$file"
 
     done
 
 
-    return 0
-
-}
-
-
-
-rollback_failed_install()
-{
 
     echo
-    echo "Rolling back..."
+    echo "[INFO] Installing packages:"
+    echo "$INSTALL_FILES"
     echo
+
 
 
     case "$PKG_MANAGER" in
 
-    opkg)
-
-        for pkg in $INSTALLED_PACKAGES
-        do
-            opkg remove "$pkg" || true
-        done
-
-        ;;
-
 
     apk)
 
-        for pkg in $INSTALLED_PACKAGES
-        do
-            apk del "$pkg" || true
-        done
+        if apk add --allow-untrusted $INSTALL_FILES
+        then
 
-        ;;
+            echo "$FINAL_PACKAGES" >> "$INSTALL_LOG"
+
+            return 0
+
+        fi
+
+    ;;
+
+
+
+    opkg)
+
+        if opkg install $INSTALL_FILES
+        then
+
+            echo "$FINAL_PACKAGES" >> "$INSTALL_LOG"
+
+            return 0
+
+        fi
+
+    ;;
+
 
     esac
+
+
+
+    echo "[ERROR] Installation failed"
+
+    rollback_failed_install
+
+    return 1
 
 }
