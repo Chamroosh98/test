@@ -29,8 +29,8 @@ EOF
 for file in \
     "$DAYPASS_INSTALLER_DIR/package_manager.sh" \
     "$DAYPASS_INSTALLER_DIR/install_core.sh" \
-    "$DAYPASS_ROOT/core/package_resolver.sh" \
-    "$DAYPASS_INSTALLER_DIR/package_deployer.sh"
+    "$DAYPASS_INSTALLER_DIR/package_deployer.sh" \
+    "$DAYPASS_ROOT/core/package_resolver.sh" 
 do
 
     # echo "$file"
@@ -82,9 +82,9 @@ done
         printf '\n\n' >> "$output"
     done
 
-    echo "=== RESOLVER CHECK ==="
-    grep -n "resolve_packages" "$output" || true
-    echo "======================"
+    echo "=== RESOLVER CONTENT CHECK ==="
+    grep -A80 "^resolve_packages()" "$output" || true
+    echo "=============================="
 
 ###############################################################################
 # Runtime
@@ -102,9 +102,9 @@ deploy_system_dependencies
 
 check_version
 
-initialize_installer
-
 detect_arch
+
+initialize_installer
 
 ###############################################################################
 # UI Start
