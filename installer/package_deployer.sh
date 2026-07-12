@@ -53,6 +53,28 @@ download_package()
 
     package="$1"
 
+    # DEBUG
+    echo "=== DEBUG PACKAGE LOOKUP ==="
+    echo "PACKAGE: $package"
+    echo "ARCH: $ARCH"
+    echo "MANIFEST: $MANIFEST_FILE"
+
+    echo "--- MATCHES ---"
+
+    jq -r \
+        --arg arch "$ARCH" \
+        --arg pkg "$package" \
+    '
+    .architectures[]
+    | select(.name==$arch)
+    | .packages[]
+    | select(.package | contains($pkg))
+    | .package
+    ' \
+    "$MANIFEST_FILE"
+
+    echo "==========================="
+
 
     file=$(manifest_lookup "file" "$package")
 
