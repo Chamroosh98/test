@@ -122,16 +122,20 @@ deploy_targeted_packages() {
     mkdir -p "$(dirname "$INSTALL_LOG")"
     touch "$INSTALL_LOG"
 
+    echo
+    echo "Starting installation..."
+    echo
+
     for pkg in $SELECTED_PACKAGES
     do
 
-        echo "Installing: $pkg"
+        echo "[INFO] Installing $pkg"
 
 
         if ! download_package "$pkg"
         then
 
-            echo "Download failed: $pkg"
+            echo "[ERROR] Download failed: $pkg"
 
             DEPLOYMENT_FAILED=1
             rollback_failed_install
@@ -154,11 +158,12 @@ deploy_targeted_packages() {
             ' \
             "$MANIFEST_FILE")
 
-
+        echo "[ OK ] Installed $pkg"
+        
         if ! install_package "$TMP_DIR/$file"
         then
 
-            echo "Install failed: $pkg"
+            echo "[ERROR] Install failed: $pkg"
 
             DEPLOYMENT_FAILED=1
 

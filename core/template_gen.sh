@@ -59,7 +59,7 @@ for file in \
     "$DAYPASS_UI_DIR/menu_geo.sh" \
     "$DAYPASS_UI_DIR/review.sh" \
     "$DAYPASS_UI_DIR/menu_package.sh" \
-    "$DAYPASS_UI_DIR/menu.sh"
+    "$DAYPASS_UI_DIR/main_menu.sh"
 do
     [ -f "$file" ] || continue
 

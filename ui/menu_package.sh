@@ -10,8 +10,8 @@ package_menu()
     echo "Package Type"
     echo
 
-    echo "1) Passwall"
-    echo "2) Passwall2"
+    echo "1) Passwall-1"
+    echo "2) Passwall-2"
 
     printf "Choice: "
     read -r choice </dev/tty
@@ -54,7 +54,13 @@ package_menu()
 
     geo_menu
 
+    review_install || return 1
 
-    review_install
+    deploy_targeted_packages
+
+    echo
+    echo "Installation completed :)"
+
+    return 0
 
 }
