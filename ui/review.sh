@@ -42,33 +42,28 @@ review_install()
     echo "Selected Packages"
     echo "-----------------"
 
-
     echo "Resolved Packages"
     echo "-----------------"
 
     for pkg in $FINAL_PACKAGES
-    do
-        echo "[+] $pkg"
-    done
-
+        do
+            echo "[+] $pkg"
+        done
 
     echo
 
     printf "Continue? [y/N]: "
     read -r confirm </dev/tty
 
-
     case "$confirm" in
 
-    y|Y)
-        return 0
-        ;;
+        y|Y)
+            return 0
+            ;;
 
-    *)
-
-        exit 0
-
-        ;;
+        *)
+            exit 0
+            ;;
 
     esac
 
