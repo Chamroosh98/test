@@ -28,7 +28,6 @@ manifest_lookup()
 }
 
 
-
 manifest_info()
 {
     package="$1"
@@ -47,10 +46,8 @@ manifest_info()
 }
 
 
-
 download_package()
 {
-
     package="$1"
 
     # DEBUG
@@ -84,7 +81,6 @@ download_package()
     if [ -z "$file" ] || [ "$file" = "null" ]; then
 
         echo "[ERROR] Package not found in manifest: $package"
-
         return 1
 
     fi
@@ -95,7 +91,6 @@ download_package()
 
 
     mkdir -p "$(dirname "$target")"
-
 
     echo
     echo "[INFO] Package : $(manifest_info "$package")"
@@ -109,42 +104,31 @@ download_package()
     if ! curl -fsSL \
         "$REPO_URL/$ARCH/$file" \
         -o "$tmp"
-    then
+        then
 
         echo "[ERROR] Download failed"
-
         rm -f "$tmp"
-
         return 1
-
     fi
 
 
     if [ ! -s "$tmp" ]; then
-
         echo "[ERROR] Empty package downloaded"
-
         rm -f "$tmp"
-
         return 1
-
     fi
 
 
     if ! echo "$sha256  $tmp" | sha256sum -c -
-    then
-
+        then
         echo "[ERROR] Checksum failed: $package"
-
         rm -f "$tmp"
-
         return 1
 
     fi
 
 
     mv "$tmp" "$target"
-
 
     echo "[ OK ] Verified $package"
 
@@ -159,39 +143,31 @@ install_package()
 
     pkg="$(basename "$file")"
 
-
     echo "[INFO] Installing $pkg"
-
 
     case "$PKG_MANAGER" in
 
     opkg)
 
         if opkg install "$file"
-        then
-
+            then
             echo "$pkg" >> "$INSTALL_LOG"
             INSTALLED_PACKAGES="$INSTALLED_PACKAGES $pkg"
 
             return 0
-
         fi
-
         ;;
 
 
     apk)
 
         if apk add --allow-untrusted "$file"
-        then
-
+            then
             echo "$pkg" >> "$INSTALL_LOG"
             INSTALLED_PACKAGES="$INSTALLED_PACKAGES $pkg"
-
             return 0
 
         fi
-
         ;;
 
     esac
@@ -209,9 +185,8 @@ deploy_targeted_packages()
 
     touch "$INSTALL_LOG"
 
-
     echo
-    echo "Starting installation..."
+    echo "Starting installation ..."
     echo
 
 
@@ -219,27 +194,21 @@ deploy_targeted_packages()
 
 
     for pkg in $FINAL_PACKAGES
-    do
+        do
 
-        if ! download_package "$pkg"
-        then
-
-            echo "[ERROR] Download failed: $pkg"
-
-            rollback_failed_install
-
-            return 1
-
-        fi
+            if ! download_package "$pkg"
+                then
+                echo "[ERROR] Download failed: $pkg"
+                rollback_failed_install
+                return 1
+            fi
 
 
-        file=$(manifest_lookup "file" "$pkg")
+            file=$(manifest_lookup "file" "$pkg")
 
+            INSTALL_FILES="$INSTALL_FILES $TMP_DIR/$file"
 
-        INSTALL_FILES="$INSTALL_FILES $TMP_DIR/$file"
-
-    done
-
+        done
 
 
     echo
@@ -248,42 +217,27 @@ deploy_targeted_packages()
     echo
 
 
-
     case "$PKG_MANAGER" in
 
 
     apk)
-
         if apk add --allow-untrusted $INSTALL_FILES
-        then
-
+            then
             echo "$FINAL_PACKAGES" >> "$INSTALL_LOG"
-
             return 0
-
         fi
-
     ;;
-
 
 
     opkg)
-
         if opkg install $INSTALL_FILES
-        then
-
+            then
             echo "$FINAL_PACKAGES" >> "$INSTALL_LOG"
-
             return 0
-
         fi
-
     ;;
 
-
     esac
-
-
 
     echo "[ERROR] Installation failed"
 
