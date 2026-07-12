@@ -27,6 +27,7 @@ EOF
 ###############################################################################
 
 for file in \
+    "$DAYPASS_INSTALLER_DIR/network_checker.sh" \
     "$DAYPASS_INSTALLER_DIR/package_manager.sh" \
     "$DAYPASS_INSTALLER_DIR/install_core.sh" \
     "$DAYPASS_INSTALLER_DIR/package_deployer.sh" \
@@ -97,6 +98,8 @@ done
 ###############################################################################
 
 DEPLOYMENT_FAILED=0
+
+network_check || exit 1
 
 deploy_system_dependencies
 
