@@ -44,8 +44,6 @@ package_menu()
 
     review_install || return 1
 
-    deploy_targeted_packages
-
     if deploy_targeted_packages; then
 
         echo

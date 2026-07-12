@@ -5,28 +5,23 @@ resolve_packages()
 
     FINAL_PACKAGES=""
 
-
     add_final()
     {
         pkg="$1"
 
         [ -z "$pkg" ] && return
 
-
         case " $FINAL_PACKAGES " in
 
-        *" $pkg "*)
-            ;;
+            *" $pkg "*)
+                ;;
 
-        *)
-            FINAL_PACKAGES="$FINAL_PACKAGES $pkg"
-            ;;
+            *)
+                FINAL_PACKAGES="$FINAL_PACKAGES $pkg"
+                ;;
         esac
     }
 
-
-
-    #
     # Base selected packages
     #
     for pkg in $SELECTED_PACKAGES
@@ -34,9 +29,6 @@ resolve_packages()
         add_final "$pkg"
     done
 
-
-
-    #
     # Passwall dependencies
     #
     case "$SELECTED_PROFILE" in
@@ -68,39 +60,30 @@ resolve_packages()
 
         esac
 
-
     ;;
 
     esac
 
-
-
-    #
     # Language
     #
     case "$SELECTED_LANGUAGE" in
 
-
-    fa)
-        add_final "luci-i18n-passwall2-fa"
-    ;;
-
-
-    zh-cn)
-        add_final "luci-i18n-passwall2-zh-cn"
-    ;;
+        fa)
+            add_final "luci-i18n-passwall2-fa"
+        ;;
 
 
-    ru)
-        add_final "luci-i18n-passwall2-ru"
-    ;;
+        zh-cn)
+            add_final "luci-i18n-passwall2-zh-cn"
+        ;;
 
+
+        ru)
+            add_final "luci-i18n-passwall2-ru"
+        ;;
 
     esac
 
-
-
-    #
     # Geo
     #
     if [ "$SELECTED_GEO" = "official" ]; then
@@ -110,26 +93,20 @@ resolve_packages()
 
     fi
 
-
-
-    #
     # Passwall package LAST
     #
     case "$SELECTED_PROFILE" in
 
-    passwall2)
-        add_final "luci-app-passwall2"
-    ;;
+        passwall2)
+            add_final "luci-app-passwall2"
+        ;;
 
 
-    passwall)
-        add_final "luci-app-passwall"
-    ;;
-
+        passwall)
+            add_final "luci-app-passwall"
+        ;;
 
     esac
-
-
 
     export FINAL_PACKAGES
 
