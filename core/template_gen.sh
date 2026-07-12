@@ -104,6 +104,7 @@ check_version
 
 initialize_installer
 
+detect_arch
 
 ###############################################################################
 # UI Start

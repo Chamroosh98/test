@@ -1,5 +1,45 @@
 #!/bin/sh
 
+detect_arch()
+{
+
+    case "$(uname -m)" in
+
+    armv7l)
+
+        ARCH="arm_cortex-a7_neon-vfpv4"
+
+        ;;
+
+
+    aarch64)
+
+        ARCH="aarch64_generic"
+
+        ;;
+
+
+    x86_64)
+
+        ARCH="x86_64"
+
+        ;;
+
+
+    *)
+
+        ARCH="$(uname -m)"
+
+        ;;
+
+    esac
+
+
+    export ARCH
+
+}
+
+
 
 show_system_info()
 {
@@ -9,7 +49,8 @@ show_system_info()
     echo "------------------"
 
 
-    ARCH="$(uname -m)"
+    detect_arch
+
 
     echo "Architecture : $ARCH"
 
