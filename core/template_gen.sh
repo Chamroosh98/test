@@ -30,7 +30,7 @@ for file in \
     "$DAYPASS_INSTALLER_DIR/package_manager.sh" \
     "$DAYPASS_INSTALLER_DIR/install_core.sh" \
     "$DAYPASS_INSTALLER_DIR/package_deployer.sh" \
-    "$DAYPASS_ROOT/core/package_resolver.sh" 
+    "$DAYPASS_INSTALLER_DIR/package_resolver.sh" 
 do
 
     # echo "$file"
