@@ -11,19 +11,19 @@ RESET="\033[0m"
 
 ok()
 {
-    printf "${GREEN}✅ [ OK ]${RESET} %s\n" "$1"
+    printf "${GREEN}✅${RESET} %s\n" "$1"
 }
 
 
 fail()
 {
-    printf "${RED}❌ [FAIL]${RESET} %s\n" "$1"
+    printf "${RED}❌${RESET} %s\n" "$1"
 }
 
 
 info()
 {
-    printf "${CYAN}ℹ️ [INFO]${RESET} %s\n" "$1"
+    printf "${CYAN}ℹ️${RESET} %s\n" "$1"
 }
 
 
@@ -99,30 +99,24 @@ dns_fix_menu()
 {
 
     echo
-    echo "DNS Fix ..."
+    echo "🛠️ DNS Fix ..."
     echo "-------"
 
     get_current_dns
 
     echo
 
-    echo "✅ Recommended :"
-    echo " 🌥️ Cloudflare :"
-    echo "   1.1.1.1"
-    echo "   1.0.0.1"
+    echo " ✅ Recommended :"
+    echo "     🌥️ Cloudflare (1.1.1.1 , 1.0.0.1)"
 
-    echo
-
-    echo " 🌐 Google :"
-    echo "   8.8.8.8"
-    echo "   8.8.4.4"
+    echo "     🌐 Google (8.8.8.8 , 8.8.4.4)"
 
     echo
 
     while true
         do
 
-            printf "🤔 Apply DNS fix? [y/N]: "
+            printf " 🤔 Apply DNS fix? [y/N]: "
             read -r answer </dev/tty
 
             case "$answer" in
@@ -133,12 +127,12 @@ dns_fix_menu()
                     ;;
 
                 n|N|"")
-                    log_info "🙂‍↔️ DNS fix skipped!"
+                    log_info " DNS fix skipped!"
                     break
                     ;;
 
                 *)
-                    echo "😒 Invalid input! Please enter JUST y or n!"
+                    echo "  😒 Invalid input! Please enter JUST y or n!"
                     ;;
 
             esac
@@ -216,7 +210,7 @@ network_check()
     DNS_FAILED=0
 
 
-    info "Checking DNS..."
+    info "Checking DNS ..."
 
     check_dns google.com || DNS_FAILED=1
     check_dns github.com || DNS_FAILED=1
@@ -226,7 +220,7 @@ network_check()
 
     echo
 
-    info "Checking connectivity..."
+    info "Checking connectivity ..."
 
     check_ping google.com
     check_ping github.com
@@ -236,7 +230,7 @@ network_check()
 
     echo
 
-    info "Checking HTTPS..."
+    info "Checking HTTPS ..."
 
     check_https "Google" "https://google.com"
     check_https "GitHub" "https://github.com"
@@ -269,7 +263,7 @@ network_check()
 
     echo
 
-    info "Continuing DayPass..."
+    info "Continuing DayPass ;)"
 
     return 0
 

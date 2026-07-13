@@ -42,24 +42,24 @@ fi
 
 log_info() {
 
-    printf "%b\n" "${CYAN}[INFO]${NC} $*"
+    printf "%b\n" "${CYAN}ℹ️${NC} $*"
 
 }
 
 log_success() {
 
-    printf "%b\n" "${GREEN}[ OK ]${NC} $*"
+    printf "%b\n" "${GREEN}✅${NC} $*"
 
 }
 
 log_warn() {
 
-    printf "%b\n" "${YELLOW}[WARN]${NC} $*"
+    printf "%b\n" "${YELLOW}⚠️${NC} $*"
 
 }
 
 log_error() {
 
-    printf "%b\n" "${RED}[FAIL]${NC} $*"
+    printf "%b\n" "${RED}❌${NC} $*"
 
 }

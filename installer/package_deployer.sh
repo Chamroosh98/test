@@ -52,12 +52,12 @@ download_package()
     package="$1"
 
     # DEBUG
-    echo "=== DEBUG PACKAGE LOOKUP ==="
-    echo "PACKAGE: $package"
-    echo "ARCH: $ARCH"
-    echo "MANIFEST: $MANIFEST_FILE"
+    # echo "=== DEBUG PACKAGE LOOKUP ==="
+    # echo "PACKAGE: $package"
+    # echo "ARCH: $ARCH"
+    # echo "MANIFEST: $MANIFEST_FILE"
 
-    echo "--- MATCHES ---"
+    # echo "--- MATCHES ---"
 
     jq -r \
         --arg arch "$ARCH" \
@@ -71,7 +71,7 @@ download_package()
     ' \
     "$MANIFEST_FILE"
 
-    echo "==========================="
+    # echo "==========================="
 
 
     file=$(manifest_lookup "file" "$package")
@@ -81,7 +81,7 @@ download_package()
 
     if [ -z "$file" ] || [ "$file" = "null" ]; then
 
-        echo "[ERROR] Package not found in manifest: $package"
+        echo "[ERROR] Package not found in manifest : $package"
         return 1
 
     fi
@@ -271,7 +271,7 @@ rollback_failed_install()
 {
 
     echo
-    echo "[WARN] Rolling back installation..."
+    echo "[WARN] Rolling back installation ..."
     echo
 
 
@@ -315,7 +315,7 @@ rollback_failed_install()
 
     rm -f "$TRANSACTION_LOG"
 
-    echo "[ OK ] Rollback completed."
+    echo "[ OK ] Rollback completed ;)"
 
 }
 

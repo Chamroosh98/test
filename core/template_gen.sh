@@ -48,7 +48,7 @@ done
 ###############################################################################
 
 for file in \
-    "$DAYPASS_UI_DIR/colors.sh" \
+    "$DAYPASS_UI_DIR/style.sh" \
     "$DAYPASS_UI_DIR/banner.sh" \
     "$DAYPASS_UI_DIR/state.sh" \
     "$DAYPASS_UI_DIR/system_info.sh" \

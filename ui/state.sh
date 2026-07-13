@@ -1,6 +1,5 @@
 #!/bin/sh
 
-
 SELECTED_PROFILE=""
 SELECTED_ENGINE="auto"
 SELECTED_LANGUAGE="none"
@@ -8,10 +7,8 @@ SELECTED_GEO="none"
 
 SELECTED_PACKAGES=""
 
-
 GEOIP_URL=""
 GEOSITE_URL=""
-
 
 add_selected_package()
 {

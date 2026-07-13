@@ -46,20 +46,20 @@ show_system_info()
 
     echo
     echo "System Information"
-    echo "------------------"
+    echo "---------------------------------------------------------------"
 
 
     detect_arch
 
 
-    echo "Architecture : $ARCH"
+    echo "🩻 Architecture : $ARCH"
 
 
     if [ -f /etc/openwrt_release ]; then
 
         . /etc/openwrt_release
 
-        echo "OpenWrt      : ${DISTRIB_RELEASE:-Unknown}"
+        echo "💡 OpenWrt      : ${DISTRIB_RELEASE:-Unknown}"
 
     fi
 
@@ -69,27 +69,29 @@ show_system_info()
 
     if command -v free >/dev/null 2>&1; then
 
-        FREE_RAM="$(free | awk '/Mem:/ {print $4}')"
-        TOTAL_RAM="$(free | awk '/Mem:/ {print $2}')"
+        FREE_RAM_KB="$(free | awk '/Mem:/ {print $4}')"
+        TOTAL_RAM_KB="$(free | awk '/Mem:/ {print $2}')"
 
-        echo "Memory"
-        echo "  Total : ${TOTAL_RAM:-0} KB"
-        echo "  Free  : ${FREE_RAM:-0} KB"
+        FREE_RAM_MB=$((FREE_RAM_KB / 1024))
+        TOTAL_RAM_MB=$((TOTAL_RAM_KB / 1024))
+
+        echo "🧠 Memory"
+        echo "  Total : ${TOTAL_RAM_MB:-0} MB"
+        echo "  Free  : ${FREE_RAM_MB:-0} MB"
 
     fi
-
 
     echo
 
 
-    df -h / | awk '
-    NR==2 {
-        print "Storage"
-        print "  Total : "$2
-        print "  Used  : "$3
-        print "  Free  : "$4
-    }
-    '
+    df -m / | awk '
+        NR==2 {
+            print "💾 Storage"
+            print "  Total : "$2" MB"
+            print "  Used  : "$3" MB"
+            print "  Free  : "$4" MB"
+        }
+        '
 
     echo
 
