@@ -37,7 +37,7 @@ main() {
 
     show_banner
 
-    log_info "Initializing DayPass..."
+    log_info "📡 Initializing DayPass ..."
 
     ###########################################################################
     # Runtime
@@ -55,7 +55,7 @@ main() {
     # Phase 1
     ###########################################################################
 
-    log_info "Phase 1/3 : Fetch Packages"
+    log_info "🥇 Phase 1/3 : Fetch Packages ..."
 
     fetch_all_packages ""
 
@@ -69,10 +69,10 @@ main() {
     # Phase 2
     ###########################################################################
 
-    log_info "Phase 2/3 : Generate Installer"
+    log_info "🥈 Phase 2/3 : Generate Installer ..."
 
     generate_install_script || {
-        echo "template_gen failed!"
+        echo "❌ template_gen failed!"
         exit 1
     }
 
@@ -82,7 +82,7 @@ main() {
     # Phase 3
     ###########################################################################
 
-    log_info "Phase 3/3 : Build Output"
+    log_info "🥉 Phase 3/3 : Build Output ..."
 
     for arch_dir in "$DAYPASS_TEMP_DIR"/*; do
 
@@ -96,15 +96,15 @@ main() {
             "$arch_dir/." \
             "$DAYPASS_OUTPUT_DIR/$arch_name/"
 
-        log_success "Output generated for ${arch_name}"
+        log_success "✅ Output generated for ${arch_name}"
 
     done
 
     echo -e "${GRAY}------------------------------------------------------------${NC}"
 
-    log_success "DayPass Build Completed Successfully."
+    log_success "✅ DayPass Build Completed Successfully!"
 
-    log_info "Artifacts:"
+    log_info "🛠️ Artifacts :"
     log_info "$DAYPASS_OUTPUT_DIR"
 
 }

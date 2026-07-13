@@ -1,11 +1,6 @@
 #!/bin/sh
 
-###############################################################################
-# DayPass Network Checker
-###############################################################################
-
 set -u
-
 
 GREEN="\033[32m"
 RED="\033[31m"
@@ -16,19 +11,19 @@ RESET="\033[0m"
 
 ok()
 {
-    printf "${GREEN}[ OK ]${RESET} %s\n" "$1"
+    printf "${GREEN}✅ [ OK ]${RESET} %s\n" "$1"
 }
 
 
 fail()
 {
-    printf "${RED}[FAIL]${RESET} %s\n" "$1"
+    printf "${RED}❌ [FAIL]${RESET} %s\n" "$1"
 }
 
 
 info()
 {
-    printf "${CYAN}[INFO]${RESET} %s\n" "$1"
+    printf "${CYAN}ℹ️ [INFO]${RESET} %s\n" "$1"
 }
 
 
@@ -53,7 +48,7 @@ backup_network()
         cp /etc/config/network \
         /tmp/daypass/network.backup
 
-        ok "Network backup created"
+        ok "Network backup created!"
     fi
 }
 
@@ -77,7 +72,7 @@ apply_dns()
 
     if ! is_openwrt
     then
-        fail "Automatic DNS fix only supports OpenWrt"
+        fail "Automatic DNS fix only supports OpenWrt!"
         return 1
     fi
 
@@ -104,50 +99,51 @@ dns_fix_menu()
 {
 
     echo
-    echo "DNS Fix"
+    echo "DNS Fix ..."
     echo "-------"
 
     get_current_dns
 
     echo
 
-    echo "Recommended:"
-    echo " Cloudflare:"
+    echo "✅ Recommended :"
+    echo " 🌥️ Cloudflare :"
     echo "   1.1.1.1"
     echo "   1.0.0.1"
 
     echo
 
-    echo " Google:"
+    echo " 🌐 Google :"
     echo "   8.8.8.8"
     echo "   8.8.4.4"
 
     echo
 
+    while true
+        do
 
-    printf "Apply DNS fix? [y/N]: "
+            printf "🤔 Apply DNS fix? [y/N]: "
+            read -r answer </dev/tty
 
-    read -r answer </dev/tty
+            case "$answer" in
 
+                y|Y)
+                    apply_dns_fix
+                    break
+                    ;;
 
-    case "$answer" in
+                n|N|"")
+                    log_info "🙂‍↔️ DNS fix skipped!"
+                    break
+                    ;;
 
-        y|Y)
+                *)
+                    echo "😒 Invalid input! Please enter JUST y or n!"
+                    ;;
 
-            backup_network
+            esac
 
-            apply_dns
-
-            ;;
-
-
-        *)
-
-            info "DNS fix skipped"
-
-            ;;
-
-    esac
+        done
 
 }
 

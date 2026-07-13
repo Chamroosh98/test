@@ -2,7 +2,6 @@
 docs
 README.md
 
-output/
 temp/
 cache/
 *.log

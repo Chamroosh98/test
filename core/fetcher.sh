@@ -11,7 +11,7 @@ fetch_all_packages() {
     local proxy="${1:-}"
 
     [[ -f "$DAYPASS_ARCH_FILE" ]] || {
-        log_error "Architecture configuration not found."
+        log_error "Architecture configuration not found!"
         return 1
     }
 
