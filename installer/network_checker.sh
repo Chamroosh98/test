@@ -99,24 +99,23 @@ dns_fix_menu()
 {
 
     echo
-    echo "🛠️ DNS Fix ..."
-    echo "-------"
+    echo "  🛠️ DNS Fix ..."
+    echo "      -------"
 
     get_current_dns
 
     echo
 
-    echo " ✅ Recommended :"
-    echo "     🌥️ Cloudflare (1.1.1.1 , 1.0.0.1)"
-
-    echo "     🌐 Google (8.8.8.8 , 8.8.4.4)"
+    echo "  ✅ Recommended :"
+    echo "      🌐 Google (8.8.8.8 , 8.8.4.4)"
+    echo "      🌥️ Cloudflare (1.1.1.1 , 1.0.0.1)"
 
     echo
 
     while true
         do
 
-            printf " 🤔 Apply DNS fix? [y/N]: "
+            printf "  🤔 Apply DNS fix? [y/N]: "
             read -r answer </dev/tty
 
             case "$answer" in
@@ -194,7 +193,6 @@ check_dns()
         return 1
     fi
 }
-
 
 
 network_check()

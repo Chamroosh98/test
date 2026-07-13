@@ -4,6 +4,8 @@ package_menu()
 {
     clear
     show_banner
+    show_system_info
+
 
     echo "Package Type"
     echo

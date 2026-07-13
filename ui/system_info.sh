@@ -39,27 +39,23 @@ detect_arch()
 
 }
 
-
-
 show_system_info()
 {
 
     echo
-    echo "System Information"
+    echo "  System Information"
     echo "---------------------------------------------------------------"
-
 
     detect_arch
 
-
-    echo "🩻 Architecture : $ARCH"
+    echo "  🩻 Architecture : $ARCH"
 
 
     if [ -f /etc/openwrt_release ]; then
 
         . /etc/openwrt_release
 
-        echo "💡 OpenWrt      : ${DISTRIB_RELEASE:-Unknown}"
+        echo "  💡 OpenWrt version      : ${DISTRIB_RELEASE:-Unknown}"
 
     fi
 
@@ -75,9 +71,9 @@ show_system_info()
         FREE_RAM_MB=$((FREE_RAM_KB / 1024))
         TOTAL_RAM_MB=$((TOTAL_RAM_KB / 1024))
 
-        echo "🧠 Memory"
-        echo "  Total : ${TOTAL_RAM_MB:-0} MB"
-        echo "  Free  : ${FREE_RAM_MB:-0} MB"
+        echo "  🧠 Memory"
+        echo "          Total : ${TOTAL_RAM_MB:-0} MB"
+        echo "          Free  : ${FREE_RAM_MB:-0} MB"
 
     fi
 
@@ -86,10 +82,10 @@ show_system_info()
 
     df -m / | awk '
         NR==2 {
-            print "💾 Storage"
-            print "  Total : "$2" MB"
-            print "  Used  : "$3" MB"
-            print "  Free  : "$4" MB"
+            print "  💾 Storage"
+            print "          Total : "$2" MB"
+            print "          Used  : "$3" MB"
+            print "          Free  : "$4" MB"
         }
         '
 

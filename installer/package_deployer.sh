@@ -81,7 +81,7 @@ download_package()
 
     if [ -z "$file" ] || [ "$file" = "null" ]; then
 
-        echo "[ERROR] Package not found in manifest : $package"
+        echo "  ❌ Package not found in manifest : $package"
         return 1
 
     fi
@@ -94,12 +94,12 @@ download_package()
     mkdir -p "$(dirname "$target")"
 
     echo
-    echo "[INFO] Package : $(manifest_info "$package")"
-    echo "[INFO] File    : $file"
-    echo "[INFO] URL     : $REPO_URL/$ARCH/$file"
+    echo "  📦 Package : $(manifest_info "$package")"
+    echo "  📁 File    : $file"
+    echo "  🔗 URL     : $REPO_URL/$ARCH/$file"
 
 
-    echo "[INFO] Downloading $package"
+    echo "  📥 Downloading $package"
 
 
     curl -fsSL \
@@ -113,7 +113,7 @@ download_package()
 
     if [ ! -s "$tmp" ]; then
 
-        echo "Invalid package: empty file"
+        echo "  ❌ Invalid package: empty file"
 
         rm -f "$tmp"
 
@@ -123,7 +123,7 @@ download_package()
 
 
     if [ ! -s "$tmp" ]; then
-        echo "[ERROR] Empty package downloaded"
+        echo "  ❌ Empty package downloaded"
         rm -f "$tmp"
         return 1
     fi
@@ -131,7 +131,7 @@ download_package()
 
     if ! echo "$sha256  $tmp" | sha256sum -c -
         then
-        echo "[ERROR] Checksum failed: $package"
+        echo "  ❌ Checksum failed : $package"
         rm -f "$tmp"
         return 1
 
@@ -140,7 +140,7 @@ download_package()
 
     mv "$tmp" "$target"
 
-    echo "[ OK ] Verified $package"
+    echo "  ✅ Verified $package"
 
 }
 
@@ -154,11 +154,11 @@ install_package()
     pkg="$(basename "$file")"
 
     if [ ! -s "$file" ]; then
-        echo "[ERROR] Package file invalid: $file"
+        echo "  ❌ Package file invalid: $file"
         return 1
     fi
 
-    echo "[INFO] Installing $pkg"
+    echo "  📦 Installing $pkg"
 
     case "$PKG_MANAGER" in
 
@@ -206,7 +206,7 @@ deploy_targeted_packages()
     touch "$TRANSACTION_LOG"
 
     echo
-    echo "Starting installation ..."
+    echo "  🏁 Starting installation  ..."
     echo
 
 
@@ -218,7 +218,7 @@ deploy_targeted_packages()
 
             if ! download_package "$pkg"
                 then
-                echo "[ERROR] Download failed: $pkg"
+                echo "  ❌ Download failed : $pkg"
                 rollback_failed_install
                 return 1
             fi
@@ -232,7 +232,7 @@ deploy_targeted_packages()
 
 
     echo
-    echo "[INFO] Installing packages:"
+    echo "  📦 Installing packages :"
     echo "$INSTALL_FILES"
     echo
 
@@ -259,7 +259,7 @@ deploy_targeted_packages()
 
     esac
 
-    echo "[ERROR] Installation failed"
+    echo "  ❌ Installation failed! "
 
     rollback_failed_install
 
@@ -271,7 +271,7 @@ rollback_failed_install()
 {
 
     echo
-    echo "[WARN] Rolling back installation ..."
+    echo "  ⚠️  Rolling back installation ..."
     echo
 
 
@@ -287,7 +287,7 @@ rollback_failed_install()
             do
                 [ -z "$pkg" ] && continue
 
-                echo "[ROLLBACK] Removing $pkg"
+                echo "  🔄 Removing ($pkg) for RollBack!"
 
                 opkg remove "$pkg" || true
 
@@ -302,7 +302,7 @@ rollback_failed_install()
             do
                 [ -z "$pkg" ] && continue
 
-                echo "[ROLLBACK] Removing $pkg"
+                echo "  🔄 Removing ($pkg) for RollBack!"
 
                 apk del "$pkg" || true
 
@@ -315,7 +315,7 @@ rollback_failed_install()
 
     rm -f "$TRANSACTION_LOG"
 
-    echo "[ OK ] Rollback completed ;)"
+    echo "  ✅ Rollback completed ;))"
 
 }
 
