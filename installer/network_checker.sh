@@ -11,19 +11,19 @@ RESET="\033[0m"
 
 ok()
 {
-    printf "${GREEN}✅${RESET} %s\n" "$1"
+    printf "${GREEN} ✅${RESET} %s\n" "$1"
 }
 
 
 fail()
 {
-    printf "${RED}❌${RESET} %s\n" "$1"
+    printf "${RED}  ❌${RESET} %s\n" "$1"
 }
 
 
 info()
 {
-    printf "${CYAN}ℹ️${RESET} %s\n" "$1"
+    printf "${CYAN} ℹ️${RESET} %s\n" "$1"
 }
 
 
@@ -56,11 +56,11 @@ backup_network()
 get_current_dns()
 {
     echo
-    info "Current DNS"
+    info "Current DNS : "
 
     if is_openwrt
     then
-        uci get network.lan.dns 2>/dev/null || echo "default"
+        uci get network.lan.dns 2>/dev/null || echo "   default!"
     else
         cat /etc/resolv.conf
     fi
@@ -100,7 +100,7 @@ dns_fix_menu()
 
     echo
     echo "  🛠️ DNS Fix ..."
-    echo "      -------"
+    echo "  ----------------------------"
 
     get_current_dns
 

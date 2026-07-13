@@ -8,6 +8,7 @@ generate_install_script() {
 
     local output="$DAYPASS_INSTALL_SCRIPT"
 
+
     cat > "$output" <<'EOF'
 #!/bin/sh
 
@@ -75,7 +76,11 @@ done
 
     for file in \
         "$DAYPASS_MODULE_DIR/zero_deps.sh" \
-        "$DAYPASS_MODULE_DIR/version_check.sh"
+        "$DAYPASS_MODULE_DIR/version_check.sh" \
+        "$DAYPASS_MODULE_DIR/network_info.sh" \
+        "$DAYPASS_MODULE_DIR/resource_monitor.sh" \
+        "$DAYPASS_MODULE_DIR/dns_fix.sh" 
+
     do
         [ -f "$file" ] || continue
 
@@ -83,9 +88,9 @@ done
         printf '\n\n' >> "$output"
     done
 
-    echo "=== RESOLVER CONTENT CHECK ==="
-    grep -A80 "^resolve_packages()" "$output" || true
-    echo "=============================="
+    # echo "=== RESOLVER CONTENT CHECK ==="
+    # grep -A80 "^resolve_packages()" "$output" || true
+    # echo "=============================="
 
 ###############################################################################
 # Runtime
@@ -130,7 +135,7 @@ deploy_targeted_packages
 ###############################################################################
 
 echo
-echo "Done."
+echo "Done!"
 
 exit 0
 

@@ -2,38 +2,32 @@
 
 detect_arch()
 {
-
     case "$(uname -m)" in
 
-    armv7l)
+        armv7l)
 
-        ARCH="arm_cortex-a7_neon-vfpv4"
+            ARCH="arm_cortex-a7_neon-vfpv4"
 
-        ;;
+            ;;
 
+        aarch64)
 
-    aarch64)
+            ARCH="aarch64_generic"
 
-        ARCH="aarch64_generic"
+            ;;
 
-        ;;
+        x86_64)
 
+            ARCH="x86_64"
 
-    x86_64)
+            ;;
 
-        ARCH="x86_64"
+        *)
+            ARCH="$(uname -m)"
 
-        ;;
-
-
-    *)
-
-        ARCH="$(uname -m)"
-
-        ;;
+            ;;
 
     esac
-
 
     export ARCH
 
@@ -41,27 +35,23 @@ detect_arch()
 
 show_system_info()
 {
-
     echo
-    echo "  System Information"
-    echo "---------------------------------------------------------------"
+    echo "   🖥️ System Information"
+    echo "   ============================================================ "   
 
     detect_arch
 
-    echo "  🩻 Architecture : $ARCH"
-
-
+    echo "   🩻 Architecture     : $ARCH"
+    
     if [ -f /etc/openwrt_release ]; then
 
         . /etc/openwrt_release
 
-        echo "  💡 OpenWrt version      : ${DISTRIB_RELEASE:-Unknown}"
+        echo "   💡 OpenWrt version  : ${DISTRIB_RELEASE:-Unknown}"
 
     fi
 
-
     echo
-
 
     if command -v free >/dev/null 2>&1; then
 
@@ -71,7 +61,7 @@ show_system_info()
         FREE_RAM_MB=$((FREE_RAM_KB / 1024))
         TOTAL_RAM_MB=$((TOTAL_RAM_KB / 1024))
 
-        echo "  🧠 Memory"
+        echo "   🧠 Memory"
         echo "          Total : ${TOTAL_RAM_MB:-0} MB"
         echo "          Free  : ${FREE_RAM_MB:-0} MB"
 
@@ -82,7 +72,7 @@ show_system_info()
 
     df -m / | awk '
         NR==2 {
-            print "  💾 Storage"
+            print "   💾 Storage"
             print "          Total : "$2" MB"
             print "          Used  : "$3" MB"
             print "          Free  : "$4" MB"
@@ -91,4 +81,5 @@ show_system_info()
 
     echo
 
+    get_network_info
 }
