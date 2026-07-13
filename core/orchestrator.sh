@@ -96,13 +96,13 @@ main() {
             "$arch_dir/." \
             "$DAYPASS_OUTPUT_DIR/$arch_name/"
 
-        log_success "✅ Output generated for ${arch_name}"
+        log_success " Output generated for ${arch_name}"
 
     done
 
     echo -e "${GRAY}------------------------------------------------------------${NC}"
 
-    log_success "✅ DayPass Build Completed Successfully!"
+    log_success " DayPass Build Completed Successfully!"
 
     log_info "🛠️ Artifacts :"
     log_info "$DAYPASS_OUTPUT_DIR"

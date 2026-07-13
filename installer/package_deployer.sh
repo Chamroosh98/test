@@ -51,28 +51,6 @@ download_package()
 {
     package="$1"
 
-    # DEBUG
-    # echo "=== DEBUG PACKAGE LOOKUP ==="
-    # echo "PACKAGE: $package"
-    # echo "ARCH: $ARCH"
-    # echo "MANIFEST: $MANIFEST_FILE"
-
-    # echo "--- MATCHES ---"
-
-    jq -r \
-        --arg arch "$ARCH" \
-        --arg pkg "$package" \
-    '
-    .architectures[]
-    | select(.name==$arch)
-    | .packages[]
-    | select(.package | contains($pkg))
-    | .package
-    ' \
-    "$MANIFEST_FILE"
-
-    # echo "==========================="
-
 
     file=$(manifest_lookup "file" "$package")
 
@@ -93,23 +71,23 @@ download_package()
 
     mkdir -p "$(dirname "$target")"
 
+
     echo
     echo "  📦 Package : $(manifest_info "$package")"
     echo "  📁 File    : $file"
     echo "  🔗 URL     : $REPO_URL/$ARCH/$file"
 
-
     echo "  📥 Downloading $package"
 
 
     curl -fsSL \
-    "$REPO_URL/$ARCH/$file" \
-    -o "$tmp" || return 1
+        "$REPO_URL/$ARCH/$file" \
+        -o "$tmp" || {
 
+        rm -f "$tmp"
+        return 1
+    }
 
-    ###############################################################################
-    # Validate Download
-    ###############################################################################
 
     if [ ! -s "$tmp" ]; then
 
@@ -122,23 +100,20 @@ download_package()
     fi
 
 
-    if [ ! -s "$tmp" ]; then
-        echo "  ❌ Empty package downloaded"
-        rm -f "$tmp"
-        return 1
-    fi
-
-
     if ! echo "$sha256  $tmp" | sha256sum -c -
-        then
+    then
+
         echo "  ❌ Checksum failed : $package"
+
         rm -f "$tmp"
+
         return 1
 
     fi
 
 
     mv "$tmp" "$target"
+
 
     echo "  ✅ Verified $package"
 
@@ -153,46 +128,64 @@ install_package()
 
     pkg="$(basename "$file")"
 
+
     if [ ! -s "$file" ]; then
+
         echo "  ❌ Package file invalid: $file"
+
         return 1
+
     fi
+
 
     echo "  📦 Installing $pkg"
 
+
     case "$PKG_MANAGER" in
 
+
     opkg)
-        
+
         if opkg install "$file"
-            then
+        then
+
             echo "$pkg" >> "$INSTALL_LOG"
+
             INSTALLED_PACKAGES="$INSTALLED_PACKAGES $pkg"
+
             echo "$pkg" >> "$TRANSACTION_LOG"
 
             return 0
+
         fi
+
         ;;
 
 
     apk)
 
         if apk add --allow-untrusted "$file"
-            then
+        then
+
             echo "$pkg" >> "$INSTALL_LOG"
+
             INSTALLED_PACKAGES="$INSTALLED_PACKAGES $pkg"
+
             echo "$pkg" >> "$TRANSACTION_LOG"
 
             return 0
 
         fi
+
         ;;
 
     esac
 
+
     return 1
 
 }
+
 
 
 deploy_targeted_packages()
@@ -203,79 +196,127 @@ deploy_targeted_packages()
     touch "$INSTALL_LOG"
 
     rm -f "$TRANSACTION_LOG"
+
     touch "$TRANSACTION_LOG"
 
+
     echo
-    echo "  🏁 Starting installation  ..."
+
+    echo "  🏁 Starting installation ..."
+
     echo
+
+
+    #
+    # Resource snapshot BEFORE installation
+    #
+
+    resource_snapshot
+
+    estimate_install_size
 
 
     INSTALL_FILES=""
 
 
     for pkg in $FINAL_PACKAGES
-        do
+    do
 
-            if ! download_package "$pkg"
-                then
-                echo "  ❌ Download failed : $pkg"
-                rollback_failed_install
-                return 1
-            fi
+        if ! download_package "$pkg"
+        then
+
+            echo "  ❌ Download failed : $pkg"
+
+            rollback_failed_install
+
+            return 1
+
+        fi
 
 
-            file=$(manifest_lookup "file" "$pkg")
+        file=$(manifest_lookup "file" "$pkg")
 
-            INSTALL_FILES="$INSTALL_FILES $TMP_DIR/$file"
 
-        done
+        INSTALL_FILES="$INSTALL_FILES $TMP_DIR/$file"
+
+
+    done
+
 
 
     echo
+
     echo "  📦 Installing packages :"
+
     echo "$INSTALL_FILES"
+
     echo
+
 
 
     case "$PKG_MANAGER" in
 
 
     apk)
+
         if apk add --allow-untrusted $INSTALL_FILES
-            then
+        then
+
             echo "$FINAL_PACKAGES" >> "$INSTALL_LOG"
+
+            resource_compare
+
             return 0
+
         fi
-    ;;
+
+        ;;
 
 
     opkg)
+
         if opkg install $INSTALL_FILES
-            then
+        then
+
             echo "$FINAL_PACKAGES" >> "$INSTALL_LOG"
+
+            resource_compare
+
             return 0
+
         fi
-    ;;
+
+        ;;
+
 
     esac
 
-    echo "  ❌ Installation failed! "
+
+
+    echo "  ❌ Installation failed!"
 
     rollback_failed_install
+
 
     return 1
 
 }
 
+
+
 rollback_failed_install()
 {
 
     echo
+
     echo "  ⚠️  Rolling back installation ..."
+
     echo
 
 
+
     [ -f "$TRANSACTION_LOG" ] || return
+
 
 
     case "$PKG_MANAGER" in
@@ -284,29 +325,38 @@ rollback_failed_install()
     opkg)
 
         while read -r pkg
-            do
-                [ -z "$pkg" ] && continue
+        do
 
-                echo "  🔄 Removing ($pkg) for RollBack!"
+            [ -z "$pkg" ] && continue
 
-                opkg remove "$pkg" || true
 
-            done < "$TRANSACTION_LOG"
+            echo "  🔄 Removing ($pkg) for RollBack!"
+
+
+            opkg remove "$pkg" || true
+
+
+        done < "$TRANSACTION_LOG"
 
         ;;
+
 
 
     apk)
 
         while read -r pkg
-            do
-                [ -z "$pkg" ] && continue
+        do
 
-                echo "  🔄 Removing ($pkg) for RollBack!"
+            [ -z "$pkg" ] && continue
 
-                apk del "$pkg" || true
 
-            done < "$TRANSACTION_LOG"
+            echo "  🔄 Removing ($pkg) for RollBack!"
+
+
+            apk del "$pkg" || true
+
+
+        done < "$TRANSACTION_LOG"
 
         ;;
 
@@ -315,7 +365,7 @@ rollback_failed_install()
 
     rm -f "$TRANSACTION_LOG"
 
+
     echo "  ✅ Rollback completed ;))"
 
 }
-

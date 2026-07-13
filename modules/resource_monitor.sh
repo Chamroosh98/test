@@ -51,9 +51,9 @@ resource_compare()
 
     echo
     log_info "Resource Usage"
-    echo "-----------------------"
-    echo "RAM Used      : ${RAM_USED} MB"
-    echo "Storage Used  : ${STORAGE_USED} MB"
+    echo " ============================================================ "
+    echo "  🧠 RAM Used      : ${RAM_USED} MB"
+    echo "  💾 Storage Used  : ${STORAGE_USED} MB"
     echo
 }
 
@@ -74,9 +74,9 @@ estimate_install_size()
     TOTAL_SIZE_MB=$(( (TOTAL_SIZE + 1048575) / 1048576 ))
 
     echo
-    log_info "Installation Estimate"
-    echo "-----------------------"
-    echo "Packages : $(echo "$FINAL_PACKAGES" | wc -w)"
-    echo "Download : ${TOTAL_SIZE_MB} MB"
+    log_info "Installation Estimate "
+    echo " ============================================================ "
+    echo "  📦 Packages : $(echo "$FINAL_PACKAGES" | wc -w)"
+    echo "  📥 Download : ${TOTAL_SIZE_MB} MB"
     echo
 }
