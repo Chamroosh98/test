@@ -2,8 +2,6 @@
 
 show_banner()
 {
-    clear
-
     printf "${CYAN}%s${NC}\n" \
         "____              ____" \
         "|  _ \  __ _ _   _|  _ \  __ _ ___ ___" \
