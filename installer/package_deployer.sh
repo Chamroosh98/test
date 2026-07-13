@@ -3,6 +3,7 @@
 INSTALL_LOG="/tmp/daypass/install.log"
 INSTALLED_PACKAGES=""
 
+TRANSACTION_LOG="/tmp/daypass/transaction.log"
 
 manifest_lookup()
 {
@@ -152,21 +153,22 @@ install_package()
 
     pkg="$(basename "$file")"
 
+    if [ ! -s "$file" ]; then
+        echo "[ERROR] Package file invalid: $file"
+        return 1
+    fi
+
     echo "[INFO] Installing $pkg"
 
     case "$PKG_MANAGER" in
 
     opkg)
-
-        if [ ! -s "$file" ]; then
-            echo "Package file invalid: $file"
-            return 1
-        fi
         
         if opkg install "$file"
             then
             echo "$pkg" >> "$INSTALL_LOG"
             INSTALLED_PACKAGES="$INSTALLED_PACKAGES $pkg"
+            echo "$pkg" >> "$TRANSACTION_LOG"
 
             return 0
         fi
@@ -179,13 +181,14 @@ install_package()
             then
             echo "$pkg" >> "$INSTALL_LOG"
             INSTALLED_PACKAGES="$INSTALLED_PACKAGES $pkg"
+            echo "$pkg" >> "$TRANSACTION_LOG"
+
             return 0
 
         fi
         ;;
 
     esac
-
 
     return 1
 
@@ -198,6 +201,9 @@ deploy_targeted_packages()
     mkdir -p "$(dirname "$INSTALL_LOG")"
 
     touch "$INSTALL_LOG"
+
+    rm -f "$TRANSACTION_LOG"
+    touch "$TRANSACTION_LOG"
 
     echo
     echo "Starting installation ..."
@@ -260,3 +266,56 @@ deploy_targeted_packages()
     return 1
 
 }
+
+rollback_failed_install()
+{
+
+    echo
+    echo "[WARN] Rolling back installation..."
+    echo
+
+
+    [ -f "$TRANSACTION_LOG" ] || return
+
+
+    case "$PKG_MANAGER" in
+
+
+    opkg)
+
+        while read -r pkg
+            do
+                [ -z "$pkg" ] && continue
+
+                echo "[ROLLBACK] Removing $pkg"
+
+                opkg remove "$pkg" || true
+
+            done < "$TRANSACTION_LOG"
+
+        ;;
+
+
+    apk)
+
+        while read -r pkg
+            do
+                [ -z "$pkg" ] && continue
+
+                echo "[ROLLBACK] Removing $pkg"
+
+                apk del "$pkg" || true
+
+            done < "$TRANSACTION_LOG"
+
+        ;;
+
+    esac
+
+
+    rm -f "$TRANSACTION_LOG"
+
+    echo "[ OK ] Rollback completed."
+
+}
+
