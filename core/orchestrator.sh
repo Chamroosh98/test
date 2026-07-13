@@ -15,7 +15,7 @@ source "$DAYPASS_ROOT/core/cache.sh"
 # UI
 ###############################################################################
 
-source "$DAYPASS_ROOT/ui/colors.sh"
+source "$DAYPASS_ROOT/ui/style.sh"
 source "$DAYPASS_ROOT/ui/banner.sh"
 
 ###############################################################################
