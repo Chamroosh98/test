@@ -4,14 +4,11 @@ handle_custom_profile()
 {
 
     clear
-
     show_banner
-
 
     echo
     echo "  📝 Enter package names separated by spaces! "
     echo
-
 
     printf "> "
 

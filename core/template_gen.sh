@@ -45,6 +45,20 @@ done
 # echo "========================="
 
 ###############################################################################
+# UI Libraries
+###############################################################################
+
+for file in \
+    "$DAYPASS_UI_DIR/lib/styles.sh" \
+    "$DAYPASS_UI_DIR/lib/box_utils.sh"
+do
+    [ -f "$file" ] || continue
+
+    grep -v '^#!' "$file" >> "$output"
+    printf '\n\n' >> "$output"
+done
+
+###############################################################################
 # UI
 ###############################################################################
 
@@ -52,7 +66,6 @@ for file in \
     "$DAYPASS_UI_DIR/style.sh" \
     "$DAYPASS_UI_DIR/banner.sh" \
     "$DAYPASS_UI_DIR/state.sh" \
-    "$DAYPASS_UI_DIR/system_info.sh" \
     "$DAYPASS_UI_DIR/progress.sh" \
     "$DAYPASS_UI_DIR/engine_menu.sh" \
     "$DAYPASS_UI_DIR/menu_recommended.sh" \
@@ -75,6 +88,7 @@ done
 ###############################################################################
 
     for file in \
+        "$DAYPASS_MODULE_DIR/system_info.sh" \
         "$DAYPASS_MODULE_DIR/zero_deps.sh" \
         "$DAYPASS_MODULE_DIR/version_check.sh" \
         "$DAYPASS_MODULE_DIR/network_info.sh" \
