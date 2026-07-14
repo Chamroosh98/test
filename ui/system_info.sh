@@ -1,96 +1,88 @@
 #!/bin/sh
 
+C_RESET="\033[0m"
+C_CYAN="\033[36m"
+C_BOLD="\033[1m"
+C_GREEN="\033[32m"
+C_YELLOW="\033[33m"
+C_RED="\033[31m"
+C_DIM="\033[2m"
+
 detect_arch()
 {
     case "$(uname -m)" in
-        armv7l)
-            ARCH="arm_cortex-a7_neon-vfpv4"
-            ;;
-        aarch64)
-            ARCH="aarch64_generic"
-            ;;
-        x86_64)
-            ARCH="x86_64"
-            ;;
-        *)
-            ARCH="$(uname -m)"
-            ;;
+        armv7l)   ARCH="arm_cortex-a7_neon-vfpv4" ;;
+        aarch64)  ARCH="aarch64_generic" ;;
+        x86_64)   ARCH="x86_64" ;;
+        *)        ARCH="$(uname -m)" ;;
     esac
     export ARCH
 }
 
-# --- رنگ‌ها (ANSI) ---
-C_RESET="\033[0m"
-C_CYAN="\033[36m"
-C_DIM="\033[2m"
-C_BOLD="\033[1m"
-C_GREEN="\033[32m"
-C_YELLOW="\033[33m"
-
-box_header()
+draw_bar()
 {
-    # $1 = آیکون + عنوان   |   $2 = عرض کل باکس (پیش‌فرض 60)
-    TITLE="$1"
-    WIDTH="${2:-58}"
-    TITLE_LEN=$(printf "%s" "$TITLE" | wc -m)
-    # 3 تا کاراکتر برای "╭─ " و یک فاصله بعد از عنوان
-    DASH_COUNT=$((WIDTH - TITLE_LEN - 4))
-    [ "$DASH_COUNT" -lt 0 ] && DASH_COUNT=0
+    # $1=percent  $2=bar_width(default 20)  -> نتیجه رو مستقیم چاپ می‌کنه
+    PCT="$1"
+    BW="${2:-20}"
+    FILLED=$(( PCT * BW / 100 ))
+    [ "$FILLED" -gt "$BW" ] && FILLED="$BW"
 
-    DASHES=""
+    if [ "$PCT" -ge 85 ]; then COLOR="$C_RED"
+    elif [ "$PCT" -ge 60 ]; then COLOR="$C_YELLOW"
+    else COLOR="$C_GREEN"
+    fi
+
+    BAR=""
     i=0
-    while [ "$i" -lt "$DASH_COUNT" ]; do
-        DASHES="${DASHES}─"
-        i=$((i + 1))
-    done
+    while [ "$i" -lt "$FILLED" ]; do BAR="${BAR}█"; i=$((i+1)); done
+    while [ "$i" -lt "$BW" ]; do BAR="${BAR}░"; i=$((i+1)); done
 
-    printf "${C_CYAN}╭─ ${C_RESET}${C_BOLD}%s${C_RESET} ${C_CYAN}%s╮${C_RESET}\n" "$TITLE" "$DASHES"
-}
-
-box_footer()
-{
-    WIDTH="${1:-58}"
-    DASHES=""
-    i=0
-    while [ "$i" -lt "$WIDTH" ]; do
-        DASHES="${DASHES}─"
-        i=$((i + 1))
-    done
-    printf "${C_CYAN}╰%s╯${C_RESET}\n" "$DASHES"
+    printf "${COLOR}%s${C_RESET}" "$BAR"
 }
 
 show_system_info()
 {
     echo
-    box_header "🖥️  System Information"
+    printf "${C_CYAN}${C_BOLD}🖥  System Information${C_RESET}\n"
+    printf "${C_DIM}────────────────────────────────────────────────────────${C_RESET}\n"
 
     detect_arch
-    printf "${C_CYAN}│${C_RESET} 🩻 Architecture     : %s\n" "$ARCH"
+    printf "${C_CYAN}▏${C_RESET} 🩻 Architecture     : %s\n" "$ARCH"
 
     if [ -f /etc/openwrt_release ]; then
         . /etc/openwrt_release
-        printf "${C_CYAN}│${C_RESET} 💡 OpenWrt version  : %s\n" "${DISTRIB_RELEASE:-Unknown}"
+        printf "${C_CYAN}▏${C_RESET} 💡 OpenWrt version  : %s\n" "${DISTRIB_RELEASE:-Unknown}"
     fi
 
-    printf "${C_CYAN}│${C_RESET}\n"
+    printf "${C_CYAN}▏${C_RESET}\n"
 
+    # --- Memory ---
     if command -v free >/dev/null 2>&1; then
         FREE_RAM_KB="$(free | awk '/Mem:/ {print $4}')"
         TOTAL_RAM_KB="$(free | awk '/Mem:/ {print $2}')"
         FREE_RAM_MB=$((FREE_RAM_KB / 1024))
         TOTAL_RAM_MB=$((TOTAL_RAM_KB / 1024))
-        printf "${C_CYAN}│${C_RESET} 🧠 Memory (MB) : %s (Total), %s (Free)\n" "${TOTAL_RAM_MB:-0}" "${FREE_RAM_MB:-0}"
+        USED_RAM_MB=$((TOTAL_RAM_MB - FREE_RAM_MB))
+        MEM_PCT=0
+        [ "$TOTAL_RAM_MB" -gt 0 ] && MEM_PCT=$((USED_RAM_MB * 100 / TOTAL_RAM_MB))
+
+        printf "${C_CYAN}▏${C_RESET} 🧠 Memory  "
+        draw_bar "$MEM_PCT" 20
+        printf " %s%% (%s/%s MB)\n" "$MEM_PCT" "$USED_RAM_MB" "$TOTAL_RAM_MB"
     fi
 
-    printf "${C_CYAN}│${C_RESET}\n"
+    # --- Storage ---
+    STORAGE_LINE="$(df -m / | awk 'NR==2')"
+    STOTAL="$(echo "$STORAGE_LINE" | awk '{print $2}')"
+    SUSED="$(echo "$STORAGE_LINE" | awk '{print $3}')"
+    STO_PCT=0
+    [ "$STOTAL" -gt 0 ] && STO_PCT=$((SUSED * 100 / STOTAL))
 
-    df -m / | awk -v cyan="$C_CYAN" -v reset="$C_RESET" '
-        NR==2 {
-            printf "%s│%s 💾 Storage (MB) : %s (Total), %s (Used), %s (Free)\n", cyan, reset, $2, $3, $4
-        }
-        '
+    printf "${C_CYAN}▏${C_RESET} 💾 Storage "
+    draw_bar "$STO_PCT" 20
+    printf " %s%% (%s/%s MB)\n" "$STO_PCT" "$SUSED" "$STOTAL"
 
-    box_footer
+    printf "${C_DIM}────────────────────────────────────────────────────────${C_RESET}\n"
 }
 
 show_system_info
