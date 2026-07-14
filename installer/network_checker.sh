@@ -104,7 +104,7 @@ dns_fix_menu()
     echo
 
     while true; do
-        printf "  ⁉️ Apply DNS fix? [y/N]: "
+        printf "  ⁉️ Apply DNS fix? [y/N] : "
         read -r answer </dev/tty
 
         case "$answer" in
@@ -118,7 +118,7 @@ dns_fix_menu()
                 break 
                 ;;
             *) 
-            echo "  ❌ Invalid input! Please enter just y or n." 
+            echo "  ❌ Invalid input! Please enter JUST y or n!" 
             ;;
         esac
     done
@@ -131,7 +131,7 @@ network_check()
     DNS_FAILED=0
 
     echo
-    printf "${BOLD}${CYAN}🔎 DayPass Network Check${RESET}\n"
+    printf "${BOLD}${CYAN}🔎 DayPass Network Check ${RESET}\n"
 
     section "DNS Resolution"
     spin_check "DNS" "google.com"     _check_dns google.com     || DNS_FAILED=1
