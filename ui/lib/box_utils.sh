@@ -2,17 +2,6 @@
 
 BOX_DASHES="─────────────────────────────────────────"
 
-# --- تابع تاخیر هوشمند برای سازگاری با BusyBox (حل مشکل sleep 0.1) ---
-delay_0_1() {
-    if command -v usleep >/dev/null 2>&1; then
-        usleep 100000
-    elif read -t 0.1 _ >/dev/null 2>&1; then
-        :
-    else
-        sleep 1
-    fi
-}
-
 box_header()
 {
     TITLE="$1"
@@ -96,37 +85,3 @@ spinner_frame()
         I=$((I + 1))
     done
 }
-
-# --- مثال برای نحوه استفاده صحیح از اسپینر بدون ارور ---
-demo_spinner() {
-    TARGET="openwrt.org"
-    printf "  Ping  %s" "$TARGET"
-    
-    # اجرای پینگ در پس‌زمینه
-    ping -c 3 "$TARGET" >/dev/null 2>&1 &
-    PING_PID=$!
-    
-    i=0
-    # تا زمانی که پینگ در حال اجراست، اسپینر می‌چرخد
-    while kill -0 $PING_PID 2>/dev/null; do
-        FRAME=$(spinner_frame "$i")
-        # بازگشت به اول خط و چاپ فریم جدید اسپینر
-        printf "\r%s Ping  %s" "$FRAME" "$TARGET"
-        
-        # استفاده از تابع هوشمند به جای sleep 0.1
-        delay_0_1
-        
-        i=$((i + 1))
-    done
-    
-    # دریافت وضعیت نهایی پینگ
-    wait $PING_PID
-    if [ $? -eq 0 ]; then
-        printf "\r🟢 Ping  %s\n" "$TARGET"
-    else
-        printf "\r🔴 Ping  %s (Failed)\n" "$TARGET"
-    fi
-}
-
-# اگر خواستی تستش کنی، کافیه خط زیر رو از کامنت در بیاری:
-demo_spinner

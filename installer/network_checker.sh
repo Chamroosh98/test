@@ -32,7 +32,15 @@ spin_check()
         FRAME="$(spinner_frame "$I")"
         printf "\r\033[K  ${GRAY}%s${RESET} %-6s %s" "$FRAME" "$KIND" "$LABEL"
         I=$((I + 1))
-        sleep 0.1
+        
+        # اصلاح دستور sleep برای سازگاری با BusyBox و حل ارور invalid number '0.1'
+        if command -v usleep >/dev/null 2>&1; then
+            usleep 100000
+        elif read -t 0.1 _ >/dev/null 2>&1; then
+            :
+        else
+            sleep 1
+        fi
     done
 
     wait "$PID"
