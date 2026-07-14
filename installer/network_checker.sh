@@ -10,7 +10,7 @@ section()
     printf "${DIM}────────────────────────────────────────${RESET}\n"
 }
 
-info() { printf "${CYAN} ℹ️  %s${RESET}\n" "$1"; }
+info() { printf "${CYAN}  ℹ️ %s${RESET}\n" "$1"; }
 
 # --- توابع خام چک (فقط exit code، بدون هیچ چاپی) ---
 _check_dns()   { getent hosts "$1" >/dev/null 2>&1; }
@@ -70,10 +70,9 @@ backup_network()
 
 get_current_dns()
 {
-    echo
     info "Current DNS :"
     if is_openwrt; then
-        uci get network.lan.dns 2>/dev/null || echo "   default!"
+        uci get network.lan.dns 2>/dev/null || echo "     default!"
     else
         cat /etc/resolv.conf
     fi
@@ -86,7 +85,7 @@ apply_dns()
         return 1
     fi
 
-    info "Applying DNS..."
+    info "Applying DNS ..."
     uci set network.lan.peerdns='0'
     uci set network.lan.dns='1.1.1.1 8.8.8.8 1.0.0.1 8.8.4.4'
     uci commit network
@@ -96,22 +95,31 @@ apply_dns()
 
 dns_fix_menu()
 {
-    section "🛠️  DNS Fix"
+    section "  🛠️  DNS Fix"
     get_current_dns
     echo
     echo "  ✅ Recommended :"
     echo "      🌐 Google      (8.8.8.8, 8.8.4.4)"
-    echo "      🌥️  Cloudflare  (1.1.1.1, 1.0.0.1)"
+    echo "      🌥️ Cloudflare  (1.1.1.1, 1.0.0.1)"
     echo
 
     while true; do
-        printf "  🤔 Apply DNS fix? [y/N]: "
+        printf "  ⁉️ Apply DNS fix? [y/N]: "
         read -r answer </dev/tty
 
         case "$answer" in
-            y|Y) apply_dns; break ;;
-            n|N|"") info "DNS fix skipped."; break ;;
-            *) echo "  😒 Invalid input! Please enter just y or n." ;;
+            y|Y) 
+                apply_dns; 
+                break 
+                ;;
+            n|N|"") 
+                echo
+                info "DNS fix skipped!"; 
+                break 
+                ;;
+            *) 
+            echo "  ❌ Invalid input! Please enter just y or n." 
+            ;;
         esac
     done
 }
