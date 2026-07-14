@@ -11,11 +11,8 @@ detect_arch()
     export ARCH
 }
 
-show_system_info()
+show_system_info_content()
 {
-    echo
-    box_header "🖥️  System Information"
-
     detect_arch
     box_line "🩻 Architecture     : $ARCH"
 
@@ -36,7 +33,7 @@ show_system_info()
         MEM_PCT=0
         [ "$TOTAL_RAM_MB" -gt 0 ] && MEM_PCT=$((USED_RAM_MB * 100 / TOTAL_RAM_MB))
 
-        printf "${CYAN}│${RESET} 🧠 Memory  "
+        printf "${C_CYAN}│${C_RESET} 🧠 Memory  "
         draw_bar "$MEM_PCT" 20
         printf " %s%% (%s/%s MB)\n" "$MEM_PCT" "$USED_RAM_MB" "$TOTAL_RAM_MB"
     fi
@@ -48,13 +45,18 @@ show_system_info()
     STO_PCT=0
     [ "$STOTAL" -gt 0 ] && STO_PCT=$((SUSED * 100 / STOTAL))
 
-    printf "${CYAN}│${RESET} 💾 Storage "
+    printf "${C_CYAN}│${C_RESET} 💾 Storage "
     draw_bar "$STO_PCT" 20
     printf " %s%% (%s/%s MB)\n" "$STO_PCT" "$SUSED" "$STOTAL"
+}
 
+# نسخه‌ی مستقل (خودش هدر/فوتر می‌زنه) - وقتی این فایل تنها اجرا میشه استفاده میشه
+show_system_info()
+{
+    echo
+    box_header "🖥️  System Information"
+    show_system_info_content
     box_footer
-
-    get_network_info
 }
 
 # اگه مستقیم اجرا شد (نه source شد)، خودش رو نمایش بده

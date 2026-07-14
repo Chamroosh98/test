@@ -100,7 +100,6 @@ dns_fix_menu()
 
     echo " ============================================================ "
     echo " 🛠️ DNS Fix ..."
-    echo 
 
     get_current_dns
 
@@ -256,11 +255,8 @@ network_check()
         dns_fix_menu
     fi
 
-
-    echo
-
-    info "Continuing DayPass ;)"
-
+    clear 
+    
     return 0
 
 }

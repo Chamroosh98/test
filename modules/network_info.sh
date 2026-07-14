@@ -3,7 +3,7 @@
 country_flag()
 {
     case "$1" in
-        IR) echo "🦁☀️" ;;
+        IR) echo "🇮🇷" ;;
         DE) echo "🇩🇪" ;;
         US) echo "🇺🇸" ;;
         NL) echo "🇳🇱" ;;
@@ -18,7 +18,7 @@ country_flag()
     esac
 }
 
-get_network_info()
+get_network_info_content()
 {
     if command -v curl >/dev/null 2>&1; then
         FETCH_CMD="curl -fsS --max-time 5"
@@ -57,15 +57,18 @@ get_network_info()
 
     [ -z "$FLAG" ] && FLAG="$(country_flag "$COUNTRY_CODE")"
 
-    echo
-    box_header "🌐 Network"
-
     box_line "IP      : $PUBLIC_IP"
-    box_line "Country : $FLAG $COUNTRY"
-    [ -n "$CITY" ] && box_line "City    : $CITY"
+    box_line "Country : $FLAG $COUNTRY  ($CITY)"
     [ -n "$ISP" ] && box_line "ISP     : $ISP"
     [ -n "$ASN" ] && box_line "ASN     : AS$ASN"
+}
 
+# نسخه‌ی مستقل (خودش هدر/فوتر می‌زنه)
+get_network_info()
+{
+    echo
+    box_header "🌐 Network"
+    get_network_info_content
     box_footer
 }
 
