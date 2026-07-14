@@ -54,7 +54,7 @@ show_system_info()
 
     box_footer
 
-    show_network_info
+    get_network_info
 }
 
 # اگه مستقیم اجرا شد (نه source شد)، خودش رو نمایش بده
