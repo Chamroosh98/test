@@ -2,16 +2,25 @@
 
 BOX_DASHES="─────────────────────────────────────────"
 
+# --- تابع تاخیر هوشمند برای سازگاری با BusyBox (حل مشکل sleep 0.1) ---
+delay_0_1() {
+    if command -v usleep >/dev/null 2>&1; then
+        usleep 100000
+    elif read -t 0.1 _ >/dev/null 2>&1; then
+        :
+    else
+        sleep 1
+    fi
+}
+
 box_header()
 {
-    # $1 = آیکون + عنوان (مثلا "🖥️  System Information")
     TITLE="$1"
     printf "${CYAN}╭─ ${RESET}${BOLD}%s${RESET} ${CYAN}%s${RESET}\n" "$TITLE" "$BOX_DASHES"
 }
 
 box_line()
 {
-    # $1 = متن خط داخل باکس
     printf "${CYAN}│${RESET} %s\n" "$1"
 }
 
@@ -22,7 +31,6 @@ box_empty()
 
 box_subheader()
 {
-    # $1 = آیکون + عنوان بخش داخلی (بدون بستن/بازکردن باکس بیرونی)
     TITLE="$1"
     printf "${CYAN}├─ ${RESET}${BOLD}%s${RESET} ${CYAN}%s${RESET}\n" "$TITLE" "$BOX_DASHES"
 }
@@ -32,12 +40,8 @@ box_footer()
     printf "${CYAN}╰%s${RESET}\n" "$BOX_DASHES"
 }
 
-# --- progress bar رنگی بر اساس درصد ---
 draw_bar()
 {
-    # $1=percent  $2=bar_width(پیش‌فرض 20)  $3=mode ("usage" پیش‌فرض | "score")
-    # usage : درصد بالا = بد (قرمز)   -> برای رم/استوریج
-    # score : درصد بالا = خوب (سبز)   -> برای نتیجه‌ی تست/چک‌لیست
     PCT="$1"
     BW="${2:-20}"
     MODE="${3:-usage}"
@@ -58,19 +62,23 @@ draw_bar()
 
     BAR=""
     i=0
-    while [ "$i" -lt "$FILLED" ]; do BAR="${BAR}█"; i=$((i+1)); done
-    while [ "$i" -lt "$BW" ]; do BAR="${BAR}░"; i=$((i+1)); done
+    while [ "$i" -lt "$FILLED" ]; 
+        do 
+            BAR="${BAR}█"; i=$((i+1)); 
+        done
+    while [ "$i" -lt "$BW" ]; 
+        do 
+            BAR="${BAR}░"; i=$((i+1)); 
+        done
 
     printf "${COLOR}%s${RESET}" "$BAR"
 }
 
-# --- لاگ هشدار ساده (استفاده مشترک توسط ماژول‌ها) ---
 log_warn()
 {
     printf "${YELLOW}⚠️  %s${RESET}\n" "$1" >&2
 }
 
-# --- گرفتن فریم اسپینر بر اساس اندیس (بدون نیاز به آرایه‌ی bash) ---
 SPINNER_FRAMES="⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏"
 
 spinner_frame()
@@ -88,3 +96,37 @@ spinner_frame()
         I=$((I + 1))
     done
 }
+
+# --- مثال برای نحوه استفاده صحیح از اسپینر بدون ارور ---
+demo_spinner() {
+    TARGET="openwrt.org"
+    printf "  Ping  %s" "$TARGET"
+    
+    # اجرای پینگ در پس‌زمینه
+    ping -c 3 "$TARGET" >/dev/null 2>&1 &
+    PING_PID=$!
+    
+    i=0
+    # تا زمانی که پینگ در حال اجراست، اسپینر می‌چرخد
+    while kill -0 $PING_PID 2>/dev/null; do
+        FRAME=$(spinner_frame "$i")
+        # بازگشت به اول خط و چاپ فریم جدید اسپینر
+        printf "\r%s Ping  %s" "$FRAME" "$TARGET"
+        
+        # استفاده از تابع هوشمند به جای sleep 0.1
+        delay_0_1
+        
+        i=$((i + 1))
+    done
+    
+    # دریافت وضعیت نهایی پینگ
+    wait $PING_PID
+    if [ $? -eq 0 ]; then
+        printf "\r🟢 Ping  %s\n" "$TARGET"
+    else
+        printf "\r🔴 Ping  %s (Failed)\n" "$TARGET"
+    fi
+}
+
+# اگر خواستی تستش کنی، کافیه خط زیر رو از کامنت در بیاری:
+demo_spinner
