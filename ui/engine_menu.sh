@@ -9,66 +9,53 @@ engine_menu()
 
     echo "-------------"
 
-    echo "1) Auto"
-    echo "2) Xray"
-    echo "3) Sing-box"
+    echo "  1) Auto"
+    echo "  2) Xray"
+    echo "  3) Sing-box"
 
-    printf "Choice : "
+    printf "  ⁉️ Choice : "
     read -r choice </dev/tty
 
 
     case "$choice" in
 
-    1)
+        1)
+            SELECTED_ENGINE="auto"
+        ;;
 
-        SELECTED_ENGINE="auto"
+        2)
+            SELECTED_ENGINE="xray"
+            add_selected_package "xray-core"
+        ;;
 
-    ;;
+        3)
+            SELECTED_ENGINE="sing-box"
 
-    2)
+            echo
+            echo "  ⚠️ WARNING :"
+            echo "  Sing-box may consume more RAM on low-end devices."
+            echo
 
-        SELECTED_ENGINE="xray"
+            printf "  ⁉️ Continue? [y/N] : "
+            read -r confirm </dev/tty
 
-        add_selected_package "xray-core"
+            case "$confirm" in
 
-    ;;
+                y|Y)
+                    add_selected_package "sing-box"
+                ;;
 
-    3)
+                *)
+                    SELECTED_ENGINE="auto"
+                ;;
 
-        SELECTED_ENGINE="sing-box"
-
-        echo
-        echo "WARNING:"
-        echo "Sing-box may consume more RAM on low-end devices."
-        echo
-
-        printf "Continue? [y/N]: "
-        read -r confirm </dev/tty
-
-
-        case "$confirm" in
-
-        y|Y)
-
-            add_selected_package "sing-box"
+            esac
 
         ;;
 
         *)
-
             SELECTED_ENGINE="auto"
-
         ;;
-
-        esac
-
-    ;;
-
-    *)
-
-        SELECTED_ENGINE="auto"
-
-    ;;
 
     esac
 

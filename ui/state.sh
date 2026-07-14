@@ -20,14 +20,12 @@ add_selected_package()
 
     case " $SELECTED_PACKAGES " in
 
-    *" $pkg "*)
-        ;;
+        *" $pkg "*)
+            ;;
 
-    *)
-
-        SELECTED_PACKAGES="$SELECTED_PACKAGES $pkg"
-
-        ;;
+        *)
+            SELECTED_PACKAGES="$SELECTED_PACKAGES $pkg"
+            ;;
 
     esac
 

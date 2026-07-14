@@ -17,7 +17,7 @@ ok()
 
 fail()
 {
-    printf "${RED}  ❌${RESET} %s\n" "$1"
+    printf "${RED} ❌${RESET} %s\n" "$1"
 }
 
 
@@ -98,9 +98,9 @@ apply_dns()
 dns_fix_menu()
 {
 
-    echo
-    echo "  🛠️ DNS Fix ..."
-    echo "  ----------------------------"
+    echo " ============================================================ "
+    echo " 🛠️ DNS Fix ..."
+    echo 
 
     get_current_dns
 
@@ -122,11 +122,13 @@ dns_fix_menu()
 
                 y|Y)
                     apply_dns_fix
+                    echo " ============================================================ "
                     break
                     ;;
 
                 n|N|"")
                     log_info " DNS fix skipped!"
+                    echo " ============================================================ "
                     break
                     ;;
 
@@ -137,7 +139,6 @@ dns_fix_menu()
             esac
 
         done
-
 }
 
 
@@ -145,7 +146,6 @@ dns_fix_menu()
 check_ping()
 {
     host="$1"
-
 
     if ping -c 2 -W 2 "$host" >/dev/null 2>&1
     then
@@ -177,8 +177,6 @@ check_https()
     fi
 }
 
-
-
 check_dns()
 {
     host="$1"
@@ -199,9 +197,9 @@ network_check()
 {
 
     echo
-    echo "========================================"
-    echo "        DayPass Network Check"
-    echo "========================================"
+    echo " ============================================================ "
+    echo "                     DayPass Network Check                    "
+    echo " ============================================================ "
     echo
 
 

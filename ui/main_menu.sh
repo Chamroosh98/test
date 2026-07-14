@@ -17,25 +17,25 @@ main_menu()
             echo
 
 
-            printf "  🤔 Choice : "
+            printf "  ⁉️ Choice : "
             read -r choice </dev/tty
 
 
             case "$choice" in
 
-            1)
-                package_menu || exit 1
-                exit 0
-            ;;
-
-            2)
-                exit 0
+                1)
+                    package_menu || exit 1
+                    exit 0
                 ;;
 
-            *)
-                echo "  😒 Invalid choice!"
-                sleep 1
-                ;;
+                2)
+                    exit 0
+                    ;;
+
+                *)
+                    echo "  ❌ Invalid choice!"
+                    sleep 1
+                    ;;
 
             esac
 

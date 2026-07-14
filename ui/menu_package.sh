@@ -13,7 +13,7 @@ package_menu()
     echo "1) Passwall-1"
     echo "2) Passwall-2"
 
-    printf "Choice : "
+    printf "  ⁉️ Choice : "
     read -r choice </dev/tty
 
 
@@ -32,7 +32,7 @@ package_menu()
         ;;
 
         *)
-            echo "Invalid choice"
+            echo "  ❌ Invalid choice!"
             return 1
         ;;
 
@@ -49,12 +49,12 @@ package_menu()
     if deploy_targeted_packages; then
 
         echo
-        echo "Installation completed :)"
+        echo "  ✅ Installation completed :)"
 
     else
 
         echo
-        echo "Installation failed!"
+        echo "  ❌ Installation failed!"
 
     return 1
 

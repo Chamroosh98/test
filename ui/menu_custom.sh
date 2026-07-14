@@ -9,7 +9,7 @@ handle_custom_profile()
 
 
     echo
-    echo "Enter package names separated by spaces."
+    echo "  📝 Enter package names separated by spaces! "
     echo
 
 

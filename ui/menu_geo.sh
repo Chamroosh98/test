@@ -21,47 +21,33 @@ geo_menu()
 
     case "$choice" in
 
-    1)
+        1)
+            SELECTED_GEO="none"
+        ;;
 
-        SELECTED_GEO="none"
+        2)
+            SELECTED_GEO="official"
+            add_selected_package "v2ray-geoip"
+            add_selected_package "v2ray-geosite"
+        ;;
 
-    ;;
+        3)
+            SELECTED_GEO="iran-full"
+            GEOIP_URL="https://raw.githubusercontent.com/Chocolate4U/Iran-v2ray-rules/release/geoip.dat"
+            GEOSITE_URL="https://raw.githubusercontent.com/Chocolate4U/Iran-v2ray-rules/release/geosite.dat"
+        ;;
 
-    2)
+        4)
+            SELECTED_GEO="iran-lite"
+            GEOIP_URL="https://raw.githubusercontent.com/Chocolate4U/Iran-v2ray-rules/release/geoip-lite.dat"
+            GEOSITE_URL="https://raw.githubusercontent.com/Chocolate4U/Iran-v2ray-rules/release/geosite-lite.dat"
+        ;;
 
-        SELECTED_GEO="official"
-
-        add_selected_package "v2ray-geoip"
-        add_selected_package "v2ray-geosite"
-
-    ;;
-
-    3)
-
-        SELECTED_GEO="iran-full"
-
-        GEOIP_URL="https://raw.githubusercontent.com/Chocolate4U/Iran-v2ray-rules/release/geoip.dat"
-        GEOSITE_URL="https://raw.githubusercontent.com/Chocolate4U/Iran-v2ray-rules/release/geosite.dat"
-
-    ;;
-
-    4)
-
-        SELECTED_GEO="iran-lite"
-
-        GEOIP_URL="https://raw.githubusercontent.com/Chocolate4U/Iran-v2ray-rules/release/geoip-lite.dat"
-        GEOSITE_URL="https://raw.githubusercontent.com/Chocolate4U/Iran-v2ray-rules/release/geosite-lite.dat"
-
-    ;;
-
-    *)
-
-        SELECTED_GEO="none"
-
-    ;;
+        *)
+            SELECTED_GEO="none"
+        ;;
 
     esac
-
 
     export SELECTED_GEO
     export GEOIP_URL

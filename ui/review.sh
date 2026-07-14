@@ -56,7 +56,7 @@ review_install()
     while true
         do
 
-            printf "🤔 Continue? [y/N] : "
+            printf "  ⁉️ Continue? [y/N] : "
             read -r confirm </dev/tty
 
             case "$confirm" in
@@ -66,12 +66,12 @@ review_install()
                     ;;
 
                 n|N|"")
-                    echo "🥴 Installation cancelled!"
+                    echo "  ❌ Installation cancelled!"
                     exit 0
                     ;;
 
                 *)
-                    echo "🫩 Invalid input! Please enter JUST y or n!"
+                    echo "  ❌ Invalid input! Please enter JUST y or n!"
                     ;;
 
             esac
