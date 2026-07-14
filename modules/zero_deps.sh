@@ -31,42 +31,36 @@ deploy_system_dependencies()
 
             case "$PKG_MANAGER" in
 
-            opkg)
-                if opkg list-installed | grep -q "^dnsmasq "
-                    then
-                        echo "  🧼 Removing dnsmasq ..."
-                        pkg_remove dnsmasq
-                fi
+                opkg)
+                    if opkg list-installed | grep -q "^dnsmasq "
+                        then
+                            echo "  🧼 Removing dnsmasq ..."
+                            pkg_remove dnsmasq
+                    fi
 
+                    if ! pkg_installed dnsmasq-full
+                        then
+                            echo "  📍 Installing dnsmasq-full ..."
+                            pkg_install dnsmasq-full
+                        else
+                            echo "  💣 dnsmasq-full already installed"
+                    fi
+                ;;
+                apk)
+                    if apk info -e dnsmasq >/dev/null 2>&1
+                        then
+                            echo "  🧼 Removing dnsmasq ..."
+                            pkg_remove dnsmasq
+                    fi
 
-                if ! pkg_installed dnsmasq-full
-                    then
-                        echo "  📍 Installing dnsmasq-full ..."
-                        pkg_install dnsmasq-full
-                    else
-                        echo "  💣 dnsmasq-full already installed"
-                fi
-            ;;
-
-
-            apk)
-                if apk info -e dnsmasq >/dev/null 2>&1
-                    then
-                        echo "  🧼 Removing dnsmasq ..."
-                        pkg_remove dnsmasq
-                fi
-
-
-                if ! pkg_installed dnsmasq-full
-                    then
-                        echo "  📍 Installing dnsmasq-full ..."
-                        pkg_install dnsmasq-full
-                    else
-                        echo "  💣 dnsmasq-full already installed! "
-                fi
-            ;;
-
+                    if ! pkg_installed dnsmasq-full
+                        then
+                            echo "  📍 Installing dnsmasq-full ..."
+                            pkg_install dnsmasq-full
+                        else
+                            echo "  💣 dnsmasq-full already installed! "
+                    fi
+                ;;
             esac
-
     fi
 }

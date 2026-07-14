@@ -2,7 +2,6 @@
 
 main_menu()
 {
-
     while true
         do
 
@@ -12,14 +11,13 @@ main_menu()
             get_network_info
 
             echo
-            echo "  📦 1) Install Package"
-            echo "  🚪 2) Exit"
+            echo "   📦 1) Install Package"
+            echo "   🚪 2) Exit"
             echo
 
 
-            printf "  ⁉️ Choice : "
+            printf "   ⁉️ Choice : "
             read -r choice </dev/tty
-
 
             case "$choice" in
 
@@ -33,7 +31,7 @@ main_menu()
                     ;;
 
                 *)
-                    echo "  ❌ Invalid choice!"
+                    echo "   ❌ Invalid choice!"
                     sleep 1
                     ;;
 
