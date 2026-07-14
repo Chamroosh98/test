@@ -21,7 +21,7 @@ show_system_info_content()
         box_line "💡 OpenWrt version  : ${DISTRIB_RELEASE:-Unknown}"
     fi
 
-    box_empty
+    # box_empty
 
     # --- Memory ---
     if command -v free >/dev/null 2>&1; then
@@ -54,7 +54,7 @@ show_system_info_content()
 show_system_info()
 {
     echo
-    box_header " System Information"
+    box_header " 🖥️ System Information"
     show_system_info_content
     box_footer
 }

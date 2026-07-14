@@ -10,7 +10,7 @@ section()
     printf "${DIM}────────────────────────────────────────${RESET}\n"
 }
 
-info() { printf "${CYAN}ℹ️  %s${RESET}\n" "$1"; }
+info() { printf "${CYAN} ℹ️  %s${RESET}\n" "$1"; }
 
 # --- توابع خام چک (فقط exit code، بدون هیچ چاپی) ---
 _check_dns()   { getent hosts "$1" >/dev/null 2>&1; }

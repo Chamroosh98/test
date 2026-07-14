@@ -1,32 +1,32 @@
 #!/bin/sh
 
-BOX_DASHES="─────────────────────────────────────────"
+BOX_DASHES="   ─────────────────────────────────────────"
 
 box_header()
 {
     TITLE="$1"
-    printf "${CYAN}╭─ ${RESET}${BOLD}%s${RESET} ${CYAN}%s${RESET}\n" "$TITLE" "$BOX_DASHES"
+    printf "   ${CYAN}╭─ ${RESET}${BOLD}%s${RESET} ${CYAN}%s${RESET}\n" "$TITLE" "$BOX_DASHES"
 }
 
 box_line()
 {
-    printf "${CYAN}│${RESET} %s\n" "$1"
+    printf "   ${CYAN}│${RESET} %s\n" "$1"
 }
 
 box_empty()
 {
-    printf "${CYAN}│${RESET}\n"
+    printf "   ${CYAN}│${RESET}\n"
 }
 
 box_subheader()
 {
     TITLE="$1"
-    printf "${CYAN}├─ ${RESET}${BOLD}%s${RESET} ${CYAN}%s${RESET}\n" "$TITLE" "$BOX_DASHES"
+    printf "   ${CYAN}├─ ${RESET}${BOLD}%s${RESET} ${CYAN}%s${RESET}\n" "$TITLE" "$BOX_DASHES"
 }
 
 box_footer()
 {
-    printf "${CYAN}╰%s${RESET}\n" "$BOX_DASHES"
+    printf "   ${CYAN}╰%s${RESET}\n" "$BOX_DASHES"
 }
 
 draw_bar()
@@ -60,12 +60,12 @@ draw_bar()
             BAR="${BAR}░"; i=$((i+1)); 
         done
 
-    printf "${COLOR}%s${RESET}" "$BAR"
+    printf "   ${COLOR}%s${RESET}" "$BAR"
 }
 
 log_warn()
 {
-    printf "${YELLOW}⚠️  %s${RESET}\n" "$1" >&2
+    printf "   ${YELLOW}⚠️  %s${RESET}\n" "$1" >&2
 }
 
 SPINNER_FRAMES="⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏"
@@ -79,7 +79,7 @@ spinner_frame()
     I=1
     for F in "$@"; do
         if [ "$I" -eq "$N" ]; then
-            printf "%s" "$F"
+            printf "   %s" "$F"
             return
         fi
         I=$((I + 1))
