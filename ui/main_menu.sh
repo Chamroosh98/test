@@ -9,7 +9,7 @@ main_menu()
             clear
             show_banner
             show_system_info
-            
+            get_network_info
 
             echo
             echo "  📦 1) Install Package"
