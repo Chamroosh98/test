@@ -1,6 +1,6 @@
 #!/bin/sh
 
-show_system_info()
+show_dashboard()
 {
     echo
     box_header "🖥  System Information"
@@ -17,7 +17,7 @@ main_menu()
 
             clear
             show_banner
-            show_system_info
+            show_dashboard
 
             echo
             echo "  📦 1) Install Package"
