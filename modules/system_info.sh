@@ -21,7 +21,7 @@ show_system_info()
 
     if [ -f /etc/openwrt_release ]; then
         . /etc/openwrt_release
-        box_line " 💡 OpenWrt version  : ${DISTRIB_RELEASE:-Unknown}"
+        box_line "💡 OpenWrt version  : ${DISTRIB_RELEASE:-Unknown}"
     fi
 
     box_empty
@@ -53,6 +53,8 @@ show_system_info()
     printf " %s%% (%s/%s MB)\n" "$STO_PCT" "$SUSED" "$STOTAL"
 
     box_footer
+
+    show_network_info
 }
 
 # اگه مستقیم اجرا شد (نه source شد)، خودش رو نمایش بده
