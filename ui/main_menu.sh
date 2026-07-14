@@ -36,7 +36,6 @@ main_menu()
                     ;;
 
                 2)
-                    . "$SCRIPT_DIR/network_checker.sh"
                     network_check
                     echo
                     printf "  ⏎  برای بازگشت Enter بزن..."
