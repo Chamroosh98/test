@@ -59,29 +59,6 @@ do
 done
 
 ###############################################################################
-# Modules
-###############################################################################
-
-    for file in \
-        "$DAYPASS_MODULE_DIR/zero_deps.sh" \
-        "$DAYPASS_MODULE_DIR/version_check.sh" \
-        "$DAYPASS_MODULE_DIR/system_info.sh" \
-        "$DAYPASS_MODULE_DIR/network_info.sh" \
-        "$DAYPASS_MODULE_DIR/resource_monitor.sh" \
-        "$DAYPASS_MODULE_DIR/dns_fix.sh" 
-
-    do
-        [ -f "$file" ] || continue
-
-        grep -v '^#!' "$file" >> "$output"
-        printf '\n\n' >> "$output"
-    done
-
-    # echo "=== RESOLVER CONTENT CHECK ==="
-    # grep -A80 "^resolve_packages()" "$output" || true
-    # echo "=============================="
-
-###############################################################################
 # UI
 ###############################################################################
 
@@ -104,6 +81,30 @@ do
     grep -v '^#!' "$file" >> "$output"
     printf '\n\n' >> "$output"
 done
+
+
+###############################################################################
+# Modules
+###############################################################################
+
+    for file in \
+        "$DAYPASS_MODULE_DIR/zero_deps.sh" \
+        "$DAYPASS_MODULE_DIR/version_check.sh" \
+        "$DAYPASS_MODULE_DIR/system_info.sh" \
+        "$DAYPASS_MODULE_DIR/network_info.sh" \
+        "$DAYPASS_MODULE_DIR/resource_monitor.sh" \
+        "$DAYPASS_MODULE_DIR/dns_fix.sh" 
+
+    do
+        [ -f "$file" ] || continue
+
+        grep -v '^#!' "$file" >> "$output"
+        printf '\n\n' >> "$output"
+    done
+
+    # echo "=== RESOLVER CONTENT CHECK ==="
+    # grep -A80 "^resolve_packages()" "$output" || true
+    # echo "=============================="
 
 ###############################################################################
 # Runtime
