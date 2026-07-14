@@ -33,7 +33,7 @@ show_system_info_content()
         MEM_PCT=0
         [ "$TOTAL_RAM_MB" -gt 0 ] && MEM_PCT=$((USED_RAM_MB * 100 / TOTAL_RAM_MB))
 
-        printf "${C_CYAN}│${C_RESET} 🧠 Memory  "
+        printf "${CYAN}│${RESET} 🧠 Memory  "
         draw_bar "$MEM_PCT" 20
         printf " %s%% (%s/%s MB)\n" "$MEM_PCT" "$USED_RAM_MB" "$TOTAL_RAM_MB"
     fi
@@ -45,7 +45,7 @@ show_system_info_content()
     STO_PCT=0
     [ "$STOTAL" -gt 0 ] && STO_PCT=$((SUSED * 100 / STOTAL))
 
-    printf "${C_CYAN}│${C_RESET} 💾 Storage "
+    printf "${CYAN}│${RESET} 💾 Storage "
     draw_bar "$STO_PCT" 20
     printf " %s%% (%s/%s MB)\n" "$STO_PCT" "$SUSED" "$STOTAL"
 }
@@ -54,7 +54,7 @@ show_system_info_content()
 show_system_info()
 {
     echo
-    box_header "🖥️  System Information"
+    box_header " System Information"
     show_system_info_content
     box_footer
 }

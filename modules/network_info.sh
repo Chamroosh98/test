@@ -3,7 +3,7 @@
 country_flag()
 {
     case "$1" in
-        IR) echo "🇮🇷" ;;
+        IR) echo "🦁☀️" ;;
         DE) echo "🇩🇪" ;;
         US) echo "🇺🇸" ;;
         NL) echo "🇳🇱" ;;
@@ -25,25 +25,25 @@ get_network_info_content()
     elif command -v uclient-fetch >/dev/null 2>&1; then
         FETCH_CMD="uclient-fetch -q -T 5 -O-"
     else
-        log_warn "curl/uclient-fetch unavailable"
+        log_warn "curl/uclient-fetch unavailable!"
         return
     fi
 
     NETWORK_JSON="$($FETCH_CMD https://ipwho.is/ 2>/dev/null)"
 
     if [ -z "$NETWORK_JSON" ]; then
-        log_warn "Network location unavailable"
+        log_warn "Network location unavailable!"
         return
     fi
 
     if ! command -v jq >/dev/null 2>&1; then
-        log_warn "jq missing"
+        log_warn "jq missing!"
         return
     fi
 
     SUCCESS="$(echo "$NETWORK_JSON" | jq -r '.success')"
     if [ "$SUCCESS" != "true" ]; then
-        log_warn "IP lookup failed"
+        log_warn "IP lookup failed!"
         return
     fi
 
