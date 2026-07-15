@@ -81,6 +81,11 @@ jobs:
         with:
           path: output
 
+      - name: 🔍 Debug Output Structure
+        shell: bash
+        run: |
+          tree -L 3 output
+
       # Package Release ZIP
       - name: 📦 Create DayPass Release Package
         shell: bash
