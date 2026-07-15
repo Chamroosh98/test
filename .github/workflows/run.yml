@@ -54,7 +54,8 @@ jobs:
             curl \
             jq \
             coreutils \
-            findutils
+            findutils \
+            zip
 
       # chmod
       - name: 📝 Make Scripts Executable
@@ -79,6 +80,39 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: output
+
+      # Package Release ZIP
+      - name: 📦 Create DayPass Release Package
+        shell: bash
+        run: |
+          VERSION=$(date +%Y.%m.%d)
+          ARCH=$(jq -r '.architectures[0].name' output/manifest.json)
+          ZIP_NAME="DayPass_${ARCH}_v${VERSION}.zip"
+          echo "[INFO] Creating $ZIP_NAME"
+          cd output
+
+          zip -r "../$ZIP_NAME" \
+            passwall_luci \
+            passwall2 \
+            passwall_packages \
+            -x "*.sh" \
+            -x "manifest.json" \
+            -x "index.json"
+
+          cd ..
+
+          sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
+          echo "[ OK ] Release package created"
+          ls -lh "$ZIP_NAME"
+
+      - name: 🚀 Upload GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: DayPass v${{ github.run_number }}
+          files: |
+            DayPass_*.zip
+            DayPass_*.sha256
 
   deploy:
 
