@@ -141,12 +141,13 @@ jobs:
             ─────────────────────
             🧩 Architecture:
             `${{ env.ARCH }}`
+              
             📅 Release Date:
-            `$(date +%Y-%m-%d)`
+              `$(date +%Y-%m-%d)`
             📦 Included Packages :
-            ✅ passwall_luci  
-            ✅ passwall2  
-            ✅ passwall_packages  
+              ✅ passwall_luci  
+              ✅ passwall2  
+              ✅ passwall_packages  
             ─────────────────────
             🔗 Full documentation:
             https://github.com/${{ github.repository }}
