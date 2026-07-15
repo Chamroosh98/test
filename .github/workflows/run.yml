@@ -90,14 +90,20 @@ jobs:
       - name: 📦 Create DayPass Release Package
         shell: bash
         run: |
-          VERSION=$(find output/$ARCH/passwall2 -name "luci-app-passwall2-*.apk" \
-          | sed -n 's/.*luci-app-passwall2-\([0-9.]*\).*/\1/p' \
-          | head -n1)
+          ARCH=$(find output -mindepth 1 -maxdepth 1 -type d -printf "%f\n" | head -n1)
+
+          VERSION=$(find "output/$ARCH/passwall2" \
+            -name "luci-app-passwall2-*.apk" \
+            | sed -n 's/.*luci-app-passwall2-\([0-9.]*\)-r.*/\1/p' \
+            | head -n1)
 
           ZIP_NAME="DayPass-${ARCH}-v${VERSION}.zip"
 
-          echo "✅ Creating $ZIP_NAME"
-          cd output/$ARCH
+          echo "✅ ARCH    : $ARCH"
+          echo "✅ VERSION : $VERSION"
+          echo "✅ ZIP     : $ZIP_NAME"
+
+          cd "output/$ARCH"
 
           zip -r "../../$ZIP_NAME" \
             passwall_luci \
@@ -106,10 +112,12 @@ jobs:
             -x "*/index.json"
 
           cd ../..
-          sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
-          echo "✅ Release package created! "
-          ls -lh "$ZIP_NAME"
 
+          sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
+
+          echo "✅ Release package created!"
+          ls -lh "$ZIP_NAME"
+      
       - name: 🚀 Upload GitHub Release
         uses: softprops/action-gh-release@v2
         with:
