@@ -93,21 +93,19 @@ jobs:
           VERSION=$(date +%Y.%m.%d)
           ARCH=$(jq -r '.architectures[0].name' output/manifest.json)
           ZIP_NAME="DayPass_${ARCH}_v${VERSION}.zip"
-          echo "[INFO] Creating $ZIP_NAME"
-          cd output
 
-          zip -r "../$ZIP_NAME" \
+          echo "✅ Creating $ZIP_NAME"
+          cd output/$ARCH
+
+          zip -r "../../$ZIP_NAME" \
             passwall_luci \
             passwall2 \
             passwall_packages \
-            -x "*.sh" \
-            -x "manifest.json" \
-            -x "index.json"
+            -x "*/index.json"
 
-          cd ..
-
+          cd ../..
           sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
-          echo "[ OK ] Release package created"
+          echo "✅ Release package created! "
           ls -lh "$ZIP_NAME"
 
       - name: 🚀 Upload GitHub Release
