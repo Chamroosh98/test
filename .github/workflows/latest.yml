@@ -1,4 +1,4 @@
-name: 🗿 DayPass Pipeline
+name: ⚙️ DayPass Latest
 
 on:
   push:
@@ -37,9 +37,7 @@ jobs:
         shell: bash
         run: |
           VERSION=$(date +%y.%m.%d)
-
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-
           echo "DayPass Version: $VERSION"
       
 
@@ -134,12 +132,26 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}
-          name: DayPass v${{ env.VERSION }}
-          body: |
-            DayPass Release v${{ env.VERSION }}
+          name: |
+            DayPass v${{ env.VERSION }}
+          prerelease: true
 
-            Architecture:
-            ${{ env.ARCH }}
+          body: |
+            ## 📢 Update Content
+            🚀 **DayPass Release**
+            ─────────────────────
+            🧩 Architecture:
+            `${{ env.ARCH }}`
+            📅 Release Date:
+            `$(date +%Y-%m-%d)`
+            📦 Included Packages :
+            ✅ passwall_luci  
+            ✅ passwall2  
+            ✅ passwall_packages  
+            ─────────────────────
+            🔗 Full documentation:
+            https://github.com/${{ github.repository }}
+
           files: |
             ${{ env.ZIP_NAME }}
             ${{ env.ZIP_NAME }}.sha256

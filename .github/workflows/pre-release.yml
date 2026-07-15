@@ -1,0 +1,95 @@
+name: 🔬 DayPass Pre-Release
+
+on:
+    push:
+        branches:
+        - dev
+
+    workflow_dispatch:
+
+
+permissions:
+    contents: write
+
+
+jobs:
+
+  pre-release:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: 🔎 Checkout
+        uses: actions/checkout@v4
+
+
+      - name: 🏷️ Generate Beta Version
+        shell: bash
+        run: |
+          VERSION=$(date +%y.%m.%d)
+
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+
+      - name: 🛠 Install Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            bash \
+            curl \
+            jq \
+            zip
+
+
+      - name: 📝 chmod
+        run: |
+            find . -type f -name "*.sh" -exec chmod +x {} \;
+
+
+      - name: 👷 Build DayPass
+        shell: bash
+        run: |
+          ./core/orchestrator.sh
+
+
+      - name: 📦 Create Beta Package
+        shell: bash
+        run: |
+          ARCH=$(find output -mindepth 1 -maxdepth 1 -type d -printf "%f\n" | head -n1)
+          ZIP_NAME="DayPass_${ARCH}_v${VERSION}-beta.zip"
+
+          cd "output/$ARCH"
+
+          zip -r "../../$ZIP_NAME" \
+            passwall_luci \
+            passwall2 \
+            passwall_packages \
+            -x "*/index.json"
+
+          cd ../..
+
+          sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
+
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+          echo "ARCH=$ARCH" >> $GITHUB_ENV
+
+
+      - name: 🚀 Upload Pre-Release
+        uses: softprops/action-gh-release@v2
+        with:
+            tag_name: v${{ env.VERSION }}-beta-${{ github.run_number }}
+            name: DayPass v${{ env.VERSION }} Beta
+            prerelease: true
+
+            body: |
+                ## 🧪 DayPass Beta Release
+                ⚠️ Experimental build
+                Architecture:
+                `${{ env.ARCH }}`
+                Build:
+                `${{ github.run_number }}`
+
+            files: |
+                ${{ env.ZIP_NAME }}
+                ${{ env.ZIP_NAME }}.sha256
