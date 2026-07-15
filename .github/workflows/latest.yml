@@ -134,8 +134,7 @@ jobs:
           tag_name: v${{ env.VERSION }}
           name: |
             DayPass v${{ env.VERSION }}
-          prerelease: true
-
+          
           body: |
             ## 📢 Update Content
             🚀 **DayPass Release**
