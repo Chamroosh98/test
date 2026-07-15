@@ -28,8 +28,16 @@ jobs:
     steps:
 
       # Checkout
-      - name: Checkout Repository
+      - name: 🔎 Checkout Repository
         uses: actions/checkout@v4
+
+      # Version
+      - name: 🏷️ Load DayPass Version
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(cat VERSION)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       # Restore Cache
       - name: 🗓️ Restore DayPass Cache
@@ -81,6 +89,7 @@ jobs:
         with:
           path: output
 
+        # Debug for Output Structure
       - name: 🔍 Debug Output Structure
         shell: bash
         run: |
@@ -91,11 +100,6 @@ jobs:
         shell: bash
         run: |
           ARCH=$(find output -mindepth 1 -maxdepth 1 -type d -printf "%f\n" | head -n1)
-
-          VERSION=$(find "output/$ARCH/passwall2" \
-            -name "luci-app-passwall2-*.apk" \
-            | sed -n 's/.*luci-app-passwall2-\([0-9.]*\)-r.*/\1/p' \
-            | head -n1)
 
           ZIP_NAME="DayPass-${ARCH}-v${VERSION}.zip"
 
@@ -115,17 +119,26 @@ jobs:
 
           sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
 
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+          echo "ARCH=$ARCH" >> $GITHUB_ENV
+
           echo "✅ Release package created!"
           ls -lh "$ZIP_NAME"
       
+        # Upload GitHub Release
       - name: 🚀 Upload GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ github.run_number }}
-          name: DayPass Release ${{ github.run_number }}
+          tag_name: v${{ env.VERSION }}
+          name: DayPass v${{ env.VERSION }}
+          body: |
+            DayPass Release v${{ env.VERSION }}
+
+            Architecture:
+            ${{ env.ARCH }}
           files: |
-            DayPass_*.zip
-            DayPass_*.sha256
+            ${{ env.ZIP_NAME }}
+            ${{ env.ZIP_NAME }}.sha256
 
   deploy:
 
