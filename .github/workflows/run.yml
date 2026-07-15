@@ -32,12 +32,16 @@ jobs:
         uses: actions/checkout@v4
 
       # Version
-      - name: 🏷️ Load DayPass Version
+      - name: 🏷️ Generate Release Version
         id: version
         shell: bash
         run: |
-          VERSION=$(cat VERSION)
+          VERSION=$(date +%y.%m.%d)
+
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+          echo "DayPass Version: $VERSION"
+      
 
       # Restore Cache
       - name: 🗓️ Restore DayPass Cache
