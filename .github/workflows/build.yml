@@ -1,0 +1,61 @@
+name: ⚒️ DayPass Build
+
+on:
+    push:
+        branches:
+        - main
+        - dev
+
+    workflow_dispatch:
+
+
+permissions:
+    contents: read
+
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: 🔎 Checkout Repository
+        uses: actions/checkout@v4
+
+
+      - name: 🛠 Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            bash \
+            curl \
+            jq \
+            coreutils \
+            findutils \
+            zip
+
+
+      - name: 📝 Make Scripts Executable
+        run: |
+          find . -type f -name "*.sh" -exec chmod +x {} \;
+
+
+      - name: 👷 Build DayPass
+        shell: bash
+        run: |
+          ./core/orchestrator.sh
+
+
+      - name: 🧪 Validate Build
+        shell: bash
+        run: |
+          test -f output/install.sh
+          test -f output/manifest.json
+
+
+      - name: 🔍 Debug Output
+        shell: bash
+        run: |
+            tree -L 3 output

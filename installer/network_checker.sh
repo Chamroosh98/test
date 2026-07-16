@@ -1,5 +1,13 @@
 #!/bin/sh
 
+spin_sleep() {
+    if command -v usleep >/dev/null 2>&1; then
+        usleep 100000 # 100,000 microseconds = 0.1 second
+    else
+        sleep 1
+    fi
+}
+
 GREEN_COUNT=0
 YELLOW_COUNT=0
 RED_COUNT=0

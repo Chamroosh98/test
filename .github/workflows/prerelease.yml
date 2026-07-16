@@ -79,16 +79,14 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
             tag_name: v${{ env.VERSION }}-beta-${{ github.run_number }}
-            name: DayPass v${{ env.VERSION }} Beta
+            name: 🧪 DayPass v${{ env.VERSION }} Beta
             prerelease: true
 
             body: |
                 ## 🧪 DayPass Beta Release
-                ⚠️ Experimental build
-                Architecture:
-                `${{ env.ARCH }}`
-                Build:
-                `${{ github.run_number }}`
+                ⚠️ Experimental build!
+                📅 Date : `${{ env.VERSION }}`
+                🧪 Build : `${{ github.run_number }}`
 
             files: |
                 ${{ env.ZIP_NAME }}
