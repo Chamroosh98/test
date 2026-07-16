@@ -37,9 +37,10 @@ jobs:
         shell: bash
         run: |
           VERSION=$(date +%y.%m.%d)
+          RELEASE_DATE=$(date +%Y-%m-%d)
+
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "DayPass Version: $VERSION"
-      
+          echo "RELEASE_DATE=$RELEASE_DATE" >> $GITHUB_ENV
 
       # Restore Cache
       - name: 🗓️ Restore DayPass Cache
@@ -139,10 +140,7 @@ jobs:
             ## 📢 Update Content
             🚀 **DayPass Release**
             ─────────────────────
-            🧩 Architecture:
-            `${{ env.ARCH }}`
-              
-            📅 Release Date:
+            📅 Release Date :
               `$(date +%Y-%m-%d)`
             📦 Included Packages :
               ✅ passwall_luci  
