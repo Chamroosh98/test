@@ -1,384 +1,215 @@
 #!/bin/sh
 
+GREEN_COUNT=0
+YELLOW_COUNT=0
+RED_COUNT=0
 TOTAL_CHECKS=0
-PASSED_CHECKS=0
+DNS_FAILED=0
 
-DNS_BACKUP="/tmp/daypass/dns.backup"
+# --- ردیف فعلی که داره رندر میشه ---
+ROW_HOST=""
+ROW_DNS_ICON="·"
+ROW_PING_ICON="·"
+ROW_HTTPS_ICON="·"
+ROW_ACTIVE=""   # dns | ping | https | ""(هیچکدوم، یعنی نتیجه‌ی نهایی)
 
-
-section()
+redraw_row()
 {
-    echo
-    printf "${BOLD}%s${RESET}\n" "$1"
-    printf "${DIM}────────────────────────────────────────${RESET}\n"
+    # $1 = کاراکتر اسپینر فعلی (فقط توی ستون فعال جایگزین میشه)
+    spin="$1"
+    d="$ROW_DNS_ICON"
+    p="$ROW_PING_ICON"
+    h="$ROW_HTTPS_ICON"
+
+    case "$ROW_ACTIVE" in
+        dns)   d="$spin" ;;
+        ping)  p="$spin" ;;
+        https) h="$spin" ;;
+    esac
+
+    printf "\r  %-13s %-4s   %-4s   %-4s" "$ROW_HOST" "$d" "$p" "$h"
 }
 
-info() { printf "${CYAN}  ℹ️ %s${RESET}\n" "$1"; }
-
-
-_check_dns()   { getent hosts "$1" >/dev/null 2>&1; }
-_check_ping()  { ping -c 2 -W 2 "$1" >/dev/null 2>&1; }
-_check_https() { curl -fsSI --connect-timeout 5 "$1" >/dev/null 2>&1; }
-
-
-spin_check()
+# --- اجرای یه چک با اسپینر توی همون ستون، بدون به‌هم‌ریختن بقیه‌ی ردیف ---
+run_cell()
 {
-    KIND="$1"
-    LABEL="$2"
+    # $1=ستون(dns/ping/https)  $2=tmpfile  ; بقیه = دستور
+    ROW_ACTIVE="$1"
+    tmp="$2"
     shift 2
 
-    "$@" >/dev/null 2>&1 &
-    PID=$!
+    "$@" >"$tmp" 2>&1 &
+    pid=$!
 
-    I=0
-
-    while kill -0 "$PID" 2>/dev/null; do
-
-        FRAME="$(spinner_frame "$I")"
-
-        printf "\r\033[K  ${GRAY}%s${RESET} %-6s %s" \
-        "$FRAME" "$KIND" "$LABEL"
-
-        I=$((I + 1))
-
-        if command -v usleep >/dev/null 2>&1; then
-            usleep 100000
-        else
-            sleep 1
-        fi
-
+    spin_chars='-\|/'
+    i=0
+    while kill -0 "$pid" 2>/dev/null; do
+        c="$(printf '%s' "$spin_chars" | cut -c$(( (i % 4) + 1 )))"
+        redraw_row "$c"
+        i=$((i + 1))
+        sleep 0.1
     done
 
+    wait "$pid" 2>/dev/null
+    CELL_EXIT=$?
+    CELL_OUTPUT="$(cat "$tmp" 2>/dev/null)"
+    rm -f "$tmp"
+}
 
-    wait "$PID"
-    STATUS=$?
+process_host()
+{
+    ROW_HOST="$1"
+    ROW_DNS_ICON="·"
+    ROW_PING_ICON="·"
+    ROW_HTTPS_ICON="·"
+    ROW_ACTIVE=""
+    redraw_row " "
 
-
-    TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
-
-
-    if [ "$STATUS" -eq 0 ]; then
-
-        PASSED_CHECKS=$((PASSED_CHECKS + 1))
-
-        printf "\r\033[K  🟢 %-6s %s\n" "$KIND" "$LABEL"
-
+    # --- DNS ---
+    run_cell "dns" "/tmp/.nc_dns_$$" getent hosts "$ROW_HOST"
+    if [ "$CELL_EXIT" -eq 0 ]; then
+        ROW_DNS_ICON="🟢"
     else
-
-        printf "\r\033[K  🔴 %-6s %s\n" "$KIND" "$LABEL"
-
+        ROW_DNS_ICON="🔴"
+        DNS_FAILED=1
     fi
 
-
-    return "$STATUS"
-
-}
-
-
-is_openwrt()
-{
-    [ -f /etc/openwrt_release ]
-}
-
-
-backup_dns()
-{
-    mkdir -p /tmp/daypass
-
-    if is_openwrt; then
-
-        uci show network.lan.dns > "$DNS_BACKUP" 2>/dev/null
-
-        info "DNS backup created"
-
-    fi
-}
-
-
-
-restore_dns()
-{
-
-    if ! is_openwrt; then
-        return 1
+    # --- Ping ---
+    run_cell "ping" "/tmp/.nc_ping_$$" ping -c 2 -W 2 "$ROW_HOST"
+    LOSS="$(printf '%s' "$CELL_OUTPUT" | grep -o '[0-9]*% packet loss' | grep -o '^[0-9]*')"
+    [ -z "$LOSS" ] && LOSS=100
+    if [ "$LOSS" -eq 0 ]; then
+        ROW_PING_ICON="🟢"
+    elif [ "$LOSS" -lt 100 ]; then
+        ROW_PING_ICON="🟡"
+    else
+        ROW_PING_ICON="🔴"
     fi
 
-
-    if [ ! -f "$DNS_BACKUP" ]; then
-
-        printf "  🔴 No DNS backup found!\n"
-
-        return 1
-
+    # --- HTTPS ---
+    run_cell "https" "/tmp/.nc_https_$$" curl -fsS -o /dev/null -w '%{time_total}' --connect-timeout 5 "https://$ROW_HOST"
+    if [ "$CELL_EXIT" -ne 0 ]; then
+        ROW_HTTPS_ICON="🔴"
+    else
+        IS_FAST="$(awk -v t="$CELL_OUTPUT" 'BEGIN { print (t < 2) ? "1" : "0" }' 2>/dev/null)"
+        if [ "$IS_FAST" = "1" ]; then
+            ROW_HTTPS_ICON="🟢"
+        else
+            ROW_HTTPS_ICON="🟡"
+        fi
     fi
 
+    ROW_ACTIVE=""
+    redraw_row " "
+    printf "\n"
 
-    info "Restoring DNS ..."
-
-
-    uci delete network.lan.dns 2>/dev/null
-    uci delete network.lan.peerdns 2>/dev/null
-
-
-    . "$DNS_BACKUP" 2>/dev/null
-
-
-    uci commit network
-
-    /etc/init.d/network restart
-
-
-    printf "  🟢 DNS restored\n"
-
+    for icon in "$ROW_DNS_ICON" "$ROW_PING_ICON" "$ROW_HTTPS_ICON"; do
+        TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
+        case "$icon" in
+            🟢) GREEN_COUNT=$((GREEN_COUNT + 1)) ;;
+            🟡) YELLOW_COUNT=$((YELLOW_COUNT + 1)) ;;
+            🔴) RED_COUNT=$((RED_COUNT + 1)) ;;
+        esac
+    done
 }
 
-
+is_openwrt() { [ -f /etc/openwrt_release ]; }
 
 get_current_dns()
 {
-
-    info "Current DNS :"
-
-
+    echo
+    printf "${CYAN}ℹ️  Current DNS :${RESET}\n"
     if is_openwrt; then
-
-        DNS="$(uci get network.lan.dns 2>/dev/null)"
-
-        if [ -n "$DNS" ]; then
-
-            echo "     $DNS"
-
-        else
-
-            echo "     System default"
-
-        fi
-
+        uci get network.lan.dns 2>/dev/null || echo "   default!"
     else
-
-        grep nameserver /etc/resolv.conf
-
+        cat /etc/resolv.conf
     fi
-
 }
-
-
 
 apply_dns()
 {
-
     if ! is_openwrt; then
-
-        printf "  🔴 Automatic DNS fix only supports OpenWrt!\n"
-
+        printf "  ${RED}🔴${RESET} Automatic DNS fix only supports OpenWrt!\n"
         return 1
-
     fi
 
-
-    backup_dns
-
-
-    info "Applying DNS ..."
-
-
+    printf "${CYAN}ℹ️  Applying DNS...${RESET}\n"
     uci set network.lan.peerdns='0'
-
     uci set network.lan.dns='1.1.1.1 8.8.8.8 1.0.0.1 8.8.4.4'
-
-
     uci commit network
-
-
     /etc/init.d/network restart
-
-
-    printf "  🟢 DNS updated\n"
-
+    printf "  ${GREEN}🟢${RESET} DNS updated\n"
 }
-
-
 
 dns_fix_menu()
 {
-
-    section "  🛠️ DNS Fix"
-
-
+    echo
+    printf "${BOLD}🛠️  DNS Fix${RESET}\n"
+    printf "${DIM}────────────────────────────────────────${RESET}\n"
     get_current_dns
-
-
     echo
-
-    echo "  ✅ Recommended :"
-
+    echo "  Recommended :"
     echo "      🌐 Google      (8.8.8.8, 8.8.4.4)"
-
-    echo "      🌥️ Cloudflare  (1.1.1.1, 1.0.0.1)"
-
+    echo "      🌥️  Cloudflare  (1.1.1.1, 1.0.0.1)"
     echo
 
-
-    while true
-    do
-
-        printf "  ⁉️ Action [y=Apply / r=Restore / n=Skip] : "
-
+    while true; do
+        printf "  🤔 Apply DNS fix? [y/N]: "
         read -r answer </dev/tty
 
-
         case "$answer" in
-
-
-            y|Y)
-
-                apply_dns
-                break
-
-            ;;
-
-
-            r|R)
-
-                restore_dns
-                break
-
-            ;;
-
-
-            n|N|"")
-
-                echo
-
-                info "DNS fix skipped!"
-
-                break
-
-            ;;
-
-
-            *)
-
-                echo "  ❌ Invalid input! Use y, r or n!"
-
-            ;;
-
-
+            y|Y) apply_dns; break ;;
+            n|N|"") printf "${CYAN}ℹ️  DNS fix skipped.${RESET}\n"; break ;;
+            *) echo "  😒 Invalid input! Please enter just y or n." ;;
         esac
-
     done
-
 }
-
-
 
 network_check()
 {
-
+    GREEN_COUNT=0
+    YELLOW_COUNT=0
+    RED_COUNT=0
     TOTAL_CHECKS=0
-    PASSED_CHECKS=0
     DNS_FAILED=0
 
-
     echo
-
-    printf "${BOLD}${CYAN}🔎 DayPass Network Check ${RESET}\n"
-
-
-
-    section "DNS Resolution"
-
-
-    spin_check "DNS" "google.com"     _check_dns google.com || DNS_FAILED=1
-
-    spin_check "DNS" "github.com"     _check_dns github.com || DNS_FAILED=1
-
-    spin_check "DNS" "cloudflare.com" _check_dns cloudflare.com || DNS_FAILED=1
-
-    spin_check "DNS" "openwrt.org"    _check_dns openwrt.org || DNS_FAILED=1
-
-
-
-    section "Connectivity (ping)"
-
-
-    spin_check "Ping" "google.com" _check_ping google.com
-
-    spin_check "Ping" "github.com" _check_ping github.com
-
-    spin_check "Ping" "cloudflare.com" _check_ping cloudflare.com
-
-    spin_check "Ping" "openwrt.org" _check_ping openwrt.org
-
-
-
-    section "HTTPS Reachability"
-
-
-    spin_check "HTTPS" "Google" _check_https "https://google.com"
-
-    spin_check "HTTPS" "GitHub" _check_https "https://github.com"
-
-    spin_check "HTTPS" "Cloudflare" _check_https "https://cloudflare.com"
-
-    spin_check "HTTPS" "OpenWrt" _check_https "https://openwrt.org"
-
-
-
+    printf "${BOLD}${CYAN}🔎 DayPass Network Check${RESET}\n"
     echo
+    printf "  %-13s %-4s   %-4s   %-4s\n" "" "DNS" "Ping" "HTTPS"
+    printf "${DIM}  ───────────────────────────────────${RESET}\n"
 
-    printf "${DIM}────────────────────────────────────────${RESET}\n"
+    process_host "google.com"
+    process_host "github.com"
+    process_host "cloudflare.com"
+    process_host "openwrt.org"
 
-
+    printf "${DIM}  ───────────────────────────────────${RESET}\n"
 
     PCT=0
-
-    [ "$TOTAL_CHECKS" -gt 0 ] && \
-    PCT=$((PASSED_CHECKS * 100 / TOTAL_CHECKS))
-
+    [ "$TOTAL_CHECKS" -gt 0 ] && PCT=$((GREEN_COUNT * 100 / TOTAL_CHECKS))
 
     printf "  Overall  "
-
     draw_bar "$PCT" 20 "score"
+    printf " %s%% (🟢 %s  🟡 %s  🔴 %s)\n" "$PCT" "$GREEN_COUNT" "$YELLOW_COUNT" "$RED_COUNT"
 
-    printf " %s%% (%s/%s passed)\n" \
-    "$PCT" "$PASSED_CHECKS" "$TOTAL_CHECKS"
-
-
-
-    if [ "$DNS_FAILED" -eq 0 ]; then
-
-        printf "  🟢 ${GREEN}Network looks good${RESET}\n"
-
+    if [ "$DNS_FAILED" -eq 0 ] && [ "$RED_COUNT" -eq 0 ]; then
+        printf "  ${GREEN}🟢 Network looks good${RESET}\n"
         return 0
-
     fi
 
-
-
-    printf "  🔴 ${RED}DNS problems detected${RESET}\n"
-
-
-
-    if _check_ping cloudflare.com; then
-
-        dns_fix_menu
-
+    if [ "$DNS_FAILED" -eq 1 ]; then
+        printf "  ${RED}🔴 DNS problems detected${RESET}\n"
+        if ping -c 1 -W 2 cloudflare.com >/dev/null 2>&1; then
+            dns_fix_menu
+        fi
+    elif [ "$YELLOW_COUNT" -gt 0 ]; then
+        printf "  ${YELLOW}🟡 Network is up but degraded${RESET}\n"
     fi
-
 
     return 0
-
 }
 
-
-
 case "$0" in
-
-    *network_checker.sh)
-
-        network_check
-
-        ;;
-
+    *network_checker.sh) network_check ;;
 esac

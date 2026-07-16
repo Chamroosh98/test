@@ -141,7 +141,7 @@ jobs:
             🚀 **DayPass Release**
             ─────────────────────
             📅 Release Date :
-              `$(date +%Y-%m-%d)`
+              `${{ env.RELEASE_DATE }}`
             📦 Included Packages :
               ✅ passwall_luci  
               ✅ passwall2  
