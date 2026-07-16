@@ -140,9 +140,9 @@ jobs:
             ─────────────────────
             📅 Release Date : `${{ env.RELEASE_DATE }}`
             📦 Included Packages :
-              |____ ✅ passwall2    
-              |____ ✅ passwall_luci
-              |____ ✅ passwall_packages  
+              - passwall2    
+              - passwall_luci
+              - passwall_packages  
             ─────────────────────
             🔗 Full documentation :
                   https://github.com/${{ github.repository }}
