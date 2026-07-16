@@ -1,4 +1,9 @@
 #!/bin/sh
+set -u
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+. "$SCRIPT_DIR/lib/style.sh"
+. "$SCRIPT_DIR/lib/box_utils.sh"
 
 GREEN_COUNT=0
 YELLOW_COUNT=0
@@ -6,16 +11,14 @@ RED_COUNT=0
 TOTAL_CHECKS=0
 DNS_FAILED=0
 
-# --- ردیف فعلی که داره رندر میشه ---
 ROW_HOST=""
 ROW_DNS_ICON="·"
 ROW_PING_ICON="·"
 ROW_HTTPS_ICON="·"
-ROW_ACTIVE=""   # dns | ping | https | ""(هیچکدوم، یعنی نتیجه‌ی نهایی)
+ROW_ACTIVE=""
 
 redraw_row()
 {
-    # $1 = کاراکتر اسپینر فعلی (فقط توی ستون فعال جایگزین میشه)
     spin="$1"
     d="$ROW_DNS_ICON"
     p="$ROW_PING_ICON"
@@ -30,10 +33,8 @@ redraw_row()
     printf "\r  %-13s %-4s   %-4s   %-4s" "$ROW_HOST" "$d" "$p" "$h"
 }
 
-# --- اجرای یه چک با اسپینر توی همون ستون، بدون به‌هم‌ریختن بقیه‌ی ردیف ---
 run_cell()
 {
-    # $1=ستون(dns/ping/https)  $2=tmpfile  ; بقیه = دستور
     ROW_ACTIVE="$1"
     tmp="$2"
     shift 2
@@ -47,7 +48,7 @@ run_cell()
         c="$(printf '%s' "$spin_chars" | cut -c$(( (i % 4) + 1 )))"
         redraw_row "$c"
         i=$((i + 1))
-        sleep 0.1
+        spin_sleep
     done
 
     wait "$pid" 2>/dev/null
@@ -65,7 +66,6 @@ process_host()
     ROW_ACTIVE=""
     redraw_row " "
 
-    # --- DNS ---
     run_cell "dns" "/tmp/.nc_dns_$$" getent hosts "$ROW_HOST"
     if [ "$CELL_EXIT" -eq 0 ]; then
         ROW_DNS_ICON="🟢"
@@ -74,7 +74,6 @@ process_host()
         DNS_FAILED=1
     fi
 
-    # --- Ping ---
     run_cell "ping" "/tmp/.nc_ping_$$" ping -c 2 -W 2 "$ROW_HOST"
     LOSS="$(printf '%s' "$CELL_OUTPUT" | grep -o '[0-9]*% packet loss' | grep -o '^[0-9]*')"
     [ -z "$LOSS" ] && LOSS=100
@@ -86,7 +85,6 @@ process_host()
         ROW_PING_ICON="🔴"
     fi
 
-    # --- HTTPS ---
     run_cell "https" "/tmp/.nc_https_$$" curl -fsS -o /dev/null -w '%{time_total}' --connect-timeout 5 "https://$ROW_HOST"
     if [ "$CELL_EXIT" -ne 0 ]; then
         ROW_HTTPS_ICON="🔴"
