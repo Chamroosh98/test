@@ -103,7 +103,6 @@ jobs:
         shell: bash
         run: |
           ARCH=$(find output -mindepth 1 -maxdepth 1 -type d -printf "%f\n" | head -n1)
-
           ZIP_NAME="DayPass-${ARCH}-v${VERSION}.zip"
 
           echo "✅ ARCH    : $ARCH"
@@ -140,15 +139,14 @@ jobs:
             ## 📢 Update Content
             🚀 **DayPass Release**
             ─────────────────────
-            📅 Release Date :
-              `${{ env.RELEASE_DATE }}`
+            📅 Release Date : `${{ env.RELEASE_DATE }}`
             📦 Included Packages :
-              ✅ passwall_luci  
-              ✅ passwall2  
-              ✅ passwall_packages  
+                  ✅ passwall_luci  
+                  ✅ passwall2  
+                  ✅ passwall_packages  
             ─────────────────────
             🔗 Full documentation:
-            https://github.com/${{ github.repository }}
+                  https://github.com/${{ github.repository }}
 
           files: |
             ${{ env.ZIP_NAME }}
