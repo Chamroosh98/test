@@ -136,16 +136,15 @@ jobs:
             DayPass v${{ env.VERSION }}
           
           body: |
-            ## 📢 Update Content
             🚀 **DayPass Release**
             ─────────────────────
             📅 Release Date : `${{ env.RELEASE_DATE }}`
             📦 Included Packages :
-                  ✅ passwall_luci  
-                  ✅ passwall2  
-                  ✅ passwall_packages  
+              |____ ✅ passwall2    
+              |____ ✅ passwall_luci
+              |____ ✅ passwall_packages  
             ─────────────────────
-            🔗 Full documentation:
+            🔗 Full documentation :
                   https://github.com/${{ github.repository }}
 
           files: |
