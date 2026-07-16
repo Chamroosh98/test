@@ -1,9 +1,4 @@
 #!/bin/sh
-set -u
-
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-. "$SCRIPT_DIR/lib/style.sh"
-. "$SCRIPT_DIR/lib/box_utils.sh"
 
 GREEN_COUNT=0
 YELLOW_COUNT=0
