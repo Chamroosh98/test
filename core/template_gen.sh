@@ -16,7 +16,7 @@ _append_files() {
         local fname
         fname=$(basename "$file")
 
-        echo -e "\n# 📄 Source: $label -> $fname" >> "$output"
+        echo -e "\n# 📄 Source : $label -> $fname" >> "$output"
 
         grep -v '^#!' "$file" >> "$output"
         echo -e "\n" >> "$output"
