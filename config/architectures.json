@@ -38,11 +38,11 @@
       ]
     },
     {
-      "name": " aarch64_cortex-a53",
+      "name": "aarch64_cortex-a53",
       "provider": "sourceforge",
       "repository": "openwrt-passwall-build",
       "branch": "releases",
-      "base_url": "https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/ aarch64_cortex-a53",
+      "base_url": "https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/aarch64_cortex-a53",
       "feeds": [
         "passwall_packages",
         "passwall2",
