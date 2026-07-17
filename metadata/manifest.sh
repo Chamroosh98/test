@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 source "$DAYPASS_CORE_DIR/context.sh"
 
 generate_manifest() {

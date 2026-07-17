@@ -1,6 +1,5 @@
 #!/bin/sh
 
-# --- توابع پارس بومی سیستم‌عامل (کپی شده از همان متد برنده resource_monitor) ---
 get_free_ram_mb()
 {
     FREE_KB=$(grep MemAvailable /proc/meminfo | awk '{print $2}')
@@ -49,7 +48,6 @@ show_system_info_content()
         box_line "💡 OpenWrt version  : ${DISTRIB_RELEASE:-Unknown}"
     fi
 
-    # --- محاسبات تمیز حافظه RAM بر اساس MB ---
     TOTAL_RAM_MB=$(get_total_ram_mb)
     FREE_RAM_MB=$(get_free_ram_mb)
     USED_RAM_MB=$((TOTAL_RAM_MB - FREE_RAM_MB))
