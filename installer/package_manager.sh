@@ -12,7 +12,7 @@ detect_package_manager() {
         return
     fi
 
-    echo "Unsupported package manager."
+    echo "❌ Unsupported package manager!"
     exit 1
 }
 

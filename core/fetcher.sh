@@ -12,7 +12,7 @@ fetch_all_packages() {
     local proxy="${2:-}"
 
     [[ -f "$DAYPASS_ARCH_FILE" ]] || {
-        log_error "Architecture configuration not found!"
+        log_error " Architecture configuration not found!"
         return 1
     }
 
@@ -36,7 +36,7 @@ fetch_all_packages() {
         local arch_dir="$DAYPASS_TEMP_DIR/$arch_name"
         mkdir -p "$arch_dir"
 
-        log_info "Processing ${PURPLE}${arch_name}${NC}"
+        log_info "  Processing ${PURPLE}${arch_name}${NC}"
 
         for ((j=0; j<feed_count; j++)); do
             local feed_name
@@ -51,13 +51,13 @@ fetch_all_packages() {
             mkdir -p "$feed_dir"
             index_file="$feed_dir/index.json"
 
-            log_info "Feed ${CYAN}${feed_name}${NC}"
+            log_info "  Feed ${CYAN}${feed_name}${NC}"
 
             provider_download_index "$feed_url" "$index_file" "$proxy"
 
             local packages
             packages=$(jq -r '.packages | to_entries[] | "\(.key)-\(.value).apk"' "$index_file")
-            log_info "Repository updated."
+            log_info "  Repository updated!"
 
             while read -r pkg; do
                 [[ -z "$pkg" ]] && continue
@@ -77,14 +77,14 @@ fetch_all_packages() {
                     continue
                 fi
 
-                log_info "Downloading ${GREEN}${pkg}${NC}"
+                log_info "  Downloading ${GREEN}${pkg}${NC}"
                 provider_download_package "$feed_url" "$pkg" "$target" "$proxy"
                 cache_package_save "$arch_name" "$feed_name" "$pkg" "$target"
                 cache_package_set_version "$arch_name" "$feed_name" "$package_name" "$package_version"
 
             done <<< "$packages"
 
-            log_success "Feed synchronized."
+            log_success "   Feed synchronized!"
         done
     done
 }

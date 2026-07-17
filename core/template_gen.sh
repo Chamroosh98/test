@@ -85,25 +85,38 @@ done
 # UI
 ###############################################################################
 
-for file in \
-    "$DAYPASS_UI_DIR/style.sh" \
-    "$DAYPASS_UI_DIR/banner.sh" \
-    "$DAYPASS_UI_DIR/state.sh" \
-    "$DAYPASS_UI_DIR/progress.sh" \
-    "$DAYPASS_UI_DIR/engine_menu.sh" \
-    "$DAYPASS_UI_DIR/menu_recommended.sh" \
-    "$DAYPASS_UI_DIR/menu_custom.sh" \
-    "$DAYPASS_UI_DIR/menu_language.sh" \
-    "$DAYPASS_UI_DIR/menu_geo.sh" \
-    "$DAYPASS_UI_DIR/review.sh" \
-    "$DAYPASS_UI_DIR/menu_package.sh" \
-    "$DAYPASS_UI_DIR/main_menu.sh"
-do
-    [ -f "$file" ] || continue
+# for file in \
+#     "$DAYPASS_UI_DIR/style.sh" \
+#     "$DAYPASS_UI_DIR/banner.sh" \
+#     "$DAYPASS_UI_DIR/state.sh" \
+#     "$DAYPASS_UI_DIR/progress.sh" \
+#     "$DAYPASS_UI_DIR/engine_menu.sh" \
+#     "$DAYPASS_UI_DIR/menu_recommended.sh" \
+#     "$DAYPASS_UI_DIR/menu_custom.sh" \
+#     "$DAYPASS_UI_DIR/menu_language.sh" \
+#     "$DAYPASS_UI_DIR/menu_geo.sh" \
+#     "$DAYPASS_UI_DIR/review.sh" \
+#     "$DAYPASS_UI_DIR/menu_package.sh" \
+#     "$DAYPASS_UI_DIR/main_menu.sh"
+# do
+#     [ -f "$file" ] || continue
 
-    grep -v '^#!' "$file" >> "$output"
-    printf '\n\n' >> "$output"
-done
+#     grep -v '^#!' "$file" >> "$output"
+#     printf '\n\n' >> "$output"
+# done
+
+for file in "$DAYPASS_UI_DIR"/*.sh; 
+    do
+        [ -s "$file" ] || continue
+
+        echo "# 📄 Source: $(basename "$file")" >> "$output"
+
+        grep -v '^#!' "$file" >> "$output"
+        
+        echo -e "\n\n" >> "$output"
+        
+        echo "📂 File [$(basename "$file")] successfully dumped to output!"
+    done
 
 ###############################################################################
 # Runtime
@@ -157,6 +170,6 @@ EOF
 
     chmod +x "$output"
 
-    log_success "install.sh generated."
+    log_success "   install.sh generated =)))))"
 
 }

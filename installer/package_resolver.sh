@@ -2,7 +2,6 @@
 
 resolve_packages()
 {
-
     FINAL_PACKAGES=""
 
     add_final()
