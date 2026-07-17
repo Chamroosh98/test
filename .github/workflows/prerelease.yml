@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - dev
-
   workflow_dispatch:
 
 permissions:
@@ -12,28 +11,41 @@ permissions:
 
 jobs:
 
-  build:
+  prep-matrix:
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
+      - name: 🔎 Checkout Repository
+        uses: actions/checkout@v4
 
+      - name: 📤 Generate Matrix Config
+        id: set-matrix
+        run: |
+          ARCH_ARRAY=$(jq -c '.architectures | [.[].name]' config/architectures.json)
+          echo "matrix={\"arch\":${ARCH_ARRAY}}" >> $GITHUB_OUTPUT
+
+  build:
+    needs: prep-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.prep-matrix.outputs.matrix) }}
+      fail-fast: false
+    steps:
       - name: 🔎 Checkout Repository
         uses: actions/checkout@v4
 
       - name: 🏷️ Generate Beta Version
-        id: version
-        shell: bash
         run: |
-          VERSION=$(date +%y.%m.%d)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
 
       - name: 🗓️ Restore DayPass Cache
         uses: actions/cache@v4
         with:
-          path: |
-            cache
-          key: daypass-${{ runner.os }}-${{ hashFiles('config/architectures.json') }}
+          path: cache
+          key: daypass-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('config/architectures.json') }}
           restore-keys: |
-            daypass-${{ runner.os }}-
+            daypass-${{ runner.os }}-${{ matrix.arch }}-
 
       - name: 🛡️ Run ShellCheck on Scripts
         uses: ludeeus/action-shellcheck@master
@@ -45,22 +57,16 @@ jobs:
       - name: 🛠️ Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            bash \
-            curl \
-            jq \
-            coreutils \
-            findutils \
-            zip
+          sudo apt-get install -y bash curl jq coreutils findutils zip
 
       - name: 📝 Make Scripts Executable
         run: |
           find . -type f -name "*.sh" -exec chmod +x {} \;
 
-      - name: 👷‍♀️ Build DayPass
+      - name: 👷‍♀️ Build DayPass for ${{ matrix.arch }}
         shell: bash
         run: |
-          ./core/orchestrator.sh
+          ./core/orchestrator.sh "${{ matrix.arch }}"
 
       - name: 🧪 Validate Build
         shell: bash
@@ -71,64 +77,58 @@ jobs:
       - name: 📦 Create DayPass Beta Package
         shell: bash
         run: |
-          ARCH=$(find output -mindepth 1 -maxdepth 1 -type d -printf "%f\n" | head -n1)
-          ZIP_NAME="DayPass_${ARCH}_v${VERSION}-beta.zip"
+          ZIP_NAME="DayPass_${{ matrix.arch }}_v${VERSION}-beta.zip"
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 
-          cd "output/$ARCH"
-          zip -r "../../$ZIP_NAME" \
-            passwall_luci \
-            passwall2 \
-            passwall_packages \
-            -x "*/index.json"
-
+          cd "output/${{ matrix.arch }}"
+          zip -r "../../$ZIP_NAME" passwall_luci passwall2 passwall_packages -x "*/index.json"
           cd ../..
           sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
-
-          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
-          echo "ARCH=$ARCH" >> $GITHUB_ENV
 
       - name: 📤 Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: beta-package
+          name: beta-package-${{ matrix.arch }}
           path: |
             DayPass_*.zip
             DayPass_*.sha256
+            output/
           retention-days: 1
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
-
       - name: 🔎 Checkout Repository
         uses: actions/checkout@v4
 
       - name: 🏷️ Generate Beta Version (For Tagging)
-        shell: bash
         run: |
-          VERSION=$(date +%y.%m.%d)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$(date +%y.%m.%
+      - name: 📁 Prepare Temp Directory
+        run: mkdir -p merged-beta
 
-      - name: 📥 Download Build Artifact
+      - name: 📥 Download All Beta Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: beta-package
+          path: merged-beta/
+          pattern: beta-package-*
+          merge-multiple: true
 
       - name: 🚀 Upload Pre-Release to GitHub
         uses: softprops/action-gh-release@v2
         with:
-            tag_name: v${{ env.VERSION }}-beta-${{ github.run_number }}
-            name: 🧪 DayPass v${{ env.VERSION }} Beta
-            prerelease: true
-            body: |
-                ## 🧪 DayPass Beta Release
-                ⚠️ Experimental build!
-                📅 Date : `${{ env.VERSION }}`
-                🧪 Build : `${{ github.run_number }}`
-            files: |
-                DayPass_*-beta.zip
-                DayPass_*-beta.zip.sha256
+          tag_name: v${{ env.VERSION }}-beta-${{ github.run_number }}
+          name: 🧪 DayPass v${{ env.VERSION }} Beta
+          prerelease: true
+          body: |
+            ## 🧪 DayPass Beta Release
+            ⚠️ Experimental build!
+            📅 Date : `${{ env.VERSION }}`
+            🧪 Build : `${{ github.run_number }}`
+          files: |
+            merged-beta/DayPass_*.zip
+            merged-beta/DayPass_*.sha256
 
       - name: 📢 Send Telegram Notification (Beta)
         uses: appleboy/telegram-action@master
@@ -139,10 +139,10 @@ jobs:
           message: |
             🧪 *The new DayPass beta is ready!*
             ───────────────────
-            🏷️ *Version:* `v${{ env.VERSION }}-beta`
-            🛠️ *Build Number:* `${{ github.run_number }}`
-            📅 * Publish Date:* `${{ env.VERSION }}`
-            👤 *Author:* `${{ github.actor }}`
+            🏷️ *Version :* `v${{ env.VERSION }}-beta`
+            🛠️ *Build Number :* `${{ github.run_number }}`
+            📅 *Publish Date :* `${{ env.VERSION }}`
+            👤 *Author :* `${{ github.actor }}`
             ───────────────────
             🔗 *Direct Link From Github :*
             https://github.com/${{ github.repository }}/releases/tag/v${{ env.VERSION }}-beta-${{ github.run_number }}

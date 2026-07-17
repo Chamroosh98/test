@@ -4,9 +4,7 @@ on:
   push:
     branches:
       - main
-
   workflow_dispatch:
-
   schedule:
     - cron: "0 0 * * *"
 
@@ -21,30 +19,42 @@ concurrency:
 
 jobs:
 
-  build:
+  prep-matrix:
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
+      - name: 🔎 Checkout Repository
+        uses: actions/checkout@v4
 
+      - name: 📤 Generate Matrix Config
+        id: set-matrix
+        run: |
+          ARCH_ARRAY=$(jq -c '.architectures | [.[].name]' config/architectures.json)
+          echo "matrix={\"arch\":${ARCH_ARRAY}}" >> $GITHUB_OUTPUT
+
+  build:
+    needs: prep-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.prep-matrix.outputs.matrix) }}
+      fail-fast: false
+    steps:
       - name: 🔎 Checkout Repository
         uses: actions/checkout@v4
 
       - name: 🏷️ Generate Release Version
-        id: version
-        shell: bash
         run: |
-          VERSION=$(date +%y.%m.%d)
-          RELEASE_DATE=$(date +%Y-%m-%d)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "RELEASE_DATE=$RELEASE_DATE" >> $GITHUB_ENV
+          echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
+          echo "RELEASE_DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
 
       - name: 🗓️ Restore DayPass Cache
         uses: actions/cache@v4
         with:
-          path: |
-            cache
-          key: daypass-${{ runner.os }}-${{ hashFiles('config/architectures.json') }}
+          path: cache
+          key: daypass-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('config/architectures.json') }}
           restore-keys: |
-            daypass-${{ runner.os }}-
+            daypass-${{ runner.os }}-${{ matrix.arch }}-
 
       - name: 🛡️ Run ShellCheck on Scripts
         uses: ludeeus/action-shellcheck@master
@@ -53,28 +63,19 @@ jobs:
           additional_files: './core/bootstrap.sh'
           severity: warning
 
-      - name: 😼 Setup Pages
-        uses: actions/configure-pages@v5
-
       - name: 🛠️ Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            bash \
-            curl \
-            jq \
-            coreutils \
-            findutils \
-            zip
+          sudo apt-get install -y bash curl jq coreutils findutils zip
 
       - name: 📝 Make Scripts Executable
         run: |
           find . -type f -name "*.sh" -exec chmod +x {} \;
 
-      - name: 👷‍♀️ Build DayPass
+      - name: 👷‍♀️ Build DayPass for ${{ matrix.arch }}
         shell: bash
         run: |
-          ./core/orchestrator.sh
+          ./core/orchestrator.sh "${{ matrix.arch }}"
 
       - name: 🧪 Validate Build
         shell: bash
@@ -82,63 +83,32 @@ jobs:
           test -f output/install.sh
           test -f output/manifest.json
 
-      - name: 📤 Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: output
-
-      - name: 🔍 Debug Output Structure
-        shell: bash
-        run: |
-          tree -L 3 output
-
       - name: 📦 Create DayPass Release Package
         shell: bash
         run: |
-          ARCH=$(find output -mindepth 1 -maxdepth 1 -type d -printf "%f\n" | head -n1)
-          ZIP_NAME="DayPass-${ARCH}-v${VERSION}.zip"
+          ZIP_NAME="DayPass-${{ matrix.arch }}-v${VERSION}.zip"
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 
-          echo "✅ ARCH    : $ARCH"
-          echo "✅ VERSION : $VERSION"
-          echo "✅ ZIP     : $ZIP_NAME"
-
-          cd "output/$ARCH"
-          zip -r "../../$ZIP_NAME" \
-            passwall_luci \
-            passwall2 \
-            passwall_packages \
-            -x "*/index.json"
-
+          cd "output/${{ matrix.arch }}"
+          zip -r "../../$ZIP_NAME" passwall_luci passwall2 passwall_packages -x "*/index.json"
           cd ../..
           sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
 
-          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
-          echo "ARCH=$ARCH" >> $GITHUB_ENV
-
-          echo "✅ Release package created!"
-          ls -lh "$ZIP_NAME"
-      
       - name: 🚀 Upload GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}
-          name: |
-            DayPass v${{ env.VERSION }}
-          body: |
-            🚀 **DayPass Release**
-            ─────────────────────
-            📅 Release Date : `${{ env.RELEASE_DATE }}`
-            📦 Included Packages :
-              - passwall2    
-              - passwall_luci
-              - passwall_packages  
-            ─────────────────────
-            🔗 Full documentation :
-                  https://github.com/${{ github.repository }}
+          name: DayPass v${{ env.VERSION }}
           prerelease: false
           files: |
             ${{ env.ZIP_NAME }}
             ${{ env.ZIP_NAME }}.sha256
+
+      - name: 📤 Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: output-${{ matrix.arch }}
+          path: output/
 
   deploy:
     needs: build
@@ -147,18 +117,35 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: 🔎 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🏷️ Generate Version Variables for Deploy
+        run: |
+          echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
+          echo "RELEASE_DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+
+      - name: 📁 Prepare Deployment Directory
+        run: mkdir -p merged-output
+
+      - name: 📥 Download All Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: merged-output/
+          pattern: output-*
+          merge-multiple: true
+
+      - name: 😼 Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: 📤 Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: merged-output
+
       - name: 🚀 Deploy
         id: deployment
         uses: actions/deploy-pages@v4
-
-      - name: 🏷️ Generate Version Variables for Deploy
-        id: vars
-        shell: bash
-        run: |
-          VERSION=$(date +%y.%m.%d)
-          RELEASE_DATE=$(date +%Y-%m-%d)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "RELEASE_DATE=$RELEASE_DATE" >> $GITHUB_ENV
 
       - name: 📢 Send Telegram Notification (Official)
         uses: appleboy/telegram-action@master
