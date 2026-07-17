@@ -7,7 +7,7 @@ generate_manifest() {
     local output_dir="$DAYPASS_OUTPUT_DIR"
     local main_manifest="$output_dir/manifest.json"
 
-    echo "   ⚙️ Generating global manifest ..."
+    echo "  🧠 Generating global manifest ..."
 
     local release
     release=$(jq -r '.release' "$DAYPASS_ARCH_FILE")
@@ -19,7 +19,7 @@ generate_manifest() {
         local arch_dir="$output_dir/$arch"
         [ -d "$arch_dir" ] || continue
 
-        echo "   📦 Processing $arch ..."
+        echo " 🔬 Processing $arch ..."
 
         local packages='[]'
 
@@ -70,7 +70,6 @@ generate_manifest() {
             architectures:$architectures
         }' \
         > "$main_manifest"
-
 
     echo "   ✅ Manifest generated!"
 }

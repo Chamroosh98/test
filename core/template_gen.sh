@@ -8,7 +8,7 @@ _append_files() {
     local files=("$@")
     local output="$DAYPASS_INSTALL_SCRIPT"
 
-    echo "📦 Processing $label ..."
+    echo " ⌛ Processing $label ..."
 
     for file in "${files[@]}"; do
         [ -f "$file" ] || continue
@@ -21,7 +21,7 @@ _append_files() {
         grep -v '^#!' "$file" >> "$output"
         echo -e "\n" >> "$output"
         
-        echo "  ✅ [$fname] appended successfully!"
+        echo "  ✅ [$fname] appended!"
     done
 }
 

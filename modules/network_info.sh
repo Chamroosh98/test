@@ -63,7 +63,6 @@ get_network_info_content()
     [ -n "$ASN" ] && box_line "ASN     : AS$ASN"
 }
 
-# نسخه‌ی مستقل (خودش هدر/فوتر می‌زنه)
 get_network_info()
 {
     echo

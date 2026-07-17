@@ -36,7 +36,7 @@ fetch_all_packages() {
         local arch_dir="$DAYPASS_TEMP_DIR/$arch_name"
         mkdir -p "$arch_dir"
 
-        log_info "Processing ${PURPLE}${arch_name}${NC}"
+        echo "🗜️ Processing ${PURPLE}${arch_name}${NC}"
 
         for ((j=0; j<feed_count; j++)); do
             local feed_name
@@ -51,13 +51,13 @@ fetch_all_packages() {
             mkdir -p "$feed_dir"
             index_file="$feed_dir/index.json"
 
-            log_info "Feed ${CYAN}${feed_name}${NC}"
+            echo "💰 Feed : ${CYAN}${feed_name}${NC}"
 
             provider_download_index "$feed_url" "$index_file" "$proxy"
 
             local packages
             packages=$(jq -r '.packages | to_entries[] | "\(.key)-\(.value).apk"' "$index_file")
-            log_info "Repository updated!"
+            echo "⌛ Repository updated!"
 
             while read -r pkg; do
                 [[ -z "$pkg" ]] && continue
@@ -72,12 +72,12 @@ fetch_all_packages() {
                 cached_version="$(cache_package_version "$arch_name" "$feed_name" "$package_name")"
 
                 if [[ "$cached_version" == "$package_version" ]]; then
-                    log_info "Cached ${GREEN}${pkg}${NC}"
+                    echo "🔄 Cached : ${GREEN}${pkg}${NC}"
                     cache_package_restore "$arch_name" "$feed_name" "$pkg" "$target"
                     continue
                 fi
 
-                log_info "Downloading ${GREEN}${pkg}${NC}"
+                echo "📥 Downloading : ${GREEN}${pkg}${NC}"
                 provider_download_package "$feed_url" "$pkg" "$target" "$proxy"
                 cache_package_save "$arch_name" "$feed_name" "$pkg" "$target"
                 cache_package_set_version "$arch_name" "$feed_name" "$package_name" "$package_version"
