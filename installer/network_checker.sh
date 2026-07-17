@@ -33,8 +33,7 @@ redraw_row()
         https) h="$spin" ;;
     esac
 
-    # تغییر فرمت‌دهی به %-6s برای ایجاد فضای خالی اضافه جهت هندل کردن عرض اموجی‌ها
-    printf "\r  %-18s %-6s    %-6s    %-6s" "$ROW_HOST" "$d" "$p" "$h"
+    printf "\r  %-18s  %-5s    %-5s    %-5s" "$ROW_HOST" "$d" "$p" "$h"
 }
 
 run_cell()
@@ -211,16 +210,15 @@ network_check()
     printf "  ${BOLD}${CYAN}🔎 DayPass Network Check${RESET}\n"
     echo
 
-    # هماهنگ‌سازی هدر با متغیرهای فرمت جدید
-    printf "  %-18s %-6s    %-6s    %-6s\n" "Host" "DNS" "Ping" "HTTPS"
-    printf "  ${DIM}─────────────────────────────────────────────${RESET}\n"
+    printf "  %-18s  %-5s    %-5s    %-5s\n" "Host" "DNS" "Ping" "HTTPS"
+    printf "  ${DIM}──────────────────────────────────────────${RESET}\n"
 
     process_host "google.com"
     process_host "github.com"
-    process_host "cloudflare.com"
     process_host "openwrt.org"
+    process_host "cloudflare.com"
 
-    printf "  ${DIM}─────────────────────────────────────────────${RESET}\n"
+    printf "  ${DIM}──────────────────────────────────────────${RESET}\n"
 
     PCT=0
     [ "$TOTAL_CHECKS" -gt 0 ] && PCT=$((GREEN_COUNT * 100 / TOTAL_CHECKS))
@@ -232,7 +230,7 @@ network_check()
 
     if [ "$DNS_FAILED" -eq 0 ] && [ "$RED_COUNT" -eq 0 ]; then
         printf "  ${GREEN}🟢 Network looks good and healthy!${RESET}\n"
-        return 0
+        # return 0
     fi
 
     if [ "$DNS_FAILED" -eq 1 ]; then
@@ -243,6 +241,9 @@ network_check()
     elif [ "$YELLOW_COUNT" -gt 0 ]; then
         printf "  ${YELLOW}🟡 Network is up but degraded.${RESET}\n"
     fi
+
+    sleep 2   # 2 seconds to wait before clearing the screen
+    clear
 
     return 0
 }

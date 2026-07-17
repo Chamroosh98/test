@@ -146,7 +146,8 @@ jobs:
             ─────────────────────
             🔗 Full documentation :
                   https://github.com/${{ github.repository }}
-            prerelease: false
+          
+          prerelease: false
 
           files: |
             ${{ env.ZIP_NAME }}

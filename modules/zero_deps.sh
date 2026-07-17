@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -x          # For debugging, print each command before executing it
+
 deploy_system_dependencies()
 {
     echo "  🔎 Checking system dependencies ..."
