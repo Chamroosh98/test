@@ -3,7 +3,7 @@
 source "$DAYPASS_ROOT/core/context.sh"
 
 provider_name() {
-    echo "SourceForge"
+    echo "🟠 SourceForge"
 }
 
 provider_download() {

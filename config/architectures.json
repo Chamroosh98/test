@@ -12,6 +12,18 @@
         "passwall2",
         "passwall_luci"
       ]
+    },
+    {
+      "name": "x86_64",
+      "provider": "sourceforge",
+      "repository": "openwrt-passwall-build",
+      "branch": "releases",
+      "base_url": "https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/x86_64",
+      "feeds": [
+        "passwall_packages",
+        "passwall2",
+        "passwall_luci"
+      ]
     }
   ]
 }
