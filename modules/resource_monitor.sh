@@ -2,35 +2,27 @@
 
 get_free_ram_mb()
 {
-    free | awk '
-    /Mem:/ {
-        printf "%.0f\n", $4 / 1024
-    }'
+    FREE_KB=$(grep MemAvailable /proc/meminfo | awk '{print $2}')
+    [ -z "$FREE_KB" ] && FREE_KB=$(grep MemFree /proc/meminfo | awk '{print $2}')
+    echo $((FREE_KB / 1024))
 }
 
 get_total_ram_mb()
 {
-    free | awk '
-    /Mem:/ {
-        printf "%.0f\n", $2 / 1024
-    }'
+    TOTAL_KB=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+    echo $((TOTAL_KB / 1024))
 }
 
 get_free_storage_mb()
 {
-    df -k / | awk '
-    NR==2 {
-        printf "%.0f\n", $4 / 1024
-    }'
+    df -k / | awk 'NR==2 {printf "%.0f\n", $4 / 1024}'
 }
 
 get_total_storage_mb()
 {
-    df -k / | awk '
-    NR==2 {
-        printf "%.0f\n", $2 / 1024
-    }'
+    df -k / | awk 'NR==2 {printf "%.0f\n", $2 / 1024}'
 }
+
 
 resource_snapshot()
 {

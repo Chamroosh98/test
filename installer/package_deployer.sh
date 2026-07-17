@@ -86,7 +86,7 @@ download_package()
 
     if [ ! -s "$tmp" ]; 
         then
-        echo "   ❌ Invalid package: empty file"
+        echo "   ❌ Invalid package : empty file"
         rm -f "$tmp"
         return 1
     fi
@@ -111,7 +111,7 @@ install_package()
 
     if [ ! -s "$file" ]; 
         then
-        echo "   ❌ Package file invalid: $file"
+        echo "   ❌ Package file invalid : $file"
         return 1
     fi
 

@@ -108,18 +108,6 @@
         "passwall2",
         "passwall_luci"
       ]
-    },
-    {
-      "name": "aarch64_cortex-a76",
-      "provider": "sourceforge",
-      "repository": "openwrt-passwall-build",
-      "branch": "releases",
-      "base_url": "https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/aarch64_cortex-a76",
-      "feeds": [
-        "passwall_packages",
-        "passwall2",
-        "passwall_luci"
-      ]
     }
   ]
 }

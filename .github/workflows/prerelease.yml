@@ -144,18 +144,18 @@ jobs:
         run: |
           KEYBOARD=$(jq -c '{
             "inline_keyboard": [.architectures[] | [{
-              "text": "📦 Download \(.name)",
+              "text": "📦 \(.name)",
               "url": "https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}-beta-${{ github.run_number }}/DayPass_\(.name)_v${{ env.VERSION }}-beta.zip"
             }]]
           }' config/architectures.json)
 
           MESSAGE="🧪 *New DayPass Beta Build Ready!*
-          ───────────────────
+
           🏷️ *Version :* \`v${{ env.VERSION }}-beta\`
           🛠️ *Build Number :* \`${{ github.run_number }}\`
           👤 *Triggered By :* \`${{ github.actor }}\`
-          ───────────────────
-          👇 Please select your architecture to download directly from GitHub:"
+
+          👇 Please select your architecture to download directly from GitHub :"
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \

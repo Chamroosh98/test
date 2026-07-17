@@ -157,20 +157,19 @@ jobs:
       - name: 📢 Send Smart Telegram Menu (Official Release)
         shell: bash
         run: |
-          # ساخت دکمه‌های شیشه‌ای برای نسخه اصلی (بدون تگ بتا)
           KEYBOARD=$(jq -c '{
             "inline_keyboard": [.architectures[] | [{
-              "text": "🚀 Download \(.name)",
+              "text": "🚀 \(.name)",
               "url": "https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}/DayPass_\(.name)_v${{ env.VERSION }}.zip"
             }]]
           }' config/architectures.json)
 
           MESSAGE="🚀 *Official DayPass Release is Out!*
-          ───────────────────
+
           🏷️ *Version :* \`v${{ env.VERSION }}\`
           👤 *Released By :* \`${{ github.actor }}\`
-          ───────────────────
-          👇 Click below to get the official stable package for your router:"
+
+          👇 Click below to get the official stable package for your router :"
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
