@@ -230,7 +230,7 @@ network_check()
 
     if [ "$DNS_FAILED" -eq 0 ] && [ "$RED_COUNT" -eq 0 ]; then
         printf "  ${GREEN}🟢 Network looks good and healthy!${RESET}\n"
-        return 0
+        # return 0
     fi
 
     if [ "$DNS_FAILED" -eq 1 ]; then
@@ -242,8 +242,8 @@ network_check()
         printf "  ${YELLOW}🟡 Network is up but degraded.${RESET}\n"
     fi
 
-    # sleep 2   # 2 seconds to wait before clearing the screen
-    # clear
+    sleep 2   # 2 seconds to wait before clearing the screen
+    clear
 
     return 0
 }
