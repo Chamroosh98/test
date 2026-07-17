@@ -230,8 +230,8 @@ network_check()
 
     if [ "$DNS_FAILED" -eq 0 ] && [ "$RED_COUNT" -eq 0 ]; then
         printf "  ${GREEN}🟢 Network looks good and healthy!${RESET}\n"
-        # sleep 2   # 2 seconds to wait before clearing the screen
-        # clear
+        sleep 2   # 2 seconds to wait before clearing the screen
+        clear
         return 0
     fi
 
@@ -239,8 +239,8 @@ network_check()
         printf "  ${RED}🔴 DNS problems detected! ${RESET}\n"
         if ping -c 1 -W 2 cloudflare.com >/dev/null 2>&1; then
             dns_fix_menu
-            # sleep 2   # 2 seconds to wait before clearing the screen
-            # clear
+            sleep 2   # 2 seconds to wait before clearing the screen
+            clear
             return 0
         fi
     elif [ "$YELLOW_COUNT" -gt 0 ]; then
