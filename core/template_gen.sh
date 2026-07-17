@@ -18,7 +18,7 @@ generate_install_script() {
 
 set -eu
 
-REPO_URL="https://chamroosh98.github.io/test"
+REPO_URL="https://chamroosh98.github.io/DayPass"
 
 EOF
 
