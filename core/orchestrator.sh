@@ -27,14 +27,12 @@ source "$DAYPASS_ROOT/core/template_gen.sh"
 
 source "$DAYPASS_ROOT/metadata/manifest.sh"
 
-source "$DAYPASS_ROOT/metadata/catalog.sh"
-
 ###############################################################################
 # Main
 ###############################################################################
 
 main() {
-    # 👈 خواندن پارامتر ورودی از ترمینال (مثلاً ./core/orchestrator.sh arm_cortex-a7_neon-vfpv4)
+
     local target_arch="${1:-}" 
 
     show_banner
@@ -49,8 +47,7 @@ main() {
     mkdir -p "$DAYPASS_OUTPUT_DIR"
 
     log_info "🥇 Phase 1/3 : Fetch Packages ..."
-    
-    # 👈 پاس دادن معماری به واکشی‌کننده
+
     fetch_all_packages "$target_arch" ""
 
     generate_manifest
