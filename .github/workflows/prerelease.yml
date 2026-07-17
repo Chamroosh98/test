@@ -1,66 +1,80 @@
 name: 🧪 DayPass Pre-Release
 
 on:
-    push:
-        branches:
-        - dev
+  push:
+    branches:
+      - dev
 
-    workflow_dispatch:
-
+  workflow_dispatch:
 
 permissions:
-    contents: write
-
+  contents: write
 
 jobs:
 
-  pre-release:
-
+  build:
     runs-on: ubuntu-latest
-
     steps:
 
-      - name: 🔎 Checkout
+      - name: 🔎 Checkout Repository
         uses: actions/checkout@v4
 
-
       - name: 🏷️ Generate Beta Version
+        id: version
         shell: bash
         run: |
           VERSION=$(date +%y.%m.%d)
-
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
+      - name: 🗓️ Restore DayPass Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            cache
+          key: daypass-${{ runner.os }}-${{ hashFiles('config/architectures.json') }}
+          restore-keys: |
+            daypass-${{ runner.os }}-
 
-      - name: 🛠 Install Tools
+      - name: 🛡️ Run ShellCheck on Scripts
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './core'
+          additional_files: './core/bootstrap.sh'
+          severity: warning
+
+      - name: 🛠️ Install Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             bash \
             curl \
             jq \
+            coreutils \
+            findutils \
             zip
 
-
-      - name: 📝 chmod
+      - name: 📝 Make Scripts Executable
         run: |
-            find . -type f -name "*.sh" -exec chmod +x {} \;
+          find . -type f -name "*.sh" -exec chmod +x {} \;
 
-
-      - name: 👷 Build DayPass
+      - name: 👷‍♀️ Build DayPass
         shell: bash
         run: |
           ./core/orchestrator.sh
 
+      - name: 🧪 Validate Build
+        shell: bash
+        run: |
+          test -f output/install.sh
+          test -f output/manifest.json
 
-      - name: 📦 Create Beta Package
+      - name: 📦 Create DayPass Beta Package
         shell: bash
         run: |
           ARCH=$(find output -mindepth 1 -maxdepth 1 -type d -printf "%f\n" | head -n1)
           ZIP_NAME="DayPass_${ARCH}_v${VERSION}-beta.zip"
 
           cd "output/$ARCH"
-
           zip -r "../../$ZIP_NAME" \
             passwall_luci \
             passwall2 \
@@ -68,26 +82,50 @@ jobs:
             -x "*/index.json"
 
           cd ../..
-
           sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
 
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
           echo "ARCH=$ARCH" >> $GITHUB_ENV
 
+      - name: 📤 Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: beta-package
+          path: |
+            DayPass_*.zip
+            DayPass_*.sha256
+          retention-days: 1
 
-      - name: 🚀 Upload Pre-Release
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: 🔎 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🏷️ Generate Beta Version (For Tagging)
+        shell: bash
+        run: |
+          VERSION=$(date +%y.%m.%d)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: 📥 Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: beta-package
+
+      - name: 🚀 Upload Pre-Release to GitHub
         uses: softprops/action-gh-release@v2
         with:
             tag_name: v${{ env.VERSION }}-beta-${{ github.run_number }}
             name: 🧪 DayPass v${{ env.VERSION }} Beta
             prerelease: true
-
             body: |
                 ## 🧪 DayPass Beta Release
                 ⚠️ Experimental build!
                 📅 Date : `${{ env.VERSION }}`
                 🧪 Build : `${{ github.run_number }}`
-
             files: |
-                ${{ env.ZIP_NAME }}
-                ${{ env.ZIP_NAME }}.sha256
+                DayPass_*-beta.zip
+                DayPass_*-beta.zip.sha256

@@ -22,27 +22,21 @@ concurrency:
 jobs:
 
   build:
-
     runs-on: ubuntu-latest
-
     steps:
 
-      # Checkout
       - name: 🔎 Checkout Repository
         uses: actions/checkout@v4
 
-      # Version
       - name: 🏷️ Generate Release Version
         id: version
         shell: bash
         run: |
           VERSION=$(date +%y.%m.%d)
           RELEASE_DATE=$(date +%Y-%m-%d)
-
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "RELEASE_DATE=$RELEASE_DATE" >> $GITHUB_ENV
 
-      # Restore Cache
       - name: 🗓️ Restore DayPass Cache
         uses: actions/cache@v4
         with:
@@ -52,11 +46,16 @@ jobs:
           restore-keys: |
             daypass-${{ runner.os }}-
 
-      # GitHub Pages
+      - name: 🛡️ Run ShellCheck on Scripts
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './core'
+          additional_files: './core/bootstrap.sh'
+          severity: warning
+
       - name: 😼 Setup Pages
         uses: actions/configure-pages@v5
 
-      # Install Tools
       - name: 🛠️ Install Dependencies
         run: |
           sudo apt-get update
@@ -68,37 +67,31 @@ jobs:
             findutils \
             zip
 
-      # chmod
       - name: 📝 Make Scripts Executable
         run: |
           find . -type f -name "*.sh" -exec chmod +x {} \;
 
-      # Build
       - name: 👷‍♀️ Build DayPass
         shell: bash
         run: |
           ./core/orchestrator.sh
 
-      # Validate
       - name: 🧪 Validate Build
         shell: bash
         run: |
           test -f output/install.sh
           test -f output/manifest.json
 
-      # Upload Pages
       - name: 📤 Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: output
 
-        # Debug for Output Structure
       - name: 🔍 Debug Output Structure
         shell: bash
         run: |
           tree -L 3 output
 
-      # Package Release ZIP
       - name: 📦 Create DayPass Release Package
         shell: bash
         run: |
@@ -110,7 +103,6 @@ jobs:
           echo "✅ ZIP     : $ZIP_NAME"
 
           cd "output/$ARCH"
-
           zip -r "../../$ZIP_NAME" \
             passwall_luci \
             passwall2 \
@@ -118,7 +110,6 @@ jobs:
             -x "*/index.json"
 
           cd ../..
-
           sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
 
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
@@ -127,14 +118,12 @@ jobs:
           echo "✅ Release package created!"
           ls -lh "$ZIP_NAME"
       
-        # Upload GitHub Release
       - name: 🚀 Upload GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}
           name: |
             DayPass v${{ env.VERSION }}
-          
           body: |
             🚀 **DayPass Release**
             ─────────────────────
@@ -146,27 +135,18 @@ jobs:
             ─────────────────────
             🔗 Full documentation :
                   https://github.com/${{ github.repository }}
-          
           prerelease: false
-
           files: |
             ${{ env.ZIP_NAME }}
             ${{ env.ZIP_NAME }}.sha256
 
   deploy:
-
     needs: build
-
     runs-on: ubuntu-latest
-
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
-
-      # Deploy Pages
       - name: 🚀 Deploy
         id: deployment
         uses: actions/deploy-pages@v4
-        
