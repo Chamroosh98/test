@@ -32,15 +32,15 @@ jobs:
             cache
           key: daypass-${{ runner.os }}-${{ hashFiles('config/architectures.json') }}
           restore-keys: |
-            daypass-${{ runner.os }}-[cite: 3]
+            daypass-${{ runner.os }}-
 
 
       - name: 🛡️ Run ShellCheck on Scripts
         uses: ludeeus/action-shellcheck@master
         with:
           scandir: './core'
+          additional_files: './core/bootstrap.sh'
           severity: warning
-          # exclude: "SC1091" 
 
 
       - name: 🛠 Install Dependencies
@@ -52,28 +52,28 @@ jobs:
             jq \
             coreutils \
             findutils \
-            zip[cite: 1]
+            zip
 
 
       - name: 📝 Make Scripts Executable
         run: |
-          find . -type f -name "*.sh" -exec chmod +x {} \;[cite: 1]
+          find . -type f -name "*.sh" -exec chmod +x {} \;
 
 
       - name: 👷 Build DayPass
         shell: bash
         run: |
-          ./core/orchestrator.sh[cite: 1]
+          ./core/orchestrator.sh
 
 
       - name: 🧪 Validate Build
         shell: bash
         run: |
           test -f output/install.sh
-          test -f output/manifest.json[cite: 1]
+          test -f output/manifest.json
 
 
       - name: 🔍 Debug Output
         shell: bash
         run: |
-            tree -L 3 output[cite: 1]
+            tree -L 3 output
