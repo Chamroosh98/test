@@ -51,7 +51,6 @@ main() {
     fetch_all_packages "$target_arch" ""
 
     generate_manifest
-    generate_catalog
     
     echo -e "${GRAY}------------------------------------------------------------${NC}"
 
