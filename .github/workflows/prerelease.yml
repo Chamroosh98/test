@@ -132,19 +132,37 @@ jobs:
             merged-beta/DayPass_*.zip
             merged-beta/DayPass_*.sha256
 
-      - name: 📢 Send Telegram Notification (Beta)
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          format: markdown
-          message: |
-            🧪 *The new DayPass beta is ready!*
-            ───────────────────
-            🏷️ *Version :* `v${{ env.VERSION }}-beta`
-            🛠️ *Build Number :* `${{ github.run_number }}`
-            📅 *Publish Date :* `${{ env.VERSION }}`
-            👤 *Author :* `${{ github.actor }}`
-            ───────────────────
-            🔗 *Direct Link From Github :*
-            https://github.com/${{ github.repository }}/releases/tag/v${{ env.VERSION }}-beta-${{ github.run_number }}
+      # Downloading requirements tools for glass button in telegram bot!
+      - name: 🛠️ Install Dependencies for Deploy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq curl
+
+      # Send Notification to Telegram
+      - name: 📢 Send Smart Telegram Menu (Beta)
+        shell: bash
+        run: |
+          KEYBOARD=$(jq -c '{
+            "inline_keyboard": [.architectures[] | [{
+              "text": "📦 Download \(.name)",
+              "url": "https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}-beta-${{ github.run_number }}/DayPass_\(.name)_v${{ env.VERSION }}-beta.zip"
+            }]]
+          }' config/architectures.json)
+
+          MESSAGE="🧪 *New DayPass Beta Build Ready!*
+          ───────────────────
+          🏷️ *Version :* \`v${{ env.VERSION }}-beta\`
+          🛠️ *Build Number :* \`${{ github.run_number }}\`
+          👤 *Triggered By :* \`${{ github.actor }}\`
+          ───────────────────
+          👇 Please select your architecture to download directly from GitHub:"
+
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d "text=$MESSAGE" \
+            -d "parse_mode=Markdown" \
+            -d "reply_markup=$KEYBOARD" \
+            -d "disable_web_page_preview=true"
+            
+
+
