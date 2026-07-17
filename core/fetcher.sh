@@ -40,7 +40,7 @@ fetch_all_packages() {
             local feed_url
             local feed_dir
             local index_file
-            local checksum_file
+            # local checksum_file
 
             feed_name=$(jq -r ".architectures[$i].feeds[$j]" "$DAYPASS_ARCH_FILE")
 
