@@ -77,10 +77,12 @@ jobs:
       - name: 📦 Create DayPass Beta Package
         shell: bash
         run: |
-          ZIP_NAME="DayPass_${{ matrix.arch }}_v${VERSION}-beta.zip"
+          ZIP_NAME="DayPass_${{ matrix.arch }}_v${{ env.VERSION }}-beta.zip"
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 
+          # رفتن به داخل فولدر معماری تا فایل زیپ ساختار تودرتو نداشته باشد
           cd "output/${{ matrix.arch }}"
+          # زیپ کردن فقط این ۳ فولدر بدون ذخیره آدرس‌های قبل از آن و حذف کل ایندکس‌ها
           zip -r "../../$ZIP_NAME" passwall_luci passwall2 passwall_packages -x "*/index.json"
           cd ../..
           sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
@@ -92,7 +94,6 @@ jobs:
           path: |
             DayPass_*.zip
             DayPass_*.sha256
-            output/
           retention-days: 1
 
   deploy:
@@ -104,7 +105,8 @@ jobs:
 
       - name: 🏷️ Generate Beta Version (For Tagging)
         run: |
-          echo "VERSION=$(date +%y.%m.%
+          echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
+
       - name: 📁 Prepare Temp Directory
         run: mkdir -p merged-beta
 
