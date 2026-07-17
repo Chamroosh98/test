@@ -129,3 +129,20 @@ jobs:
             files: |
                 DayPass_*-beta.zip
                 DayPass_*-beta.zip.sha256
+
+      - name: 📢 Send Telegram Notification (Beta)
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          message: |
+            🧪 *The new DayPass beta is ready!*
+            ───────────────────
+            🏷️ *Version:* `v${{ env.VERSION }}-beta`
+            🛠️ *Build Number:* `${{ github.run_number }}`
+            📅 * Publish Date:* `${{ env.VERSION }}`
+            👤 *Author:* `${{ github.actor }}`
+            ───────────────────
+            🔗 *Direct Link From Github :*
+            https://github.com/${{ github.repository }}/releases/tag/v${{ env.VERSION }}-beta-${{ github.run_number }}

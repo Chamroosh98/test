@@ -150,3 +150,25 @@ jobs:
       - name: 🚀 Deploy
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: 📢 Send Telegram Notification (Official)
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          message: |
+            🚀 *The official version of DayPass has been released!*
+            ───────────────────
+            🏷️ *Version :* `v${{ env.VERSION }}`
+            📅 *Release Date :* `${{ env.RELEASE_DATE }}`
+            📦 *Included Packages :*
+              • passwall2
+              • passwall_luci
+              • passwall_packages
+            ───────────────────
+            🌐 *Direct installation link :*
+            `https://chamroosh98.github.io/DayPass/`
+            
+            🔗 *Release page and ZIP files:*
+            https://github.com/${{ github.repository }}/releases/tag/v${{ env.VERSION }}
