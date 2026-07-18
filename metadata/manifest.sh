@@ -3,71 +3,88 @@
 source "$DAYPASS_CORE_DIR/context.sh"
 
 generate_manifest() {
-
     local output_dir="$DAYPASS_OUTPUT_DIR"
     local main_manifest="$output_dir/manifest.json"
 
-    local archs
-    archs=$(jq -r '.architectures[].name' "$DAYPASS_ARCH_FILE")
+    echo "  🧠 Generating manifests (Global & Split) ..."
 
+    local release
+    release=$(jq -r '.release' "$DAYPASS_ARCH_FILE")
+
+    local architectures='[]'
+
+    while read -r arch; 
+    do
+        local arch_dir="$output_dir/$arch"
+        
+        if [ ! -d "$arch_dir" ]; then
+            echo " ⚠️ Warning : Directory not found for $arch -> $arch_dir (Skipping ...)"
+            continue
+        fi
+
+        echo " 🔬 Processing packages for $arch ..."
+
+        local packages='[]'
+
+        while IFS= read -r file; do
+            [ -f "$file" ] || continue
+
+            local filename
+            filename=$(basename "$file")
+            
+            local sha256
+            sha256=$(sha256sum "$file" | awk '{print $1}')
+            
+            local size
+            size=$(stat -c%s "$file")
+
+            local pkg_name
+            pkg_name=$(echo "$filename" | sed -E 's/_[0-9].*\.(apk|ipk)$//' | sed -E 's/\.(apk|ipk)$//')
+
+            packages=$(jq \
+                --arg pkg "$pkg_name" \
+                --arg file "$filename" \
+                --arg sha "$sha256" \
+                --argjson size "$size" \
+                '. + [{
+                    package: $pkg,
+                    file: $file,
+                    sha256: $sha,
+                    size: $size
+                }]' <<< "$packages")
+
+        done < <(find "$arch_dir" -type f \( -name "*.apk" -o -name "*.ipk" \))
+
+        architectures=$(jq \
+            --arg arch "$arch" \
+            --argjson pkgs "$packages" \
+            '. + [{
+                name: $arch,
+                packages: $pkgs
+            }]' <<< "$architectures")
+
+        jq -n \
+            --arg arch "$arch" \
+            --argjson pkgs "$packages" \
+            '{
+                name: $arch,
+                packages: $pkgs
+            }' > "$output_dir/manifest.$arch.json"
+            
+        echo " ✅ Split manifest created: manifest.$arch.json"
+
+    done < <(jq -r '.architectures[].name' "$DAYPASS_ARCH_FILE")
 
     jq -n \
-        --arg release "$(jq -r '.release' "$DAYPASS_ARCH_FILE")" \
+        --arg release "$release" \
         --arg generated "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+        --argjson architectures "$architectures" \
         '{
             release: $release,
             generated_at: $generated,
-            architectures: []
-        }' > "$main_manifest"
+            architectures: $architectures
+        }' \
+        > "$main_manifest"
 
-
-    for arch in $archs; do
-
-        local arch_dir="$DAYPASS_TEMP_DIR/$arch"
-        local packages="[]"
-
-        echo "   ⚙️ Generating manifest for $arch..."
-
-
-        if [ -d "$arch_dir" ]; then
-
-            packages=$(find "$arch_dir" -type f -name "*.apk" \
-            -exec sh -c '
-                for file do
-                    name=$(basename "$file")
-                    size=$(stat -c%s "$file" 2>/dev/null || echo 0)
-                    sha=$(sha256sum "$file" | awk "{print \$1}")
-
-                    jq -n \
-                    --arg pkg "${name%.apk}" \
-                    --arg file "$name" \
-                    --arg sha256 "$sha" \
-                    --argjson size "$size" \
-                    "{
-                        package: \$pkg,
-                        file: \$file,
-                        sha256: \$sha256,
-                        size: \$size
-                    }"
-                done
-            ' sh {} + | jq -s '.')
-        fi
-
-
-        jq \
-            --arg arch "$arch" \
-            --argjson packages "$packages" \
-            '
-            .architectures += [
-                {
-                    name: $arch,
-                    packages: $packages
-                }
-            ]
-            ' \
-            "$main_manifest" > "${main_manifest}.tmp"
-
-        mv "${main_manifest}.tmp" "$main_manifest"
-
-    done
+    echo " 🎉 All manifests generated successfully!"
 }
