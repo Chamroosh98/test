@@ -96,13 +96,13 @@ jobs:
       - name: 📤 Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
+          name: beta-package-${{ matrix.arch }}
           path: |
             DayPass_${{ matrix.arch }}_*.zip
             DayPass_${{ matrix.arch }}_*.sha256
             output/${{ matrix.arch }}/passwall_luci/
             output/${{ matrix.arch }}/passwall2/
             output/${{ matrix.arch }}/passwall_packages/
-
           retention-days: 1
 
   deploy:
