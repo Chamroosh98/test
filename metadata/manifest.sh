@@ -3,10 +3,18 @@
 source "$DAYPASS_CORE_DIR/context.sh"
 
 generate_manifest() {
-    local output_dir="$DAYPASS_OUTPUT_DIR"
+    local target_subfolder=""
+    if [ "${GITHUB_REF_NAME:-}" = "dev" ]; then
+        target_subfolder="/dev"
+        echo "⚠️ Target branch is 'dev'. Outputting to subfolder /dev"
+    fi
+
+    local output_dir="$DAYPASS_OUTPUT_DIR$target_subfolder"
     local main_manifest="$output_dir/manifest.json"
 
-    echo "  🧠 Generating manifests (Global & Split) ..."
+    mkdir -p "$output_dir"
+
+    echo "  🧠 Generating manifests in : $output_dir"
 
     local release
     release=$(jq -r '.release' "$DAYPASS_ARCH_FILE")
@@ -15,15 +23,14 @@ generate_manifest() {
 
     while read -r arch; 
     do
-        local arch_dir="$output_dir/$arch"
+        local arch_dir="$DAYPASS_OUTPUT_DIR/$arch"
         
         if [ ! -d "$arch_dir" ]; then
-            echo " ⚠️ Warning : Directory not found for $arch -> $arch_dir (Skipping ...)"
+            echo "   ⚠️ Warning : Directory not found for $arch -> $arch_dir (Skipping ...)"
             continue
         fi
 
         echo " 🔬 Processing packages for $arch ..."
-
         local packages='[]'
 
         while IFS= read -r file; do
@@ -70,8 +77,6 @@ generate_manifest() {
                 name: $arch,
                 packages: $pkgs
             }' > "$output_dir/manifest.$arch.json"
-            
-        echo " ✅ Split manifest created: manifest.$arch.json"
 
     done < <(jq -r '.architectures[].name' "$DAYPASS_ARCH_FILE")
 
@@ -86,5 +91,5 @@ generate_manifest() {
         }' \
         > "$main_manifest"
 
-    echo " 🎉 All manifests generated successfully!"
+    echo "  🎉 Manifests generated successfully in $output_dir!"
 }
