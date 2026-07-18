@@ -79,9 +79,17 @@ jobs:
       - name: 🧪 Validate Build
         shell: bash
         run: |
-          # test -f output/${{ matrix.arch }}/install.sh
-          test -f output/manifest.json
-
+          echo "📁 Checking output root directory:"
+          ls -la output/
+          
+          if [ -f "output/install.sh" ]; then
+            echo "✅ install.sh found in output root!"
+          elif [ -f "output/${{ matrix.arch }}/install.sh" ]; then
+            echo "✅ install.sh found in arch folder!"
+          else
+            echo "❌ install.sh not found anywhere!"
+            exit 1
+          fi
 
       - name: 📦 Create DayPass Beta Package
         shell: bash
@@ -89,10 +97,12 @@ jobs:
           ZIP_NAME="DayPass_${{ matrix.arch }}_v${{ env.VERSION }}-beta.zip"
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 
-          cp output/install.sh "output/${{ matrix.arch }}/"
+          if [ -f "output/install.sh" ]; then
+            cp output/install.sh "output/${{ matrix.arch }}/"
+          fi
 
           cd "output/${{ matrix.arch }}"
-          zip -r "../../$ZIP_NAME" passwall_luci passwall2 passwall_packages -x "*/index.json"
+          zip -r "../../$ZIP_NAME" install.sh passwall_luci passwall2 passwall_packages -x "*/index.json"
           cd ../..
           sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
 
