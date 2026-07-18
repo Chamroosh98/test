@@ -18,7 +18,7 @@ generate_manifest() {
         local arch_dir="$output_dir/$arch"
         
         if [ ! -d "$arch_dir" ]; then
-            echo " ⚠️ Warning : Directory not found for $arch -> $arch_dir (Skipping ...)"
+            echo " ⚠️ Warning : Directory not found for $arch -> $arch_dir (Skipping ....)"
             continue
         fi
 
