@@ -97,12 +97,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: beta-package-${{ matrix.arch }}
-          path: |
-            DayPass_${{ matrix.arch }}_*.zip
-            DayPass_${{ matrix.arch }}_*.sha256
-            output/${{ matrix.arch }}/passwall_luci/
-            output/${{ matrix.arch }}/passwall2/
-            output/${{ matrix.arch }}/passwall_packages/
+          path: output/${{ matrix.arch }}/
           retention-days: 1
 
   deploy:
@@ -162,8 +157,7 @@ jobs:
           find merged-output -type f ! -name "*.apk" -delete
 
           generate_manifest
-
-      - name: 🧷 Inject Zip Metadata into Manifest
+      - name: 📦 Pack Architectures and Inject Metadata
         shell: bash
         run: |
           if [ -f "merged-output/manifest.json" ]; then
@@ -174,32 +168,35 @@ jobs:
 
           NEW_MANIFEST="merged-output/final_manifest.json"
           cp "$MANIFEST_PATH" "$NEW_MANIFEST"
-
+          
+          mkdir -p release-assets
           ARCHS=$(jq -r '.architectures[].name' config/architectures.json)
 
           for arch in $ARCHS; do
-            ZIP_FILE=$(find merged-beta -maxdepth 1 -type f -name "DayPass_${arch}_*.zip" | head -n 1)
+            if [ -d "merged-output/$arch" ]; then
+              ZIP_NAME="DayPass_${arch}_v${VERSION}-beta.zip"
 
-            if [ -n "$ZIP_FILE" ] && [ -f "$ZIP_FILE" ]; then
-              FILE_NAME=$(basename "$ZIP_FILE")
-              FILE_SIZE=$(stat -c "%s" "$ZIP_FILE")
-              FILE_SHA=$(sha256sum "$ZIP_FILE" | cut -d' ' -f1)
-              PKG_NAME="${FILE_NAME%.zip}"
+              cd "merged-output/$arch"
+              zip -r "../../release-assets/$ZIP_NAME" passwall_luci passwall2 passwall_packages -x "*/index.json" -x "install.sh" 2>/dev/null || true
+              cd ../..
 
-              jq --arg arch "$arch" \
-                  --arg pkg "$PKG_NAME" \
-                  --arg file "$FILE_NAME" \
-                  --arg sha "$FILE_SHA" \
-                  --argjson size "$FILE_SIZE" \
-                  '(.architectures[] | select(.name == $arch) | .packages) |= [{package: $pkg, file: $file, sha256: $sha, size: $size}]' \
-                  "$NEW_MANIFEST" > "${NEW_MANIFEST}.tmp" && mv "${NEW_MANIFEST}.tmp" "$NEW_MANIFEST"
+              if [ -f "release-assets/$ZIP_NAME" ]; then
+                FILE_SIZE=$(stat -c "%s" "release-assets/$ZIP_NAME")
+                FILE_SHA=$(sha256sum "release-assets/$ZIP_NAME" | cut -d' ' -f1)
+                PKG_NAME="${ZIP_NAME%.zip}"
+
+                echo "$FILE_SHA  $ZIP_NAME" > "release-assets/${ZIP_NAME}.sha256"
+
+                jq --arg arch "$arch" \
+                    --arg pkg "$PKG_NAME" \
+                    --arg file "$ZIP_NAME" \
+                    --arg sha "$FILE_SHA" \
+                    --argjson size "$FILE_SIZE" \
+                    '(.architectures[] | select(.name == $arch) | .packages) |= [{package: $pkg, file: $file, sha256: $sha, size: $size}]' \
+                    "$NEW_MANIFEST" > "${NEW_MANIFEST}.tmp" && mv "${NEW_MANIFEST}.tmp" "$NEW_MANIFEST"
+              fi
             fi
           done
-
-          mkdir -p release-assets
-          cp merged-beta/DayPass_*.zip release-assets/ 2>/dev/null || true
-          cp merged-beta/DayPass_*.sha256 release-assets/ 2>/dev/null || true
-
 
       - name: 📦 Upload Final Beta Artifact
         uses: actions/upload-artifact@v4
@@ -216,5 +213,3 @@ jobs:
           find merged-beta -type f
           echo "===== ZIP CONTENT ====="
           unzip -l merged-beta/*.zip
-
-      
