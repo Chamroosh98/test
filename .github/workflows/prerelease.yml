@@ -1,0 +1,254 @@
+name: 🧪 DayPass Pre-Release
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+
+  prep-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: 🔎 Checkout Repository
+        uses: actions/checkout@v4
+
+
+      - name: 📤 Generate Matrix Config
+        id: set-matrix
+        run: |
+          ARCH_ARRAY=$(jq -c '.architectures | [.[].name]' config/architectures.json)
+          echo "matrix={\"arch\":${ARCH_ARRAY}}" >> $GITHUB_OUTPUT
+
+  build:
+    needs: prep-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.prep-matrix.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: 🔎 Checkout Repository
+        uses: actions/checkout@v4
+
+
+      - name: 🏷️ Generate Beta Version
+        run: |
+          echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
+
+
+      - name: 🗓️ Restore DayPass Cache
+        uses: actions/cache@v4
+        with:
+          path: cache
+          key: daypass-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('config/architectures.json') }}
+          restore-keys: |
+            daypass-${{ runner.os }}-${{ matrix.arch }}-
+
+              
+      - name: 🛡️ Run ShellCheck on Scripts
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './core'
+          additional_files: './core/bootstrap.sh'
+          severity: warning
+
+
+      - name: 🛠️ Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bash curl jq coreutils findutils zip
+
+
+      - name: 📝 Make Scripts Executable
+        run: |
+          find . -type f -name "*.sh" -exec chmod +x {} \;
+
+
+      - name: 👷‍♀️ Build DayPass for ${{ matrix.arch }}
+        shell: bash
+        run: |
+          ./core/orchestrator.sh "${{ matrix.arch }}"
+
+
+      - name: 🧪 Validate Build
+        shell: bash
+        run: |
+          # test -f output/${{ matrix.arch }}/install.sh
+          test -f output/manifest.json
+
+
+      - name: 📦 Create DayPass Beta Package
+        shell: bash
+        run: |
+          ZIP_NAME="DayPass_${{ matrix.arch }}_v${{ env.VERSION }}-beta.zip"
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+
+          cp output/install.sh "output/${{ matrix.arch }}/"
+
+          cd "output/${{ matrix.arch }}"
+          zip -r "../../$ZIP_NAME" passwall_luci passwall2 passwall_packages -x "*/index.json"
+          cd ../..
+          sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
+
+
+      - name: 📤 Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: beta-package-${{ matrix.arch }}
+          path: |
+            DayPass_*.zip
+            DayPass_*.sha256
+            output/${{ matrix.arch }}/
+          retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔎 Checkout Repository
+        uses: actions/checkout@v4
+
+
+      - name: 🏷️ Generate Beta Version (For Tagging)
+        run: |
+          echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
+
+
+      - name: 📁 Prepare Temp Directory
+        run: mkdir -p merged-beta
+
+
+      - name: 📥 Download All Beta Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: merged-beta/
+          pattern: beta-package-*
+          merge-multiple: true
+
+      
+      - name: 🤝 Merge Architecture Outputs
+        shell: bash
+        run: |
+          mkdir -p merged-output
+
+          for dir in merged-beta/*; do
+              arch=$(basename "$dir" | sed 's/beta-package-//')
+
+              mkdir -p "merged-output/$arch"
+
+              find "$dir" -type f -name "*.apk" -exec cp {} "merged-output/$arch/" \;
+          done
+
+
+      - name: 🧠 Generate Final Manifest
+        shell: bash
+        run: |
+          source core/context.sh
+          source core/manifest.sh
+
+          export DAYPASS_OUTPUT_DIR="$PWD/merged-output"
+          export DAYPASS_TEMP_DIR="$PWD/merged-output"
+
+          generate_manifest
+
+
+      - name: 🚀 Upload Pre-Release to GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}-beta-${{ github.run_number }}
+          name: 🧪 DayPass v${{ env.VERSION }} Beta
+          prerelease: true
+          body: |
+            ## 🧪 DayPass Beta Release
+            ⚠️ Experimental build!
+            📅 Date : `${{ env.VERSION }}`
+            🧪 Build : `${{ github.run_number }}`
+          files: |
+            merged-beta/DayPass_*.zip
+            merged-beta/DayPass_*.sha256
+
+
+      # Downloading requirements tools for glass button in telegram bot!
+      - name: 🛠️ Install Dependencies for Deploy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq curl
+
+
+      # Send Notification to Telegram
+      - name: 📢 Send Smart Telegram Menu (Beta)
+        shell: bash
+        run: |
+          KEYBOARD=$(jq -c '{
+            "inline_keyboard": [.architectures[] | [{
+              "text": "📦 \(.name)",
+              "url": "https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}-beta-${{ github.run_number }}/DayPass_\(.name)_v${{ env.VERSION }}-beta.zip"
+            }]]
+          }' config/architectures.json)
+
+          MESSAGE="🧪 *New DayPass Beta Build Ready!*
+
+          🏷️ *Version :* \`v${{ env.VERSION }}-beta\`
+          🛠️ *Build Number :* \`${{ github.run_number }}\`
+          👤 *Triggered By :* \`${{ github.actor }}\`
+
+          👇 Please select your architecture to download directly from GitHub :"
+
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d "text=$MESSAGE" \
+            -d "parse_mode=Markdown" \
+            -d "reply_markup=$KEYBOARD" \
+            -d "disable_web_page_preview=true"
+            
+
+      - name: 🧠 Render and Print Real Manifest
+        shell: bash
+        run: |
+          MANIFEST_PATH=$(find merged-beta -name "manifest.json" | head -n 1)
+          
+          if [ -z "$MANIFEST_PATH" ] || [ ! -f "$MANIFEST_PATH" ]; then
+            echo "❌ Base manifest.json not found!"
+            exit 1
+          fi
+
+          echo "✅ Base manifest found. Injecting zip packages into architectures ..."
+
+          NEW_MANIFEST=$(mktemp)
+          cp "$MANIFEST_PATH" "$NEW_MANIFEST"
+
+          ARCHS=$(jq -r '.architectures[].name' "$MANIFEST_PATH")
+
+          for arch in $ARCHS; do
+            ZIP_FILE=$(find merged-beta -type f -name "DayPass_${arch}_*.zip" | head -n 1)
+
+            if [ -n "$ZIP_FILE" ]; then
+              FILE_NAME=$(basename "$ZIP_FILE")
+              FILE_SIZE=$(stat -c "%s" "$ZIP_FILE")
+              
+              FILE_SHA=$(sha256sum "$ZIP_FILE" | cut -d' ' -f1)
+              PKG_NAME="${FILE_NAME%.zip}"
+
+              jq --arg arch "$arch" \
+                 --arg pkg "$PKG_NAME" \
+                 --arg file "$FILE_NAME" \
+                 --arg sha "$FILE_SHA" \
+                 --argjson size "$FILE_SIZE" \
+                 '(.architectures[] | select(.name == $arch) | .packages) |= [{package: $pkg, file: $file, sha256: $sha, size: $size}]' \
+                 "$NEW_MANIFEST" > "${NEW_MANIFEST}.tmp" && mv "${NEW_MANIFEST}.tmp" "$NEW_MANIFEST"
+            else
+              echo "⚠️ No zip package found for arch : $arch"
+            fi
+          done
+
+          echo "--------------------------------------------"
+          echo "🎉 GENERATED MANIFEST FOR BETA RELEASES:"
+          echo "--------------------------------------------"
+          cat "$NEW_MANIFEST" | jq .
+          echo "--------------------------------------------"

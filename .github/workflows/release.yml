@@ -1,0 +1,179 @@
+name: ⚙️ DayPass Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+
+  prep-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: 🔎 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📤 Generate Matrix Config
+        id: set-matrix
+        run: |
+          ARCH_ARRAY=$(jq -c '.architectures | [.[].name]' config/architectures.json)
+          echo "matrix={\"arch\":${ARCH_ARRAY}}" >> $GITHUB_OUTPUT
+
+  build:
+    needs: prep-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.prep-matrix.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: 🔎 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🏷️ Generate Release Version
+        run: |
+          echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
+          echo "RELEASE_DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+
+      - name: 🗓️ Restore DayPass Cache
+        uses: actions/cache@v4
+        with:
+          path: cache
+          key: daypass-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('config/architectures.json') }}
+          restore-keys: |
+            daypass-${{ runner.os }}-${{ matrix.arch }}-
+
+      - name: 🛡️ Run ShellCheck on Scripts
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './core'
+          additional_files: './core/bootstrap.sh'
+          severity: warning
+
+      - name: 🛠️ Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bash curl jq coreutils findutils zip
+
+      - name: 📝 Make Scripts Executable
+        run: |
+          find . -type f -name "*.sh" -exec chmod +x {} \;
+
+      - name: 👷‍♀️ Build DayPass for ${{ matrix.arch }}
+        shell: bash
+        run: |
+          ./core/orchestrator.sh "${{ matrix.arch }}"
+
+      - name: 🧪 Validate Build
+        shell: bash
+        run: |
+          test -f output/install.sh
+          test -f output/manifest.json
+
+      - name: 📦 Create DayPass Release Package
+        shell: bash
+        run: |
+          ZIP_NAME="DayPass-${{ matrix.arch }}-v${VERSION}.zip"
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+
+          cd "output/${{ matrix.arch }}"
+          zip -r "../../$ZIP_NAME" passwall_luci passwall2 passwall_packages -x "*/index.json"
+          cd ../..
+          sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
+
+      - name: 🚀 Upload GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: DayPass v${{ env.VERSION }}
+          prerelease: false
+          files: |
+            ${{ env.ZIP_NAME }}
+            ${{ env.ZIP_NAME }}.sha256
+
+      - name: 📤 Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: output-${{ matrix.arch }}
+          path: output/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 🔎 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🏷️ Generate Version Variables for Deploy
+        run: |
+          echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
+          echo "RELEASE_DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+
+      - name: 📁 Prepare Deployment Directory
+        run: mkdir -p merged-output
+
+      - name: 📥 Download All Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: merged-output/
+          pattern: output-*
+          merge-multiple: true
+
+      - name: 😼 Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: 📤 Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: merged-output
+
+      - name: 🚀 Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      # Downloading requirements tools for glass button in telegram bot!
+      - name: 🛠️ Install Dependencies for Deploy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq curl
+
+      # Send Notification to Telegram
+      - name: 📢 Send Smart Telegram Menu (Official Release)
+        shell: bash
+        run: |
+          KEYBOARD=$(jq -c '{
+            "inline_keyboard": [.architectures[] | [{
+              "text": "🚀 \(.name)",
+              "url": "https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}/DayPass_\(.name)_v${{ env.VERSION }}.zip"
+            }]]
+          }' config/architectures.json)
+
+          MESSAGE="🚀 *Official DayPass Release is Out!*
+
+          🏷️ *Version :* \`v${{ env.VERSION }}\`
+          👤 *Released By :* \`${{ github.actor }}\`
+
+          👇 Click below to get the official stable package for your router :"
+
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d "text=$MESSAGE" \
+            -d "parse_mode=Markdown" \
+            -d "reply_markup=$KEYBOARD" \
+            -d "disable_web_page_preview=true"

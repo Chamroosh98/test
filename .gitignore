@@ -1,0 +1,8 @@
+.git
+docs
+README.md
+
+temp/
+cache/
+*.log
+.DS_Store
