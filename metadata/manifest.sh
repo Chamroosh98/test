@@ -3,13 +3,11 @@
 source "$DAYPASS_CORE_DIR/context.sh"
 
 generate_manifest() {
-
     local output_dir="$DAYPASS_OUTPUT_DIR"
     local main_manifest="$output_dir/manifest.json"
 
     local archs
     archs=$(jq -r '.architectures[].name' "$DAYPASS_ARCH_FILE")
-
 
     jq -n \
         --arg release "$(jq -r '.release' "$DAYPASS_ARCH_FILE")" \
@@ -20,54 +18,50 @@ generate_manifest() {
             architectures: []
         }' > "$main_manifest"
 
-
-    for arch in $archs; do
-
-        local arch_dir="$DAYPASS_TEMP_DIR/$arch"
+    for arch in $archs; 
+    do
+        local arch_dir="$output_dir/$arch"
         local packages="[]"
 
-        echo "   ⚙️ Generating manifest for $arch..."
+        echo " 🧠 Generating manifest for $arch ..."
 
-
-        if [ -d "$arch_dir" ]; then
-
-            packages=$(find "$arch_dir" -type f -name "*.apk" \
-            -exec sh -c '
-                for file do
-                    name=$(basename "$file")
-                    size=$(stat -c%s "$file" 2>/dev/null || echo 0)
-                    sha=$(sha256sum "$file" | awk "{print \$1}")
-
-                    jq -n \
-                    --arg pkg "${name%.apk}" \
-                    --arg file "$name" \
-                    --arg sha256 "$sha" \
-                    --argjson size "$size" \
-                    "{
-                        package: \$pkg,
-                        file: \$file,
-                        sha256: \$sha256,
-                        size: \$size
-                    }"
-                done
-            ' sh {} + | jq -s '.')
+        if [ -d "$arch_dir" ]; 
+        then
+            packages=$(find "$arch_dir" -type f -name "*.apk" -exec stat -c "%s %n" {} + 2>/dev/null | \
+            awk '
+            {
+                size = $1
+                split($2, path, "/")
+                file = path[length(path)]
+                
+                pkg = file
+                sub(/\.apk$/, "", pkg)
+                
+                cmd = "sha256sum \"" $2 "\" | cut -d\" \" -f1"
+                cmd | getline sha
+                close(cmd)
+                
+                printf "%s\t%s\t%s\t%s\n", pkg, file, sha, size
+            }' | jq -R -s '
+                split("\n") | map(select(length > 0) | split("\t")) | map({
+                    package: .[0],
+                    file: .[1],
+                    sha256: .[2],
+                    size: (.[3] | tonumber)
+                })
+            ')
+        else
+            echo " ⚠️ Directory not found : $arch_dir (Skipping packages ...)"
         fi
-
 
         jq \
             --arg arch "$arch" \
-            --argjson packages "$packages" \
-            '
-            .architectures += [
-                {
-                    name: $arch,
-                    packages: $packages
-                }
-            ]
-            ' \
+            --argjson packages "${packages:-[]}" \
+            '.architectures += [{name: $arch, packages: $packages}]' \
             "$main_manifest" > "${main_manifest}.tmp"
 
         mv "${main_manifest}.tmp" "$main_manifest"
-
     done
+
+    echo " 🚀 manifest.json successfully updated!"
 }
