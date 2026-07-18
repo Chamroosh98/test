@@ -96,11 +96,13 @@ jobs:
       - name: 📤 Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: beta-package-${{ matrix.arch }}
           path: |
+            DayPass_${{ matrix.arch }}_*.zip
+            DayPass_${{ matrix.arch }}_*.sha256
             output/${{ matrix.arch }}/passwall_luci/
             output/${{ matrix.arch }}/passwall2/
             output/${{ matrix.arch }}/passwall_packages/
+
           retention-days: 1
 
   deploy:
@@ -197,45 +199,22 @@ jobs:
           mkdir -p release-assets
           cp merged-beta/DayPass_*.zip release-assets/ 2>/dev/null || true
           cp merged-beta/DayPass_*.sha256 release-assets/ 2>/dev/null || true
-          cp "$NEW_MANIFEST" release-assets/manifest.json
 
-      - name: 🚀 Upload Pre-Release to GitHub
-        uses: softprops/action-gh-release@v2
+
+      - name: 📦 Upload Final Beta Artifact
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: v${{ env.VERSION }}-beta-${{ github.run_number }}
-          name: 🧪 DayPass v${{ env.VERSION }} Beta
-          prerelease: true
-          body: |
-            ## 🧪 DayPass Beta Release
-            ⚠️ Experimental build!
-            📅 Date : `${{ env.VERSION }}`
-            🧪 Build : `${{ github.run_number }}`
-          files: |
+          name: DayPass-beta-${{ env.VERSION }}-${{ github.run_number }}
+          path: |
             release-assets/DayPass_*.zip
             release-assets/DayPass_*.sha256
-            release-assets/manifest.json
+          retention-days: 7
 
-      - name: 📢 Send Smart Telegram Menu (Beta)
-        shell: bash
+
+      - name: 🔍 Inspect Build
         run: |
-          KEYBOARD=$(jq -c '{
-            "inline_keyboard": [.architectures[] | [{
-              "text": "📦 \(.name)",
-              "url": "https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}-beta-${{ github.run_number }}/DayPass_\(.name)_v${{ env.VERSION }}-beta.zip"
-            }]]
-          }' config/architectures.json)
+          find merged-beta -type f
+          echo "===== ZIP CONTENT ====="
+          unzip -l merged-beta/*.zip
 
-          MESSAGE="🧪 *New DayPass Beta Build Ready!*
-
-          🏷️ *Version :* \`v${{ env.VERSION }}-beta\`
-          🛠️ *Build Number :* \`${{ github.run_number }}\`
-          👤 *Triggered By :* \`${{ github.actor }}\`
-
-          👇 Please select your architecture to download directly from GitHub :"
-
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-            -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
-            -d "text=$MESSAGE" \
-            -d "parse_mode=Markdown" \
-            -d "reply_markup=$KEYBOARD" \
-            -d "disable_web_page_preview=true"
+      
