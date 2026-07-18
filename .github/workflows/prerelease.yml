@@ -10,7 +10,6 @@ permissions:
   contents: write
 
 jobs:
-
   prep-matrix:
     runs-on: ubuntu-latest
     outputs:
@@ -18,7 +17,6 @@ jobs:
     steps:
       - name: 🔎 Checkout Repository
         uses: actions/checkout@v4
-
 
       - name: 📤 Generate Matrix Config
         id: set-matrix
@@ -36,11 +34,9 @@ jobs:
       - name: 🔎 Checkout Repository
         uses: actions/checkout@v4
 
-
       - name: 🏷️ Generate Beta Version
         run: |
           echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
-
 
       - name: 🗓️ Restore DayPass Cache
         uses: actions/cache@v4
@@ -50,7 +46,6 @@ jobs:
           restore-keys: |
             daypass-${{ runner.os }}-${{ matrix.arch }}-
 
-              
       - name: 🛡️ Run ShellCheck on Scripts
         uses: ludeeus/action-shellcheck@master
         with:
@@ -58,28 +53,24 @@ jobs:
           additional_files: './core/bootstrap.sh'
           severity: warning
 
-
       - name: 🛠️ Install Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y bash curl jq coreutils findutils zip
 
-
       - name: 📝 Make Scripts Executable
         run: |
           find . -type f -name "*.sh" -exec chmod +x {} \;
-
 
       - name: 👷‍♀️ Build DayPass for ${{ matrix.arch }}
         shell: bash
         run: |
           ./core/orchestrator.sh "${{ matrix.arch }}"
 
-
       - name: 🧪 Validate Build
         shell: bash
         run: |
-          echo "📁 Checking output root directory:"
+          echo "📁 Checking output root directory :"
           ls -la output/
           
           if [ -f "output/install.sh" ]; then
@@ -106,14 +97,13 @@ jobs:
           cd ../..
           sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
 
-
       - name: 📤 Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: beta-package-${{ matrix.arch }}
           path: |
-            DayPass_*.zip
-            DayPass_*.sha256
+            DayPass_${{ matrix.arch }}_*.zip
+            DayPass_${{ matrix.arch }}_*.sha256
             output/${{ matrix.arch }}/
           retention-days: 1
 
@@ -124,15 +114,23 @@ jobs:
       - name: 🔎 Checkout Repository
         uses: actions/checkout@v4
 
-
       - name: 🏷️ Generate Beta Version (For Tagging)
         run: |
           echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
 
+      - name: 🛠️ Install Dependencies for Deploy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq curl coreutils zip
 
-      - name: 📁 Prepare Temp Directory
-        run: mkdir -p merged-beta
+      - name: 📝 Make Repo Scripts Executable
+        run: |
+          find . -type f -name "*.sh" -exec chmod +x {} \;
 
+      - name: 👥 Prepare Workspace Directories
+        run: |
+          mkdir -p merged-beta
+          mkdir -p merged-output
 
       - name: 📥 Download All Beta Artifacts
         uses: actions/download-artifact@v4
@@ -141,20 +139,20 @@ jobs:
           pattern: beta-package-*
           merge-multiple: true
 
-      
-      - name: 🤝 Merge Architecture Outputs
+      - name: 🤝 Organize and Merge Architecture Outputs
         shell: bash
         run: |
-          mkdir -p merged-output
+          echo "📁 Current files in merged-beta :"
+          ls -la merged-beta/
 
-          for dir in merged-beta/*; do
-              arch=$(basename "$dir" | sed 's/beta-package-//')
-
-              mkdir -p "merged-output/$arch"
-
-              find "$dir" -type f -name "*.apk" -exec cp {} "merged-output/$arch/" \;
+          ARCHS=$(jq -r '.architectures[].name' config/architectures.json)
+          for arch in $ARCHS; do
+            if [ -d "merged-beta/passwall_packages" ] || [ -d "merged-beta/passwall2" ]; then
+                mkdir -p "merged-output/$arch"
+                cp -r merged-beta/passwall_* "merged-output/$arch/" 2>/dev/null || true
+                cp -r merged-beta/passwall2 "merged-output/$arch/" 2>/dev/null || true
+            fi
           done
-
 
       - name: 🧠 Generate Final Manifest
         shell: bash
@@ -167,6 +165,52 @@ jobs:
 
           generate_manifest
 
+      - name: 🧷 Inject Zip Metadata into Manifest
+        shell: bash
+        run: |
+        
+          if [ -f "merged-output/manifest.json" ]; then
+            MANIFEST_PATH="merged-output/manifest.json"
+          elif [ -f "output/manifest.json" ]; then
+            MANIFEST_PATH="output/manifest.json"
+          else
+            MANIFEST_PATH="config/architectures.json" # Fallback if needed
+          fi
+
+          NEW_MANIFEST="merged-output/final_manifest.json"
+          cp "$MANIFEST_PATH" "$NEW_MANIFEST"
+
+          ARCHS=$(jq -r '.architectures[].name' config/architectures.json)
+
+          for arch in $ARCHS; do
+            ZIP_FILE=$(find merged-beta -type f -name "DayPass_${arch}_*.zip" | head -n 1)
+
+            if [ -n "$ZIP_FILE" ] && [ -f "$ZIP_FILE" ]; then
+              FILE_NAME=$(basename "$ZIP_FILE")
+              FILE_SIZE=$(stat -c "%s" "$ZIP_FILE")
+              FILE_SHA=$(sha256sum "$ZIP_FILE" | cut -d' ' -f1)
+              PKG_NAME="${FILE_NAME%.zip}"
+
+              jq --arg arch "$arch" \
+                  --arg pkg "$PKG_NAME" \
+                  --arg file "$FILE_NAME" \
+                  --arg sha "$FILE_SHA" \
+                  --argjson size "$FILE_SIZE" \
+                  '(.architectures[] | select(.name == $arch) | .packages) |= [{package: $pkg, file: $file, sha256: $sha, size: $size}]' \
+                  "$NEW_MANIFEST" > "${NEW_MANIFEST}.tmp" && mv "${NEW_MANIFEST}.tmp" "$NEW_MANIFEST"
+              echo "✅ Embedded metadata for $arch into final manifest!"
+            else
+              echo "⚠️ No zip package found for arch : $arch"
+            fi
+          done
+
+          echo "--------------------------------------------"
+          echo "🎉 GENERATED MANIFEST FOR BETA RELEASES :"
+          echo "--------------------------------------------"
+          cat "$NEW_MANIFEST" | jq .
+          echo "--------------------------------------------"
+
+          cp "$NEW_MANIFEST" merged-beta/manifest.json
 
       - name: 🚀 Upload Pre-Release to GitHub
         uses: softprops/action-gh-release@v2
@@ -182,16 +226,8 @@ jobs:
           files: |
             merged-beta/DayPass_*.zip
             merged-beta/DayPass_*.sha256
+            merged-beta/manifest.json
 
-
-      # Downloading requirements tools for glass button in telegram bot!
-      - name: 🛠️ Install Dependencies for Deploy
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y jq curl
-
-
-      # Send Notification to Telegram
       - name: 📢 Send Smart Telegram Menu (Beta)
         shell: bash
         run: |
@@ -204,9 +240,9 @@ jobs:
 
           MESSAGE="🧪 *New DayPass Beta Build Ready!*
 
-          🏷️ *Version :* \`v${{ env.VERSION }}-beta\`
-          🛠️ *Build Number :* \`${{ github.run_number }}\`
-          👤 *Triggered By :* \`${{ github.actor }}\`
+          🏷️ *Version : * \`v${{ env.VERSION }}-beta\`
+          🛠️ *Build Number : * \`${{ github.run_number }}\`
+          👤 *Triggered By : * \`${{ github.actor }}\`
 
           👇 Please select your architecture to download directly from GitHub :"
 
@@ -216,49 +252,3 @@ jobs:
             -d "parse_mode=Markdown" \
             -d "reply_markup=$KEYBOARD" \
             -d "disable_web_page_preview=true"
-            
-
-      - name: 🧠 Render and Print Real Manifest
-        shell: bash
-        run: |
-          MANIFEST_PATH=$(find merged-beta -name "manifest.json" | head -n 1)
-          
-          if [ -z "$MANIFEST_PATH" ] || [ ! -f "$MANIFEST_PATH" ]; then
-            echo "❌ Base manifest.json not found!"
-            exit 1
-          fi
-
-          echo "✅ Base manifest found. Injecting zip packages into architectures ..."
-
-          NEW_MANIFEST=$(mktemp)
-          cp "$MANIFEST_PATH" "$NEW_MANIFEST"
-
-          ARCHS=$(jq -r '.architectures[].name' "$MANIFEST_PATH")
-
-          for arch in $ARCHS; do
-            ZIP_FILE=$(find merged-beta -type f -name "DayPass_${arch}_*.zip" | head -n 1)
-
-            if [ -n "$ZIP_FILE" ]; then
-              FILE_NAME=$(basename "$ZIP_FILE")
-              FILE_SIZE=$(stat -c "%s" "$ZIP_FILE")
-              
-              FILE_SHA=$(sha256sum "$ZIP_FILE" | cut -d' ' -f1)
-              PKG_NAME="${FILE_NAME%.zip}"
-
-              jq --arg arch "$arch" \
-                 --arg pkg "$PKG_NAME" \
-                 --arg file "$FILE_NAME" \
-                 --arg sha "$FILE_SHA" \
-                 --argjson size "$FILE_SIZE" \
-                 '(.architectures[] | select(.name == $arch) | .packages) |= [{package: $pkg, file: $file, sha256: $sha, size: $size}]' \
-                 "$NEW_MANIFEST" > "${NEW_MANIFEST}.tmp" && mv "${NEW_MANIFEST}.tmp" "$NEW_MANIFEST"
-            else
-              echo "⚠️ No zip package found for arch : $arch"
-            fi
-          done
-
-          echo "--------------------------------------------"
-          echo "🎉 GENERATED MANIFEST FOR BETA RELEASES:"
-          echo "--------------------------------------------"
-          cat "$NEW_MANIFEST" | jq .
-          echo "--------------------------------------------"
