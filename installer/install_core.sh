@@ -17,10 +17,10 @@ initialize_installer()
         -o "$MANIFEST_FILE"
 
 
-    [ -s "$MANIFEST_FILE" ] || {
-        echo "❌ Failed downloading manifest!"
+    if [ ! -s "$MANIFEST_FILE" ]; then
+        echo "❌ Failed to download manifest!"
         exit 1
-    }
+    fi
 
 
     if [ -f /etc/openwrt_release ]; then
@@ -35,17 +35,17 @@ initialize_installer()
 
 
     if [ -z "$ARCH" ]; then
-        echo "❌ Critical : Unable to detect system architecture!"
+        echo "❌ Unable to detect architecture!"
         exit 1
     fi
 
 
     if ! jq -e \
         --arg arch "$ARCH" \
-        '.architectures[] | select(.name==$arch)' \
+        '.architectures[] | select(.name == $arch)' \
         "$MANIFEST_FILE" >/dev/null
     then
-        echo "❌ Unsupported architecture in DayPass repository : $ARCH"
+        echo "❌ Architecture not supported: $ARCH"
         exit 1
     fi
 

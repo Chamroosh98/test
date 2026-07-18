@@ -78,11 +78,15 @@ download_package()
 
     curl -fsSL \
         "$REPO_URL/$ARCH/$file" \
-        -o "$tmp" || {
+        -o "$tmp"
 
-        rm -f "$tmp"
-        return 1
-    }
+    # curl -fsSL \
+    #     "$REPO_URL/$ARCH/$file" \
+    #     -o "$tmp" || {
+
+    #     rm -f "$tmp"
+    #     return 1
+    # }
 
     if [ ! -s "$tmp" ]; 
         then
