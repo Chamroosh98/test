@@ -70,15 +70,13 @@ jobs:
       - name: 🧪 Validate Build
         shell: bash
         run: |
-          echo "📁 Checking output root directory :"
+          echo "📁 Checking output root directory:"
           ls -la output/
           
-          if [ -f "output/install.sh" ]; then
-            echo "✅ install.sh found in output root!"
-          elif [ -f "output/${{ matrix.arch }}/install.sh" ]; then
-            echo "✅ install.sh found in arch folder!"
+          if [ -f "output/install.sh" ] || [ -f "output/${{ matrix.arch }}/install.sh" ]; then
+            echo "✅ install.sh validation passed!"
           else
-            echo "❌ install.sh not found anywhere!"
+            echo "❌ install.sh not found!"
             exit 1
           fi
 
@@ -88,12 +86,10 @@ jobs:
           ZIP_NAME="DayPass_${{ matrix.arch }}_v${{ env.VERSION }}-beta.zip"
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 
-          if [ -f "output/install.sh" ]; then
-            cp output/install.sh "output/${{ matrix.arch }}/"
-          fi
-
           cd "output/${{ matrix.arch }}"
-          zip -r "../../$ZIP_NAME" install.sh passwall_luci passwall2 passwall_packages -x "*/index.json"
+          
+          zip -r "../../$ZIP_NAME" passwall_luci passwall2 passwall_packages -x "*/index.json" -x "install.sh"
+          
           cd ../..
           sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
 
@@ -104,7 +100,9 @@ jobs:
           path: |
             DayPass_${{ matrix.arch }}_*.zip
             DayPass_${{ matrix.arch }}_*.sha256
-            output/${{ matrix.arch }}/
+            output/${{ matrix.arch }}/passwall_luci/
+            output/${{ matrix.arch }}/passwall2/
+            output/${{ matrix.arch }}/passwall_packages/
           retention-days: 1
 
   deploy:
@@ -127,7 +125,7 @@ jobs:
         run: |
           find . -type f -name "*.sh" -exec chmod +x {} \;
 
-      - name: 👥 Prepare Workspace Directories
+      - name: 📁 Prepare Workspace Directories
         run: |
           mkdir -p merged-beta
           mkdir -p merged-output
@@ -142,15 +140,13 @@ jobs:
       - name: 🤝 Organize and Merge Architecture Outputs
         shell: bash
         run: |
-          echo "📁 Current files in merged-beta :"
-          ls -la merged-beta/
-
           ARCHS=$(jq -r '.architectures[].name' config/architectures.json)
           for arch in $ARCHS; do
-            if [ -d "merged-beta/passwall_packages" ] || [ -d "merged-beta/passwall2" ]; then
-                mkdir -p "merged-output/$arch"
-                cp -r merged-beta/passwall_* "merged-output/$arch/" 2>/dev/null || true
-                cp -r merged-beta/passwall2 "merged-output/$arch/" 2>/dev/null || true
+            mkdir -p "merged-output/$arch"
+            if [ -d "merged-beta/passwall_luci" ]; then
+              cp -r merged-beta/passwall_luci "merged-output/$arch/" 2>/dev/null || true
+              cp -r merged-beta/passwall2 "merged-output/$arch/" 2>/dev/null || true
+              cp -r merged-beta/passwall_packages "merged-output/$arch/" 2>/dev/null || true
             fi
           done
 
@@ -158,7 +154,7 @@ jobs:
         shell: bash
         run: |
           source core/context.sh
-          source core/manifest.sh
+          source metadata/manifest.sh
 
           export DAYPASS_OUTPUT_DIR="$PWD/merged-output"
           export DAYPASS_TEMP_DIR="$PWD/merged-output"
@@ -168,13 +164,10 @@ jobs:
       - name: 🧷 Inject Zip Metadata into Manifest
         shell: bash
         run: |
-        
           if [ -f "merged-output/manifest.json" ]; then
             MANIFEST_PATH="merged-output/manifest.json"
-          elif [ -f "output/manifest.json" ]; then
-            MANIFEST_PATH="output/manifest.json"
           else
-            MANIFEST_PATH="config/architectures.json" # Fallback if needed
+            MANIFEST_PATH="config/architectures.json"
           fi
 
           NEW_MANIFEST="merged-output/final_manifest.json"
@@ -183,7 +176,7 @@ jobs:
           ARCHS=$(jq -r '.architectures[].name' config/architectures.json)
 
           for arch in $ARCHS; do
-            ZIP_FILE=$(find merged-beta -type f -name "DayPass_${arch}_*.zip" | head -n 1)
+            ZIP_FILE=$(find merged-beta -maxdepth 1 -type f -name "DayPass_${arch}_*.zip" | head -n 1)
 
             if [ -n "$ZIP_FILE" ] && [ -f "$ZIP_FILE" ]; then
               FILE_NAME=$(basename "$ZIP_FILE")
@@ -198,19 +191,13 @@ jobs:
                   --argjson size "$FILE_SIZE" \
                   '(.architectures[] | select(.name == $arch) | .packages) |= [{package: $pkg, file: $file, sha256: $sha, size: $size}]' \
                   "$NEW_MANIFEST" > "${NEW_MANIFEST}.tmp" && mv "${NEW_MANIFEST}.tmp" "$NEW_MANIFEST"
-              echo "✅ Embedded metadata for $arch into final manifest!"
-            else
-              echo "⚠️ No zip package found for arch : $arch"
             fi
           done
 
-          echo "--------------------------------------------"
-          echo "🎉 GENERATED MANIFEST FOR BETA RELEASES :"
-          echo "--------------------------------------------"
-          cat "$NEW_MANIFEST" | jq .
-          echo "--------------------------------------------"
-
-          cp "$NEW_MANIFEST" merged-beta/manifest.json
+          mkdir -p release-assets
+          cp merged-beta/DayPass_*.zip release-assets/ 2>/dev/null || true
+          cp merged-beta/DayPass_*.sha256 release-assets/ 2>/dev/null || true
+          cp "$NEW_MANIFEST" release-assets/manifest.json
 
       - name: 🚀 Upload Pre-Release to GitHub
         uses: softprops/action-gh-release@v2
@@ -224,9 +211,9 @@ jobs:
             📅 Date : `${{ env.VERSION }}`
             🧪 Build : `${{ github.run_number }}`
           files: |
-            merged-beta/DayPass_*.zip
-            merged-beta/DayPass_*.sha256
-            merged-beta/manifest.json
+            release-assets/DayPass_*.zip
+            release-assets/DayPass_*.sha256
+            release-assets/manifest.json
 
       - name: 📢 Send Smart Telegram Menu (Beta)
         shell: bash
@@ -240,9 +227,9 @@ jobs:
 
           MESSAGE="🧪 *New DayPass Beta Build Ready!*
 
-          🏷️ *Version : * \`v${{ env.VERSION }}-beta\`
-          🛠️ *Build Number : * \`${{ github.run_number }}\`
-          👤 *Triggered By : * \`${{ github.actor }}\`
+          🏷️ *Version :* \`v${{ env.VERSION }}-beta\`
+          🛠️ *Build Number :* \`${{ github.run_number }}\`
+          👤 *Triggered By :* \`${{ github.actor }}\`
 
           👇 Please select your architecture to download directly from GitHub :"
 
