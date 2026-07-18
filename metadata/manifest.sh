@@ -2,52 +2,55 @@
 
 source "$DAYPASS_CORE_DIR/context.sh"
 
-generate_manifest()
-{
+generate_manifest() {
+
     local output_dir="$DAYPASS_OUTPUT_DIR"
     local main_manifest="$output_dir/manifest.json"
 
-    echo "   ⚙️ Generating main manifest..."
+    local archs
+    archs=$(jq -r '.architectures[].name' "$DAYPASS_ARCH_FILE")
+
 
     jq -n \
         --arg release "$(jq -r '.release' "$DAYPASS_ARCH_FILE")" \
         --arg generated "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
-        --argjson architectures "$(jq -c '
-            .architectures |
-            map({
-                name: .name,
-                packages: []
-            })
-        ' "$DAYPASS_ARCH_FILE")" \
-        '
-        {
+        '{
             release: $release,
             generated_at: $generated,
-            architectures: $architectures
-        }
-        ' \
-        > "$main_manifest"
+            architectures: []
+        }' > "$main_manifest"
 
 
-    while read -r arch
-    do
-        [ -z "$arch" ] && continue
+    for arch in $archs; do
 
-        echo "   ⚙️ Generating package list for $arch..."
-
+        local arch_dir="$DAYPASS_TEMP_DIR/$arch"
         local packages="[]"
 
-        if [ -d "$DAYPASS_TEMP_DIR/$arch" ]; then
+        echo "   ⚙️ Generating manifest for $arch..."
 
-            packages=$(find "$DAYPASS_TEMP_DIR/$arch" \
-                -type f \
-                -name "*.apk" \
-                -printf "%f\n" |
-            jq -R -s '
-                split("\n")
-                | map(select(length>0))
-            ')
 
+        if [ -d "$arch_dir" ]; then
+
+            packages=$(find "$arch_dir" -type f -name "*.apk" \
+            -exec sh -c '
+                for file do
+                    name=$(basename "$file")
+                    size=$(stat -c%s "$file" 2>/dev/null || echo 0)
+                    sha=$(sha256sum "$file" | awk "{print \$1}")
+
+                    jq -n \
+                    --arg pkg "${name%.apk}" \
+                    --arg file "$name" \
+                    --arg sha256 "$sha" \
+                    --argjson size "$size" \
+                    "{
+                        package: \$pkg,
+                        file: \$file,
+                        sha256: \$sha256,
+                        size: \$size
+                    }"
+                done
+            ' sh {} + | jq -s '.')
         fi
 
 
@@ -55,23 +58,16 @@ generate_manifest()
             --arg arch "$arch" \
             --argjson packages "$packages" \
             '
-            .architectures |=
-            map(
-                if .name == $arch
-                then .packages = $packages
-                else .
-                end
-            )
+            .architectures += [
+                {
+                    name: $arch,
+                    packages: $packages
+                }
+            ]
             ' \
-            "$main_manifest" \
-            > "${main_manifest}.tmp"
-
+            "$main_manifest" > "${main_manifest}.tmp"
 
         mv "${main_manifest}.tmp" "$main_manifest"
 
-
-    done < <(jq -r '.architectures[].name' "$DAYPASS_ARCH_FILE")
-
-
-    echo "   ✅ Manifest generated."
+    done
 }
