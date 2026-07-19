@@ -132,19 +132,21 @@ jobs:
           version: ${{ env.VERSION }}
           build_number: ${{ github.run_number }}
           actor: ${{ github.actor }}
+          
+      - name: 🧹 Remove Large Zip Files from Deployment Folder
+        run: |
+          rm -f release-assets/*.zip
+          rm -f release-assets/*.sha256
 
       - name: 🌐 Deploy Dynamic Beta Installer to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: release-assets        
-          branch: gh-pages           
-          target-folder: dev         
+          folder: release-assets
+          branch: gh-pages
+          target-folder: dev
           single-commit: true
-          clean-exclude: |
-            *.zip
-            *.sha256
 
-      - name: 🧪 Upload Pre-Release to GitHub
+      - name: 🧪 Upload Pre-Release packages to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}-beta-${{ github.run_number }}
