@@ -100,7 +100,6 @@ jobs:
             DayPass_${{ matrix.arch }}_*.sha256
           retention-days: 1
 
-  # 🔥 این جاب کاملاً بازنویسی و با انجین خالص Go جایگزین شده است
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -124,7 +123,6 @@ jobs:
           pattern: beta-package-*
           merge-multiple: true
 
-      # ⚡ انجین Go: ترکیب فایل‌ها، ساخت خودکار مانیفست واقعی، محاسبات حجم، هش‌ها و تلگرام
       - name: 🚀 Run Pure Go Deployer Engine
         uses: ./.github/actions
         with:

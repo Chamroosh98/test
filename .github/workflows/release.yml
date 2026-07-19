@@ -1,21 +1,13 @@
-name: ⚙️ DayPass Release
+name: 🚀 DayPass Release
 
 on:
   push:
     branches:
       - main
   workflow_dispatch:
-  schedule:
-    - cron: "0 0 * * *"
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
 
 jobs:
   prep-matrix:
@@ -42,7 +34,7 @@ jobs:
       - name: 🔎 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🏷️ Generate Release Version
+      - name: 🏷️ Generate Version
         run: |
           echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
 
@@ -77,6 +69,9 @@ jobs:
       - name: 🧪 Validate Build
         shell: bash
         run: |
+          echo "📁 Checking output root directory :"
+          ls -la output/
+          
           if [ -f "output/install.sh" ] || [ -f "output/${{ matrix.arch }}/install.sh" ]; then
             echo "✅ install.sh validation passed!"
           else
@@ -84,174 +79,71 @@ jobs:
             exit 1
           fi
 
-      - name: 📦 Create DayPass Release Package
+      - name: 📦 Create DayPass Package
         shell: bash
         run: |
           ZIP_NAME="DayPass_${{ matrix.arch }}_v${{ env.VERSION }}.zip"
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 
           cd "output/${{ matrix.arch }}"
-          # zip -r "../../$ZIP_NAME" passwall_luci passwall2 passwall_packages -x "*/index.json" -x "install.sh"
           zip -r "../../$ZIP_NAME" passwall_luci passwall2 passwall_packages -x "*/index.json"
-
+          
           cd ../..
           sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
 
       - name: 📤 Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: release-package-${{ matrix.arch }}
+          name: prod-package-${{ matrix.arch }}
           path: |
-            DayPass_${{ matrix.arch }}_v*.zip
-            DayPass_${{ matrix.arch }}_v*.sha256
+            DayPass_${{ matrix.arch }}_*.zip
+            DayPass_${{ matrix.arch }}_*.sha256
           retention-days: 1
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: 🔎 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🏷️ Generate Version Variables for Deploy
+      - name: 🏷️ Generate Version (For Tagging)
         run: |
           echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
 
-      - name: 🛠️ Install Dependencies for Deploy
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y jq curl coreutils zip unzip
-
       - name: 📁 Prepare Workspace Directories
         run: |
-          mkdir -p merged-artifacts
+          mkdir -p merged-beta
           mkdir -p merged-output
-          mkdir -p release-assets
 
-      - name: 📥 Download All Build Artifacts
+      - name: 📥 Download All Production Artifacts
         uses: actions/download-artifact@v4
         with:
-          path: merged-artifacts/
-          pattern: release-package-*
+          path: merged-beta/
+          pattern: prod-package-*
           merge-multiple: true
 
-      - name: 🤝 Organize and Merge Architecture Outputs for Pages
-        shell: bash
-        run: |
-          ARCHS=$(jq -r '.architectures[].name' config/architectures.json)
-          for arch in $ARCHS; do
-            mkdir -p "merged-output/$arch"
-            ZIP_FILE=$(find merged-artifacts -maxdepth 1 -type f -name "DayPass_${arch}_v*.zip" | head -n 1)
-            if [ -n "$ZIP_FILE" ] && [ -f "$ZIP_FILE" ]; then
-              unzip -q "$ZIP_FILE" -d "merged-output/$arch/"
-            fi
-          done
-    
-      - name: 🧠 Generate Final Manifest
-        shell: bash
-        run: |
-          source core/context.sh
-          source metadata/manifest.sh
-
-          export DAYPASS_OUTPUT_DIR="$PWD/merged-output"
-          export DAYPASS_TEMP_DIR="$PWD/merged-output"
-
-          find merged-output -type f ! -name "*.apk" -delete
-          
-          generate_manifest
-
-      - name: 🧷 Inject Zip Metadata into Manifest
-        shell: bash
-        run: |
-          if [ -f "merged-output/manifest.json" ]; then
-            MANIFEST_PATH="merged-output/manifest.json"
-          else
-            MANIFEST_PATH="config/architectures.json"
-          fi
-
-          NEW_MANIFEST="merged-output/final_manifest.json"
-          cp "$MANIFEST_PATH" "$NEW_MANIFEST"
-
-          ARCHS=$(jq -r '.architectures[].name' config/architectures.json)
-
-          for arch in $ARCHS; do
-            ZIP_FILE=$(find merged-artifacts -maxdepth 1 -type f -name "DayPass_${arch}_v*.zip" | head -n 1)
-
-            if [ -n "$ZIP_FILE" ] && [ -f "$ZIP_FILE" ]; then
-              FILE_NAME=$(basename "$ZIP_FILE")
-              FILE_SIZE=$(stat -c "%s" "$ZIP_FILE")
-              FILE_SHA=$(sha256sum "$ZIP_FILE" | cut -d' ' -f1)
-              PKG_NAME="${FILE_NAME%.zip}"
-
-              jq --arg arch "$arch" \
-                  --arg pkg "$PKG_NAME" \
-                  --arg file "$FILE_NAME" \
-                  --arg sha "$FILE_SHA" \
-                  --argjson size "$FILE_SIZE" \
-                  '(.architectures[] | select(.name == $arch) | .packages) |= [{package: $pkg, file: $file, sha256: $sha, size: $size}]' \
-                  "$NEW_MANIFEST" > "${NEW_MANIFEST}.tmp" && mv "${NEW_MANIFEST}.tmp" "$NEW_MANIFEST"
-            fi
-          done
-
-          cp "$NEW_MANIFEST" merged-output/manifest.json
-
-
-      - name: 😼 Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: 📤 Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: 🚀 Run Pure Go Deployer Engine
+        uses: ./.github/actions/daypass-deployer
         with:
-          path: merged-output
-
-      - name: 🚀 Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-      - name: 📦 Prepare Release Assets
-        run: |
-          cp merged-artifacts/DayPass_*.zip release-assets/
-          cp merged-artifacts/DayPass_*.sha256 release-assets/
+          telegram_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          telegram_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
+          version: ${{ env.VERSION }}
+          build_number: ${{ github.run_number }}
+          actor: ${{ github.actor }}
 
       - name: 🚀 Upload Official Release to GitHub
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ env.VERSION }}
-          name: ⚙️ DayPass v${{ env.VERSION }} Official Stable
-          prerelease: false
+          tag_name: v${{ env.VERSION }}-${{ github.run_number }}
+          name: 🚀 DayPass v${{ env.VERSION }} Official Release
+          prerelease: false 
           body: |
-            ## ⚙️ DayPass Official Stable Release
-            🎯 Stable and ready for production!
-            📅 Date : `${{ env.VERSION }}`
+            ## 🚀 DayPass Production Release
+            🔥 Stable and optimized build!
+            📅 Date  : `${{ env.VERSION }}`
+            ⚡ Build  : `${{ github.run_number }}`
           files: |
             release-assets/DayPass_*.zip
             release-assets/DayPass_*.sha256
-
-      - name: 📢 Send Smart Telegram Menu (Official)
-        shell: bash
-        run: |
-          RELEASE_TAG="v${{ env.VERSION }}"
-          
-          KEYBOARD=$(jq -c --arg tag "$RELEASE_TAG" --arg repo "${{ github.repository }}" --arg ver "${{ env.VERSION }}" '{
-            "inline_keyboard": [.architectures[] | [{
-              "text": "🚀 \(.name)",
-              "url": "https://github.com/\($repo)/releases/download/\($tag)/DayPass_\(.name)_v\($ver).zip"
-            }]]
-          }' config/architectures.json)
-
-          MESSAGE="🚀 *Official DayPass Release is Out!*
-
-          🏷️ *Version :* \`v${{ env.VERSION }}\`
-          👤 *Released By :* \`${{ github.actor }}\`
-
-          👇 Click below to get the official stable package for your router :"
-
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-            -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
-            -d "text=$MESSAGE" \
-            -d "parse_mode=Markdown" \
-            -d "reply_markup=$KEYBOARD" \
-            -d "disable_web_page_preview=true"
+            release-assets/manifest.json
