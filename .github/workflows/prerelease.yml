@@ -227,7 +227,7 @@ jobs:
         run: |
           KEYBOARD=$(jq -c '{
             "inline_keyboard": [.architectures[] | [{
-              "text": "📦 \(.name)",
+              "text": "🧪 \(.name)",
               "url": "https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}-beta-${{ github.run_number }}/DayPass_\(.name)_v${{ env.VERSION }}-beta.zip"
             }]]
           }' config/architectures.json)
