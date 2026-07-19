@@ -98,11 +98,11 @@ jobs:
         with:
           name: beta-package-${{ matrix.arch }}
           path: |
-            # DayPass_${{ matrix.arch }}_*.zip
-            # DayPass_${{ matrix.arch }}_*.sha256
-            output/${{ matrix.arch }}/passwall_luci/
-            output/${{ matrix.arch }}/passwall2/
-            output/${{ matrix.arch }}/passwall_packages/
+            DayPass_${{ matrix.arch }}_*.zip
+            DayPass_${{ matrix.arch }}_*.sha256
+            # output/${{ matrix.arch }}/passwall_luci/
+            # output/${{ matrix.arch }}/passwall2/
+            # output/${{ matrix.arch }}/passwall_packages/
           retention-days: 1
 
   deploy:
@@ -143,11 +143,17 @@ jobs:
           ARCHS=$(jq -r '.architectures[].name' config/architectures.json)
           for arch in $ARCHS; do
             mkdir -p "merged-output/$arch"
-            if [ -d "merged-beta/passwall_luci" ]; then
-              cp -r merged-beta/passwall_luci "merged-output/$arch/" 2>/dev/null || true
-              cp -r merged-beta/passwall2 "merged-output/$arch/" 2>/dev/null || true
-              cp -r merged-beta/passwall_packages "merged-output/$arch/" 2>/dev/null || true
+
+            ZIP_FILE=$(find merged-beta -maxdepth 1 -type f -name "DayPass_${arch}_*.zip" | head -n 1)
+            if [ -n "$ZIP_FILE" ] && [ -f "$ZIP_FILE" ]; then
+              unzip -q "$ZIP_FILE" -d "merged-output/$arch/"
             fi
+
+            # if [ -d "merged-beta/passwall_luci" ]; then
+            #   cp -r merged-beta/passwall_luci "merged-output/$arch/" 2>/dev/null || true
+            #   cp -r merged-beta/passwall2 "merged-output/$arch/" 2>/dev/null || true
+            #   cp -r merged-beta/passwall_packages "merged-output/$arch/" 2>/dev/null || true
+            # fi
           done
 
       - name: 🧠 Generate Final Manifest
