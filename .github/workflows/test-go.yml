@@ -113,7 +113,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}-purego-${{ github.run_number }}
-          name: 🦫 DayPass v${{ env.VERSION }} Test
+          name: 🦫 DayPass v${{ env.VERSION }}
           prerelease: true
           body: |
             ⚠️ Experimental build!
