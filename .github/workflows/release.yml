@@ -124,7 +124,7 @@ jobs:
           merge-multiple: true
 
       - name: 🚀 Run Pure Go Deployer Engine
-        uses: ./.github/actions/daypass-deployer
+        uses: ./.github/actions
         with:
           telegram_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           telegram_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
