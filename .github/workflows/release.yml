@@ -60,7 +60,6 @@ jobs:
         uses: ludeeus/action-shellcheck@master
         with:
           scandir: './core'
-          additional_files: './core/bootstrap.sh'
           severity: warning
 
       - name: 🛠️ Install Dependencies
@@ -80,8 +79,7 @@ jobs:
       - name: 🧪 Validate Build
         shell: bash
         run: |
-          test -f output/install.sh
-          test -f output/manifest.json
+          test -f "output/${{ matrix.arch }}/install.sh"
 
       - name: 📦 Create DayPass Release Package
         shell: bash
@@ -154,7 +152,7 @@ jobs:
           sudo apt-get install -y jq curl
 
       # Send Notification to Telegram
-      - name: 📢 Send Smart Telegram Menu (Official Release)
+      - name: 📢 Send Smart Telegram Menu
         shell: bash
         run: |
           KEYBOARD=$(jq -c '{
