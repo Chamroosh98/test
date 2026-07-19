@@ -49,6 +49,16 @@ func copyFile(src, dst string) error {
 }
 
 func main() {
+	// 🏠 انتقال دایرکتوری کارکرد به ریشه اصلی پروژه برای حل مشکل جابجایی مسیرها
+	workspace := os.Getenv("GITHUB_WORKSPACE")
+	if workspace != "" {
+		if err := os.Chdir(workspace); err != nil {
+			fmt.Printf("❌ Failed to change working directory to workspace: %v\n", err)
+		} else {
+			fmt.Printf("🏠 Working directory changed to: %s\n", workspace)
+		}
+	}
+
 	botToken := os.Getenv("INPUT_TELEGRAM_BOT_TOKEN")
 	chatID := os.Getenv("INPUT_TELEGRAM_CHAT_ID")
 	version := os.Getenv("INPUT_VERSION")
@@ -56,7 +66,6 @@ func main() {
 	actor := os.Getenv("INPUT_ACTOR")
 	repo := os.Getenv("GITHUB_REPOSITORY")
 
-	// خواندن مسیرها از متغیرهای محیطی یا استفاده از مقادیر پیش‌فرض
 	archConfigFile := os.Getenv("DAYPASS_ARCH_FILE")
 	if archConfigFile == "" {
 		archConfigFile = "config/architectures.json" 
@@ -111,6 +120,7 @@ func main() {
 			r.Close()
 		}
 	}
+
 	fmt.Println("🧠 Processing & Generating Real Manifest Data via Go module ...")
 	os.MkdirAll(outputDirectory, 0755)
 	if err := GenerateManifest(archConfigFile, outputDirectory); err != nil {
