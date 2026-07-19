@@ -6,8 +6,11 @@ on:
       - custom  
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  fake-build:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Create Test Dummy Artifacts
@@ -23,8 +26,8 @@ jobs:
           name: beta-package-test
           path: DayPass_*.zip
 
-  test-pure-go-deploy:
-    needs: fake-build
+  deploy:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: 🔎 Checkout Repository
