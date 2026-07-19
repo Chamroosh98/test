@@ -123,7 +123,7 @@ jobs:
           pattern: release-*
           merge-multiple: true
 
-      - name: 🚀 Run Pure Go Deployer Engine
+      - name: 🦫 Run Go Engine
         uses: ./.github/actions
         with:
           telegram_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -132,16 +132,25 @@ jobs:
           build_number: ${{ github.run_number }}
           actor: ${{ github.actor }}
 
-      - name: 🚀 Upload Official Release to GitHub
+      - name: 🌐 Deploy Installer to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: release-assets
+          branch: gh-pages
+          target-folder: .
+          single-commit: true
+
+
+      - name: 🚀 Upload Release Packages
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}-${{ github.run_number }}
-          name: 🚀 DayPass v${{ env.VERSION }} Official Release
+          name: 🚀 DayPass v${{ env.VERSION }}
           prerelease: false 
           body: |
-            ## 🚀 DayPass Production Release
+            ## 🚀 DayPass Release
             🔥 Stable and optimized build!
-            📅 Date  : `${{ env.VERSION }}`
+            📅 Date   : `${{ env.VERSION }}`
             ⚡ Build  : `${{ github.run_number }}`
           files: |
             release-assets/DayPass_*.zip

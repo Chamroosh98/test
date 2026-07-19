@@ -124,7 +124,7 @@ jobs:
           pattern: beta-*
           merge-multiple: true
 
-      - name: 🦫 Pure Go Engine
+      - name: 🦫 Run Go Engine
         uses: ./.github/actions
         with:
           telegram_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -133,11 +133,19 @@ jobs:
           build_number: ${{ github.run_number }}
           actor: ${{ github.actor }}
 
+      - name: 🌐 Deploy Dynamic Beta Installer to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: release-assets        
+          branch: gh-pages           
+          target-folder: dev         
+          single-commit: true
+
       - name: 🧪 Upload Pre-Release to GitHub
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}-beta-${{ github.run_number }}
-          name: 🧪 DayPass v${{ env.VERSION }} Beta
+          name: 🧪 DayPass v${{ env.VERSION }}
           prerelease: true
           body: |
             ## 🧪 DayPass Beta Release
@@ -157,10 +165,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🌐 Deploy Dynamic Beta Installer to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: merged-beta        
-          branch: gh-pages           
-          target-folder: dev         
-          single-commit: true
+      
