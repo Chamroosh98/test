@@ -24,7 +24,7 @@ type PackageInfo struct {
 	Package string  `json:"package"`
 	File    string  `json:"file"`
 	Sha256  string  `json:"sha256"`
-	Size    float64 `json:"size"`
+	Size    int64   `json:"size"`
 }
 
 type ArchOutput struct {
@@ -113,13 +113,11 @@ func GenerateManifest(archConfigPath, outputDir string) error {
 				return fmt.Errorf("❌ Failed to calculate sha256 for [%s] : [%w]", path, err)
 			}
 
-			sizeInMB := float64(fileInfo.Size()) / (1024 * 1024)
-
 			archOut.Packages = append(archOut.Packages, PackageInfo{
 				Package: pkgName,
 				File:    fileName,
 				Sha256:  sha,
-				Size:    sizeInMB,
+				Size:    fileInfo.Size(),
 			})
 			return nil
 		})
