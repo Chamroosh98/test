@@ -78,11 +78,11 @@ func main() {
 		}
 	}
 
-	fmt.Println("🧠 Processing Manifest Data via encoding/json...")
+	fmt.Println("🧠 Processing Manifest Data via encoding/json ...")
 	manifestPath := "config/architectures.json"
 	manifestData, err := os.ReadFile(manifestPath)
 	if err != nil {
-		fmt.Printf("❌ Base config not found: %v\n", err)
+		fmt.Printf("❌ Base config not found : %v\n", err)
 		os.Exit(1)
 	}
 
@@ -119,7 +119,7 @@ func main() {
 	mInput.Close()
 	mOutput.Close()
 
-	fmt.Println("📢 Dispatched Telegram Message via native http.Client...")
+	fmt.Println("📬 Dispatched Telegram Message ...")
 	var keyboard []InlineKeyboardButton
 	for _, arch := range archs {
 		btn := InlineKeyboardButton{
@@ -135,7 +135,7 @@ func main() {
 	}
 
 	msgText := fmt.Sprintf(
-		"🧪 *New Pure Go Build Ready!*\n\n🏷️ *Version :* `v%s-beta`\n🛠️ *Build :* `%s`\n👤 *By :* `%s`",
+		"🦫 *New Pure Go Build Ready!*\n\n🏷️ *Version :* `v%s-beta`\n🛠️ *Build :* `%s`\n👤 *By :* `%s`",
 		version, buildNum, actor,
 	)
 

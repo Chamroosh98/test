@@ -3,30 +3,82 @@ name: 🦫 DayPass Test
 on:
   push:
     branches:
-      - custom  
+      - custom 
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  prep-matrix:
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - name: Create Test Dummy Artifacts
+      - name: 🔎 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📤 Generate Matrix Config
+        id: set-matrix
         run: |
-          mkdir -p test-dir
-          echo "test package content" > test-dir/install.sh
-          zip -r DayPass_x86_64_v26.07.19-beta.zip test-dir
-          zip -r DayPass_aarch64_generic_v26.07.19-beta.zip test-dir
-          
-      - name: Upload Test Artifacts
+          ARCH_ARRAY=$(jq -c '.architectures | [.[].name]' config/architectures.json)
+          echo "matrix={\"arch\":${ARCH_ARRAY}}" >> $GITHUB_OUTPUT
+
+  build:
+    needs: prep-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.prep-matrix.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: 🔎 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🏷️ Generate Beta Version
+        run: |
+          echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
+
+      - name: 🗓️ Restore DayPass Cache
+        uses: actions/cache@v4
+        with:
+          path: cache
+          key: daypass-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('config/architectures.json') }}
+          restore-keys: |
+            daypass-${{ runner.os }}-${{ matrix.arch }}-
+
+      - name: 🛠️ Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bash curl jq coreutils findutils zip
+
+      - name: 📝 Make Scripts Executable
+        run: |
+          find . -type f -name "*.sh" -exec chmod +x {} \;
+
+      - name: 👷‍♀️ Build DayPass for ${{ matrix.arch }}
+        shell: bash
+        run: |
+          ./core/orchestrator.sh "${{ matrix.arch }}"
+
+      - name: 🦫 Create DayPass Beta Package
+        shell: bash
+        run: |
+          ZIP_NAME="DayPass_${{ matrix.arch }}_v${{ env.VERSION }}-beta.zip"
+          cd "output/${{ matrix.arch }}"
+          zip -r "../../$ZIP_NAME" passwall_luci passwall2 passwall_packages -x "*/index.json" -x "install.sh"
+          cd ../..
+          sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
+
+      - name: 📤 Upload Real Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: beta-package-test
-          path: DayPass_*.zip
+          name: beta-package-${{ matrix.arch }}
+          path: |
+            DayPass_${{ matrix.arch }}_*.zip
+            DayPass_${{ matrix.arch }}_*.sha256
+          retention-days: 1
 
-  deploy:
+  test-pure-go-deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -41,15 +93,15 @@ jobs:
           mkdir -p merged-beta
           mkdir -p merged-output
 
-      - name: 📥 Download Beta Artifacts
+      - name: 📥 Download All Artifacts
         uses: actions/download-artifact@v4
         with:
           path: merged-beta/
-          pattern: beta-package-test
+          pattern: beta-package-*
           merge-multiple: true
 
-      - name: 🚀 Run Pure Go Deployer Engine
-        uses: ./.github/actions/daypass
+      - name: 🚀 Run Go Deployer Engine
+        uses: ./.github/actions/daypass-deployer
         with:
           telegram_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           telegram_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -57,11 +109,11 @@ jobs:
           build_number: ${{ github.run_number }}
           actor: ${{ github.actor }}
 
-      - name: 🚀 Upload Pre-Release to GitHub
+      - name: 🚀 Upload Assets to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}-purego-${{ github.run_number }}
-          name: 🧪 DayPass v${{ env.VERSION }} Pure Go Test
+          name: 🦫 DayPass v${{ env.VERSION }} Test
           prerelease: true
           files: |
             release-assets/DayPass_*.zip
