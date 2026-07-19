@@ -147,6 +147,55 @@ jobs:
               unzip -q "$ZIP_FILE" -d "merged-output/$arch/"
             fi
           done
+    
+      - name: 🧠 Generate Final Manifest
+        shell: bash
+        run: |
+          source core/context.sh
+          source metadata/manifest.sh
+
+          export DAYPASS_OUTPUT_DIR="$PWD/merged-output"
+          export DAYPASS_TEMP_DIR="$PWD/merged-output"
+
+          find merged-output -type f ! -name "*.apk" -delete
+          
+          generate_manifest
+
+      - name: 🧷 Inject Zip Metadata into Manifest
+        shell: bash
+        run: |
+          if [ -f "merged-output/manifest.json" ]; then
+            MANIFEST_PATH="merged-output/manifest.json"
+          else
+            MANIFEST_PATH="config/architectures.json"
+          fi
+
+          NEW_MANIFEST="merged-output/final_manifest.json"
+          cp "$MANIFEST_PATH" "$NEW_MANIFEST"
+
+          ARCHS=$(jq -r '.architectures[].name' config/architectures.json)
+
+          for arch in $ARCHS; do
+            ZIP_FILE=$(find merged-artifacts -maxdepth 1 -type f -name "DayPass_${arch}_v*.zip" | head -n 1)
+
+            if [ -n "$ZIP_FILE" ] && [ -f "$ZIP_FILE" ]; then
+              FILE_NAME=$(basename "$ZIP_FILE")
+              FILE_SIZE=$(stat -c "%s" "$ZIP_FILE")
+              FILE_SHA=$(sha256sum "$ZIP_FILE" | cut -d' ' -f1)
+              PKG_NAME="${FILE_NAME%.zip}"
+
+              jq --arg arch "$arch" \
+                  --arg pkg "$PKG_NAME" \
+                  --arg file "$FILE_NAME" \
+                  --arg sha "$FILE_SHA" \
+                  --argjson size "$FILE_SIZE" \
+                  '(.architectures[] | select(.name == $arch) | .packages) |= [{package: $pkg, file: $file, sha256: $sha, size: $size}]' \
+                  "$NEW_MANIFEST" > "${NEW_MANIFEST}.tmp" && mv "${NEW_MANIFEST}.tmp" "$NEW_MANIFEST"
+            fi
+          done
+
+          cp "$NEW_MANIFEST" merged-output/manifest.json
+
 
       - name: 😼 Setup Pages
         uses: actions/configure-pages@v5
