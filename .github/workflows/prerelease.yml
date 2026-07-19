@@ -88,7 +88,9 @@ jobs:
 
           cd "output/${{ matrix.arch }}"
           
-          zip -r "../../$ZIP_NAME" passwall_luci passwall2 passwall_packages -x "*/index.json" -x "install.sh"
+          # zip -r "../../$ZIP_NAME" passwall_luci passwall2 passwall_packages -x "*/index.json" -x "install.sh"
+          zip -r "../../$ZIP_NAME" passwall_luci passwall2 passwall_packages -x "*/index.json"
+
           
           cd ../..
           sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
