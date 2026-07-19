@@ -1,0 +1,25 @@
+
+name: 🦫 DayPass Test
+description: 'Handles artifacts and manifest updates entirely in Go'
+author: 'Sher'
+
+inputs:
+  telegram_bot_token:
+    description: 'Telegram Bot Token'
+    required: true
+  telegram_chat_id:
+    description: 'Telegram Chat ID'
+    required: true
+  version:
+    description: 'Build version'
+    required: true
+  build_number:
+    description: 'GitHub Run Number'
+    required: true
+  actor:
+    description: 'The user who triggered the pipeline'
+    required: true
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
