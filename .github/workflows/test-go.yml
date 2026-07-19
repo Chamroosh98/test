@@ -1,0 +1,66 @@
+name: 🦫 DayPass Test
+
+on:
+  push:
+    branches:
+      - custom  
+  workflow_dispatch:
+
+jobs:
+  fake-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Test Dummy Artifacts
+        run: |
+          mkdir -p test-dir
+          echo "test package content" > test-dir/install.sh
+          zip -r DayPass_x86_64_v26.07.19-beta.zip test-dir
+          zip -r DayPass_aarch64_generic_v26.07.19-beta.zip test-dir
+          
+      - name: Upload Test Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: beta-package-test
+          path: DayPass_*.zip
+
+  test-pure-go-deploy:
+    needs: fake-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔎 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🏷️ Date Version
+        run: echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
+
+      - name: 📁 Prepare Workspace Directories
+        run: |
+          mkdir -p merged-beta
+          mkdir -p merged-output
+
+      - name: 📥 Download Beta Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: merged-beta/
+          pattern: beta-package-test
+          merge-multiple: true
+
+      - name: 🚀 Run Pure Go Deployer Engine
+        uses: ./.github/actions/daypass
+        with:
+          telegram_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          telegram_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
+          version: ${{ env.VERSION }}
+          build_number: ${{ github.run_number }}
+          actor: ${{ github.actor }}
+
+      - name: 🚀 Upload Pre-Release to GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}-purego-${{ github.run_number }}
+          name: 🧪 DayPass v${{ env.VERSION }} Pure Go Test
+          prerelease: true
+          files: |
+            release-assets/DayPass_*.zip
+            release-assets/DayPass_*.sha256
+            release-assets/manifest.json
