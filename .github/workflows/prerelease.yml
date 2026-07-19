@@ -91,13 +91,14 @@ jobs:
           cd ../..
           sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
 
-      - name: 📤 Upload Build Artifact
+      - name: 📤 Upload Beta Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: beta-package-${{ matrix.arch }}
           path: |
             DayPass_${{ matrix.arch }}_*.zip
             DayPass_${{ matrix.arch }}_*.sha256
+            output/install.sh
           retention-days: 1
 
   deploy:
@@ -123,7 +124,7 @@ jobs:
           pattern: beta-package-*
           merge-multiple: true
 
-      - name: 🚀 Run Pure Go Deployer Engine
+      - name: 🦫 Pure Go Engine
         uses: ./.github/actions
         with:
           telegram_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -132,7 +133,7 @@ jobs:
           build_number: ${{ github.run_number }}
           actor: ${{ github.actor }}
 
-      - name: 🚀 Upload Pre-Release to GitHub
+      - name: 🧪 Upload Pre-Release to GitHub
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}-beta-${{ github.run_number }}
@@ -155,3 +156,11 @@ jobs:
           delete_tags: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🌐 Deploy Dynamic Beta Installer to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: merged-beta        
+          branch: gh-pages           
+          target-folder: dev         
+          single-commit: true
