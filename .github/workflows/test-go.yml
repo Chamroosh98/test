@@ -101,7 +101,7 @@ jobs:
           merge-multiple: true
 
       - name: 🚀 Run Go Deployer Engine
-        uses: ./.github/actions/daypass
+        uses: ./.github/actions
         with:
           telegram_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           telegram_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -113,7 +113,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}-purego-${{ github.run_number }}
-          name: 🦫 DayPass v${{ env.VERSION }} Test
+          name: 🦫 DayPass v${{ env.VERSION }}
           prerelease: true
           body: |
             ⚠️ Experimental build!
