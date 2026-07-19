@@ -31,7 +31,6 @@ type TelegramMessage struct {
     DisableWebPagePreview bool                 `json:"disable_web_page_preview"`
 }
 
-// تابع کمکی برای کپی راحت فایل‌ها در Go
 func copyFile(src, dst string) error {
     in, err := os.Open(src)
     if err != nil {
@@ -57,7 +56,7 @@ func main() {
     actor := os.Getenv("INPUT_ACTOR")
     repo := os.Getenv("GITHUB_REPOSITORY")
 
-    fmt.Println("🚀 Pure Go Deployer Engine Active ...")
+    fmt.Println("🦫 Go Engine Active ...")
 
     archs := []string{
         "aarch64_cortex-a53", "aarch64_cortex-a72", "aarch64_cortex-a76",
@@ -65,8 +64,6 @@ func main() {
         "i386_pentium4", "mipsel_24kc", "x86_64",
     }
 
-    // ۱. بررسی نوع ریلیز (آیا در محیط بتا هستیم یا پروداکشن؟)
-    // اگر در نام ورک‌فلو یا متغیرها اثری از پرووداکشن باشد، ساختار را پایدار در نظر می‌گیریم
     isBeta := true
     githubWorkflow := os.Getenv("GITHUB_WORKFLOW")
     if strings.Contains(strings.ToLower(githubWorkflow), "production") || strings.Contains(strings.ToLower(githubWorkflow), "release") {
@@ -132,14 +129,14 @@ func main() {
             shaFileName := filepath.Base(zipFile) + ".sha256"
             os.WriteFile("release-assets/"+shaFileName, []byte(fileSHA+"  "+filepath.Base(zipFile)+"\n"), 0644)
             
-            copyFile(zipFile, "release-assets/"+filepath.Base(zipFile))
+            // copyFile(zipFile, "release-assets/"+filepath.Base(zipFile))
         }
     }
     
     copyFile(newManifestPath, "release-assets/manifest.json")
 
     if _, err := os.Stat("merged-beta/install.sh"); err == nil {
-        fmt.Println("📝 Copying install.sh to release-assets via Go...")
+        fmt.Println("📝 Copying install.sh to release-assets for GitHub Pages ...")
         copyFile("merged-beta/install.sh", "release-assets/install.sh")
     }
 
