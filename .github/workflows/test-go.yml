@@ -78,7 +78,7 @@ jobs:
             DayPass_${{ matrix.arch }}_*.sha256
           retention-days: 1
 
-  test-pure-go-deploy:
+  deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -101,7 +101,7 @@ jobs:
           merge-multiple: true
 
       - name: 🚀 Run Go Deployer Engine
-        uses: ./.github/actions/daypass-deployer
+        uses: ./.github/actions/daypass
         with:
           telegram_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           telegram_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
