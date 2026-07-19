@@ -21,7 +21,7 @@ generate_manifest() {
     for arch in $archs; do
         local arch_dir="$output_dir/$arch"
         
-        echo "   ⚙️ Generating manifest for $arch..."
+        echo "   ⚙️ Generating manifest for $arch ..."
 
         local pkg_json_tmp
         pkg_json_tmp=$(mktemp)

@@ -125,13 +125,18 @@ jobs:
           merge-multiple: true
 
       - name: 🦫 Run Go Engine
-        uses: ./.github/actions
-        with:
-          telegram_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          telegram_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
-          version: ${{ env.VERSION }}
-          build_number: ${{ github.run_number }}
-          actor: ${{ github.actor }}
+        env:
+          INPUT_TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          INPUT_TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          INPUT_VERSION: ${{ env.VERSION }}
+          INPUT_BUILD_NUMBER: ${{ github.run_number }}
+          INPUT_ACTOR: ${{ github.actor }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          DAYPASS_ARCH_FILE: ${{ github.workspace }}/config/architectures.json
+          DAYPASS_OUTPUT_DIR: ${{ github.workspace }}/merged-output
+        run: |
+          cd .github/actions/engine/
+          go run .
 
       - name: 🌐 Deploy Dynamic Beta Installer to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
@@ -140,9 +145,6 @@ jobs:
           branch: gh-pages           
           target-folder: dev         
           single-commit: true
-          # clean-exclude: |
-          #   *.zip
-          #   *.sha256
 
       - name: 👩‍🏭 Creating new GitHub release
         uses: softprops/action-gh-release@v2
@@ -151,7 +153,7 @@ jobs:
           files: |
             merged-beta/*.zip
             merged-beta/*.sha256
-            merged-output/final_manifest.json
+            merged-output/manifest.json
 
       - name: 🧪 Upload Pre-Release packages to GitHub Release
         uses: softprops/action-gh-release@v2
@@ -176,5 +178,3 @@ jobs:
           delete_tags: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      
