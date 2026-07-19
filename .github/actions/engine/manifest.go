@@ -21,10 +21,10 @@ type ArchitectureConfig struct {
 }
 
 type PackageInfo struct {
-	Package string `json:"package"`
-	File    string `json:"file"`
-	Sha256  string `json:"sha256"`
-	Size    int64  `json:"size"`
+	Package string  `json:"package"`
+	File    string  `json:"file"`
+	Sha256  string  `json:"sha256"`
+	Size    float64 `json:"size"`
 }
 
 type ArchOutput struct {
@@ -55,12 +55,12 @@ func calculateSHA256(filePath string) (string, error) {
 func GenerateManifest(archConfigPath, outputDir string) error {
 	configData, err := os.ReadFile(archConfigPath)
 	if err != nil {
-		return fmt.Errorf("❌ failed to read arch config : %w", err)
+		return fmt.Errorf("❌ Failed to read arch config : %w", err)
 	}
 
 	var config ArchitectureConfig
 	if err := json.Unmarshal(configData, &config); err != nil {
-		return fmt.Errorf("❌ failed to unmarshal arch config : %w", err)
+		return fmt.Errorf("❌ Failed to unmarshal arch config : %w", err)
 	}
 
 	manifest := ManifestOutput{
@@ -82,17 +82,16 @@ func GenerateManifest(archConfigPath, outputDir string) error {
 			continue
 		}
 
-		files, err := os.ReadDir(archDir)
-		if err != nil {
-			return fmt.Errorf("❌ failed to read directory %s : %w", archDir, err)
-		}
-
-		for _, f := range files {
-			if f.IsDir() {
-				continue
+		err := filepath.WalkDir(archDir, func(path string, d os.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			
+			if d.IsDir() {
+				return nil
 			}
 
-			fileName := f.Name()
+			fileName := d.Name()
 			loweredName := strings.ToLower(fileName)
 			
 			var pkgName string
@@ -101,42 +100,48 @@ func GenerateManifest(archConfigPath, outputDir string) error {
 			} else if strings.HasSuffix(loweredName, ".ipk") {
 				pkgName = strings.TrimSuffix(fileName, ".ipk")
 			} else {
-				continue
+				return nil // فایل پکیج نیست، رد می‌شویم
 			}
 
-			filePath := filepath.Join(archDir, fileName)
-			fileInfo, err := f.Info()
+			fileInfo, err := d.Info()
 			if err != nil {
-				return fmt.Errorf("❌ failed to get file info for %s : %w", fileName, err)
+				return fmt.Errorf("❌ Failed to get file info for [%s] : [%w]", path, err)
 			}
 
-			sha, err := calculateSHA256(filePath)
+			sha, err := calculateSHA256(path)
 			if err != nil {
-				return fmt.Errorf("❌ failed to calculate sha256 for %s : %w", fileName, err)
+				return fmt.Errorf("❌ Failed to calculate sha256 for [%s] : [%w]", path, err)
 			}
+
+			sizeInMB := float64(fileInfo.Size()) / (1024 * 1024)
 
 			archOut.Packages = append(archOut.Packages, PackageInfo{
 				Package: pkgName,
 				File:    fileName,
 				Sha256:  sha,
-				Size:    fileInfo.Size(),
+				Size:    sizeInMB,
 			})
+			return nil
+		})
+
+		if err != nil {
+			return fmt.Errorf("❌ Error while walking directory %s: %w", archDir, err)
 		}
 
 		manifest.Architectures = append(manifest.Architectures, archOut)
-		fmt.Printf(" 🧠 Generated manifest for %s with %d packages.\n", arch.Name, len(archOut.Packages))
+		fmt.Printf(" 🧠 Generated manifest for [%s] with [%d] packages!\n", arch.Name, len(archOut.Packages))
 	}
 
 	finalManifestPath := filepath.Join(outputDir, "manifest.json")
 	finalJson, err := json.MarshalIndent(manifest, "", "  ")
 	if err != nil {
-		return fmt.Errorf("❌ failed to marshal final manifest : %w", err)
+		return fmt.Errorf("❌ Failed to marshal final manifest : %w", err)
 	}
 
 	if err := os.WriteFile(finalManifestPath, finalJson, 0644); err != nil {
-		return fmt.Errorf("❌ failed to write manifest.json : %w", err)
+		return fmt.Errorf("❌ Failed to write manifest.json : %w", err)
 	}
 
-	fmt.Println("🎉 manifest.json successfully updated for all package formats!")
+	fmt.Println("🦾 manifest.json successfully updated for all package formats recursively!")
 	return nil
 }
