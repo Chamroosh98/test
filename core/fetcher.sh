@@ -12,14 +12,15 @@ fetch_all_packages() {
     local proxy="${2:-}"
 
     [[ -f "$DAYPASS_ARCH_FILE" ]] || {
-        log_error "Architecture configuration not found!"
+        echo "❌ Architecture configuration not found!"
         return 1
     }
 
     local arch_count
     arch_count=$(jq '.architectures | length' "$DAYPASS_ARCH_FILE")
 
-    for ((i=0; i<arch_count; i++)); do
+    for ((i=0; i<arch_count; i++)); 
+    do
 
         local arch_name
         arch_name=$(jq -r ".architectures[$i].name" "$DAYPASS_ARCH_FILE")
@@ -84,7 +85,7 @@ fetch_all_packages() {
 
             done <<< "$packages"
 
-            log_success "Feed synchronized!"
+            echo "✅ Feed synchronized!"
         done
     done
 }

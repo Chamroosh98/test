@@ -8,7 +8,7 @@ _append_files() {
     local files=("$@")
     local output="$DAYPASS_INSTALL_SCRIPT"
 
-    echo " ⌛ Processing $label ..."
+    echo "⌛ Processing $label ..."
 
     for file in "${files[@]}"; do
         [ -f "$file" ] || continue
@@ -21,7 +21,7 @@ _append_files() {
         grep -v '^#!' "$file" >> "$output"
         echo -e "\n" >> "$output"
         
-        echo "  ✅ [$fname] appended!"
+        echo "✅ [$fname] appended!"
     done
 }
 
@@ -101,5 +101,5 @@ exit 0
 EOF
 
     chmod +x "$output"
-    log_success "install.sh generated dynamically with zero garbage! 🚀"
+    echo "✅ install.sh generated dynamically with zero garbage!"
 }

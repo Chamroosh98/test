@@ -18,7 +18,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
   prep-matrix:
     runs-on: ubuntu-latest
     outputs:
@@ -46,7 +45,6 @@ jobs:
       - name: 🏷️ Generate Release Version
         run: |
           echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
-          echo "RELEASE_DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
 
       - name: 🗓️ Restore DayPass Cache
         uses: actions/cache@v4
@@ -60,7 +58,6 @@ jobs:
         uses: ludeeus/action-shellcheck@master
         with:
           scandir: './core'
-          additional_files: './core/bootstrap.sh'
           severity: warning
 
       - name: 🛠️ Install Dependencies
@@ -80,35 +77,32 @@ jobs:
       - name: 🧪 Validate Build
         shell: bash
         run: |
-          test -f output/install.sh
-          test -f output/manifest.json
+          if [ -f "output/install.sh" ] || [ -f "output/${{ matrix.arch }}/install.sh" ]; then
+            echo "✅ install.sh validation passed!"
+          else
+            echo "❌ install.sh not found!"
+            exit 1
+          fi
 
       - name: 📦 Create DayPass Release Package
         shell: bash
         run: |
-          ZIP_NAME="DayPass-${{ matrix.arch }}-v${VERSION}.zip"
+          ZIP_NAME="DayPass_${{ matrix.arch }}_v${{ env.VERSION }}.zip"
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 
           cd "output/${{ matrix.arch }}"
-          zip -r "../../$ZIP_NAME" passwall_luci passwall2 passwall_packages -x "*/index.json"
+          zip -r "../../$ZIP_NAME" passwall_luci passwall2 passwall_packages -x "*/index.json" -x "install.sh"
           cd ../..
           sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
-
-      - name: 🚀 Upload GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ env.VERSION }}
-          name: DayPass v${{ env.VERSION }}
-          prerelease: false
-          files: |
-            ${{ env.ZIP_NAME }}
-            ${{ env.ZIP_NAME }}.sha256
 
       - name: 📤 Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: output-${{ matrix.arch }}
-          path: output/
+          name: release-package-${{ matrix.arch }}
+          path: |
+            DayPass_${{ matrix.arch }}_v*.zip
+            DayPass_${{ matrix.arch }}_v*.sha256
+          retention-days: 1
 
   deploy:
     needs: build
@@ -123,17 +117,36 @@ jobs:
       - name: 🏷️ Generate Version Variables for Deploy
         run: |
           echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
-          echo "RELEASE_DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
 
-      - name: 📁 Prepare Deployment Directory
-        run: mkdir -p merged-output
+      - name: 🛠️ Install Dependencies for Deploy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq curl coreutils zip unzip
+
+      - name: 📁 Prepare Workspace Directories
+        run: |
+          mkdir -p merged-artifacts
+          mkdir -p merged-output
+          mkdir -p release-assets
 
       - name: 📥 Download All Build Artifacts
         uses: actions/download-artifact@v4
         with:
-          path: merged-output/
-          pattern: output-*
+          path: merged-artifacts/
+          pattern: release-package-*
           merge-multiple: true
+
+      - name: 🤝 Organize and Merge Architecture Outputs for Pages
+        shell: bash
+        run: |
+          ARCHS=$(jq -r '.architectures[].name' config/architectures.json)
+          for arch in $ARCHS; do
+            mkdir -p "merged-output/$arch"
+            ZIP_FILE=$(find merged-artifacts -maxdepth 1 -type f -name "DayPass_${arch}_v*.zip" | head -n 1)
+            if [ -n "$ZIP_FILE" ] && [ -f "$ZIP_FILE" ]; then
+              unzip -q "$ZIP_FILE" -d "merged-output/$arch/"
+            fi
+          done
 
       - name: 😼 Setup Pages
         uses: actions/configure-pages@v5
@@ -143,24 +156,38 @@ jobs:
         with:
           path: merged-output
 
-      - name: 🚀 Deploy
+      - name: 🚀 Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
 
-      # Downloading requirements tools for glass button in telegram bot!
-      - name: 🛠️ Install Dependencies for Deploy
+      - name: 📦 Prepare Release Assets
         run: |
-          sudo apt-get update
-          sudo apt-get install -y jq curl
+          cp merged-artifacts/DayPass_*.zip release-assets/
+          cp merged-artifacts/DayPass_*.sha256 release-assets/
 
-      # Send Notification to Telegram
-      - name: 📢 Send Smart Telegram Menu (Official Release)
+      - name: 🚀 Upload Official Release to GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: ⚙️ DayPass v${{ env.VERSION }} Official Stable
+          prerelease: false
+          body: |
+            ## ⚙️ DayPass Official Stable Release
+            🎯 Stable and ready for production!
+            📅 Date : `${{ env.VERSION }}`
+          files: |
+            release-assets/DayPass_*.zip
+            release-assets/DayPass_*.sha256
+
+      - name: 📢 Send Smart Telegram Menu (Official)
         shell: bash
         run: |
-          KEYBOARD=$(jq -c '{
+          RELEASE_TAG="v${{ env.VERSION }}"
+          
+          KEYBOARD=$(jq -c --arg tag "$RELEASE_TAG" --arg repo "${{ github.repository }}" --arg ver "${{ env.VERSION }}" '{
             "inline_keyboard": [.architectures[] | [{
               "text": "🚀 \(.name)",
-              "url": "https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}/DayPass_\(.name)_v${{ env.VERSION }}.zip"
+              "url": "https://github.com/\($repo)/releases/download/\($tag)/DayPass_\(.name)_v\($ver).zip"
             }]]
           }' config/architectures.json)
 

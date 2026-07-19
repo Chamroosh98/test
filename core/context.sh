@@ -55,8 +55,6 @@ DAYPASS_REPOSITORY=""
 
 
 # Create Runtime Directories
-
-
 mkdir -p \
 "$DAYPASS_CACHE_DIR" \
 "$DAYPASS_TEMP_DIR" \
@@ -68,8 +66,6 @@ mkdir -p \
 
 
 # Export
-
-
 export DAYPASS_ROOT
 
 export DAYPASS_CONFIG_DIR

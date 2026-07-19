@@ -45,7 +45,7 @@ initialize_installer()
         '.architectures[] | select(.name == $arch)' \
         "$MANIFEST_FILE" >/dev/null
     then
-        echo "❌ Architecture not supported: $ARCH"
+        echo "❌ Architecture not supported : $ARCH"
         exit 1
     fi
 
