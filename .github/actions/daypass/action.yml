@@ -1,0 +1,25 @@
+
+name: 🧪 DayPass Test
+description: 'Merges artifacts, generates manifests, and sends smart telegram menus'
+author: 'Sher'
+
+inputs:
+  telegram_bot_token:
+    description: 'The Telegram Bot Token'
+    required: true
+  telegram_chat_id:
+    description: 'The Telegram Chat ID'
+    required: true
+  version:
+    description: 'The build version (e.g., 26.07.19)'
+    required: true
+  build_number:
+    description: 'The GitHub Run Number'
+    required: true
+  actor:
+    description: 'The user who triggered the workflow'
+    required: true
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

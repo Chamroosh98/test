@@ -1,0 +1,30 @@
+name: 🧪 Test Go Custom Action
+
+on:
+  push:
+    branches:
+      - custom
+  workflow_dispatch: 
+
+jobs:
+  test-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔎 Checkout Repository
+        uses: actions/checkout@v4
+
+      # یک دیتای فیک یا تستی برای شبیه‌سازی ایجاد میکنیم
+      - name: 📁 Create Dummy Data
+        run: |
+          mkdir -p merged-beta
+          echo "test" > merged-beta/DayPass_dummy_v26.07.19-beta.zip
+
+      # صدا زدن اکشن تستی شما
+      - name: 🚀 Run Custom DayPass Deployer Action
+        uses: ./.github/actions/daypass-deployer
+        with:
+          telegram_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          telegram_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
+          version: "26.07.19"
+          build_number: "999"
+          actor: ${{ github.actor }}
