@@ -140,6 +140,9 @@ jobs:
           branch: gh-pages           
           target-folder: dev         
           single-commit: true
+          clean-exclude: |
+            *.zip
+            *.sha256
 
       - name: 🧪 Upload Pre-Release to GitHub
         uses: softprops/action-gh-release@v2

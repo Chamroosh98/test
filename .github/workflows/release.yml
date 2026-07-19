@@ -139,6 +139,9 @@ jobs:
           branch: gh-pages
           target-folder: .
           single-commit: true
+          clean-exclude: |
+            *.zip
+            *.sha256
 
 
       - name: 🚀 Upload Release Packages
