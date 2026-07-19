@@ -67,7 +67,7 @@ func main() {
 
 	archConfigFile := os.Getenv("DAYPASS_ARCH_FILE")
 	if archConfigFile == "" {
-		archConfigFile = "config/architectures.json" 
+		archConfigFile = "config/architectures.json"
 	}
 	outputDirectory := os.Getenv("DAYPASS_OUTPUT_DIR")
 	if outputDirectory == "" {
@@ -96,13 +96,13 @@ func main() {
 		if len(matches) > 0 {
 			zipFile := matches[0]
 			fmt.Printf("🤐 Unzipping via Go Archive : %s\n", zipFile)
-			
+
 			r, err := zip.OpenReader(zipFile)
 			if err != nil {
 				fmt.Printf("❌ Error opening zip : %v\n", err)
 				continue
 			}
-			
+
 			for _, f := range r.File {
 				fpath := filepath.Join(destDir, f.Name)
 				if f.FileInfo().IsDir() {
@@ -110,11 +110,27 @@ func main() {
 					continue
 				}
 				os.MkdirAll(filepath.Dir(fpath), os.ModePerm)
-				outFile, _ := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-				rc, _ := f.Open()
-				io.Copy(outFile, rc)
-				outFile.Close()
-				rc.Close()
+
+				err := func() error {
+					outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+					if err != nil {
+						return err
+					}
+					defer outFile.Close()
+
+					rc, err := f.Open()
+					if err != nil {
+						return err
+					}
+					defer rc.Close()
+
+					_, err = io.Copy(outFile, rc)
+					return err
+				}()
+
+				if err != nil {
+					fmt.Printf("❌ Failed to extract file %s: %v\n", f.Name, err)
+				}
 			}
 			r.Close()
 		}
@@ -132,18 +148,25 @@ func main() {
 		matches, _ := filepath.Glob(fmt.Sprintf("merged-beta/DayPass_%s_*.zip", arch))
 		if len(matches) > 0 {
 			zipFile := matches[0]
-			
-			f, _ := os.Open(zipFile)
-			h := sha256.New()
-			io.Copy(h, f)
-			fileSHA := fmt.Sprintf("%x", h.Sum(nil))
-			f.Close()
 
-			shaFileName := filepath.Base(zipFile) + ".sha256"
-			os.WriteFile("release-assets/"+shaFileName, []byte(fileSHA+"  "+filepath.Base(zipFile)+"\n"), 0644)
+			func() {
+				f, err := os.Open(zipFile)
+				if err != nil {
+					fmt.Printf("❌ Failed to open file for SHA calculation: %v\n", err)
+					return
+				}
+				defer f.Close()
+
+				h := sha256.New()
+				io.Copy(h, f)
+				fileSHA := fmt.Sprintf("%x", h.Sum(nil))
+
+				shaFileName := filepath.Base(zipFile) + ".sha256"
+				os.WriteFile("release-assets/"+shaFileName, []byte(fileSHA+"  "+filepath.Base(zipFile)+"\n"), 0644)
+			}()
 		}
 	}
-	
+
 	copyFile(filepath.Join(outputDirectory, "manifest.json"), "release-assets/manifest.json")
 
 	if _, err := os.Stat("merged-beta/install.sh"); err == nil {
@@ -152,23 +175,26 @@ func main() {
 	}
 
 	fmt.Println("📬 Dispatched Telegram Message ...")
-	
-	var tagFormat, fileSuffix string
+
+	var tagFormat string
 	if isBeta {
 		tagFormat = fmt.Sprintf("v%s-beta-%s", version, buildNum)
-		fileSuffix = "-beta.zip"
 	} else {
 		tagFormat = fmt.Sprintf("v%s-%s", version, buildNum)
-		fileSuffix = ".zip"
 	}
 
 	var keyboard []InlineKeyboardButton
 	for _, arch := range archs {
-		btn := InlineKeyboardButton{
-			Text: "🦫 " + arch,
-			URL:  fmt.Sprintf("https://github.com/%s/releases/download/%s/DayPass_%s_v%s%s", repo, tagFormat, arch, version, fileSuffix),
+		matches, _ := filepath.Glob(fmt.Sprintf("merged-beta/DayPass_%s_*.zip", arch))
+		if len(matches) > 0 {
+			actualFileName := filepath.Base(matches[0])
+
+			btn := InlineKeyboardButton{
+				Text: "🦫 " + arch,
+				URL:  fmt.Sprintf("https://github.com/%s/releases/download/%s/%s", repo, tagFormat, actualFileName),
+			}
+			keyboard = append(keyboard, btn)
 		}
-		keyboard = append(keyboard, btn)
 	}
 
 	var inlineKeyboard [][]InlineKeyboardButton
@@ -196,10 +222,10 @@ func main() {
 
 	jsonPayload, _ := json.Marshal(payload)
 	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", botToken)
-	
+
 	req, _ := http.NewRequest("POST", apiURL, bytes.NewBuffer(jsonPayload))
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err == nil && resp.StatusCode == http.StatusOK {
