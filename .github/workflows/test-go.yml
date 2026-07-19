@@ -115,6 +115,10 @@ jobs:
           tag_name: v${{ env.VERSION }}-purego-${{ github.run_number }}
           name: 🦫 DayPass v${{ env.VERSION }} Test
           prerelease: true
+          body: |
+            ⚠️ Experimental build!
+            📅 Date  : `${{ env.VERSION }}`
+            🦫 Build : `${{ github.run_number }}`
           files: |
             release-assets/DayPass_*.zip
             release-assets/DayPass_*.sha256
