@@ -94,7 +94,7 @@ jobs:
       - name: 📤 Upload Beta Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: beta-package-${{ matrix.arch }}
+          name: beta-${{ matrix.arch }}
           path: |
             DayPass_${{ matrix.arch }}_*.zip
             DayPass_${{ matrix.arch }}_*.sha256
@@ -121,7 +121,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: merged-beta/
-          pattern: beta-package-*
+          pattern: beta-*
           merge-multiple: true
 
       - name: 🦫 Pure Go Engine
