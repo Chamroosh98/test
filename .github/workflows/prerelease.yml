@@ -147,6 +147,7 @@ jobs:
       - name: 👩‍🏭 Creating new GitHub release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ env.VERSION }}-beta-${{ github.run_number }}
           files: |
             merged-beta/*.zip
             merged-beta/*.sha256
