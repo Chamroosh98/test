@@ -90,13 +90,33 @@ jobs:
           cd .github/actions/engine/
           go run .
 
-      - name: 🌐 Deploy Dynamic Beta Installer to GitHub Pages
+      - name: 🕵️‍♀️ Prepare GitHub Pages Assets for ignoring zip heavy files
+        run: |
+          mkdir -p github-pages-content
+          cp release-assets/install.sh github-pages-content/
+          cp release-assets/manifest.json github-pages-content/
+          echo "✅ Isolated install.sh and manifest.json for Pages deployment."
+
+          
+      - name: 🌐 Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: release-assets        
-          branch: gh-pages           
-          target-folder: dev         
-          single-commit: true
+          folder: github-pages-content  
+          target-folder: dev             
+          branch: gh-pages
+        
+      - name: 📊 Verify Release Assets Size & Guardrail
+        run: |
+          echo "📁 Listing all files in release-assets with their sizes:"
+          ls -lh release-assets/
+          echo "--------------------------------------------------------"
+          echo "🚨 Checking for zero-byte files ..."
+          if find release-assets/ -type f -empty | grep -q .; then
+            echo "❌ Error : Zero-byte files detected in release-assets!"
+            find release-assets/ -type f -empty
+            exit 1
+          fi
+          echo "✅ All release assets have valid file sizes and are ready for upload!"
 
       - name: 🧪 Create and Upload Pre-Release Packages to GitHub Release
         uses: softprops/action-gh-release@v2
