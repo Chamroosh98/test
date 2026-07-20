@@ -33,6 +33,7 @@ jobs:
         run: |
           mkdir -p merged-beta
           mkdir -p merged-output
+          mkdir -p release-assets
 
       - name: 🦫 Run Go Engine
         env:
@@ -46,7 +47,7 @@ jobs:
           DAYPASS_OUTPUT_DIR: ${{ github.workspace }}/merged-output
         run: |
           cd .github/actions/engine/
-          go run main.go types.go provider.go template.go manifest.go
+          go run .
 
       - name: 🌐 Deploy Dynamic Beta Installer to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
@@ -55,15 +56,6 @@ jobs:
           branch: gh-pages           
           target-folder: dev         
           single-commit: true
-
-      - name: 👩‍🏭 Creating new GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ env.VERSION }}-beta-${{ github.run_number }}
-          files: |
-            merged-beta/*.zip
-            merged-beta/*.sha256
-            merged-output/manifest.json
 
       - name: 🧪 Create and Upload Pre-Release Packages to GitHub Release
         uses: softprops/action-gh-release@v2
@@ -77,10 +69,7 @@ jobs:
             📅 Date  : `${{ env.VERSION }}`
             🧪 Build : `${{ github.run_number }}`
           files: |
-            merged-beta/*.zip
-            release-assets/*.sha256
-            release-assets/manifest.json
-            release-assets/install.sh 
+            release-assets/*
 
       - name: 🧹 Cleanup old beta releases
         uses: dev-drprasad/delete-older-releases@v0.3.4
