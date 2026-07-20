@@ -56,7 +56,7 @@ func main() {
 	}
 	outputDirectory := os.Getenv("DAYPASS_OUTPUT_DIR")
 	if outputDirectory == "" {
-		outputDirectory = "merged-output"
+		outputDirectory = "manifest-workspace"
 	}
 
 	fmt.Println("🦫 Go Engine Active & Merging Matrix Artifacts ...")
@@ -73,7 +73,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	os.MkdirAll("release-assets", 0755)
+	os.MkdirAll("build-artifacts", 0755)
 
 	// Unzip all matrix outputs into their respective directories for manifest generation
 	for _, arch := range archConfig.Architectures {
@@ -146,20 +146,20 @@ func main() {
 			fileSHA := fmt.Sprintf("%x", h.Sum(nil))
 			shaFileName := filepath.Base(zipFile) + ".sha256"
 			
-			os.WriteFile("release-assets/"+shaFileName, []byte(fileSHA+"  "+filepath.Base(zipFile)+"\n"), 0644)
+			os.WriteFile("build-artifacts/"+shaFileName, []byte(fileSHA+"  "+filepath.Base(zipFile)+"\n"), 0644)
 			
-			copyFile(zipFile, "release-assets/"+filepath.Base(zipFile))
+			copyFile(zipFile, "build-artifacts/"+filepath.Base(zipFile))
 		}()
 	}
 
-	copyFile(filepath.Join(outputDirectory, "manifest.json"), "release-assets/manifest.json")
+	copyFile(filepath.Join(outputDirectory, "manifest.json"), "build-artifacts/manifest.json")
 
-	if err := generateInstallScript("release-assets/install.sh"); err != nil {
+	if err := generateInstallScript("build-artifacts/install.sh"); err != nil {
 		fmt.Printf("❌ Failed to compile install.sh : [%v]\n", err)
 	}
 
 	fmt.Println("\n📊 Checking Release Assets Sizes :")
-	files, _ := filepath.Glob("release-assets/*")
+	files, _ := filepath.Glob("build-artifacts/*")
 	for _, f := range files {
 		info, err := os.Stat(f)
 		if err == nil {

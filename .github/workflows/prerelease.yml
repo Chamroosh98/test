@@ -66,8 +66,8 @@ jobs:
       - name: 📁 Prepare Workspace Tree
         run: |
           mkdir -p merged-beta
-          mkdir -p merged-output
-          mkdir -p release-assets
+          mkdir -p manifest-workspace
+          mkdir -p build-artifacts
 
       - name: 📥 Download All Zip Artifacts
         uses: actions/download-artifact@v4
@@ -85,7 +85,7 @@ jobs:
           INPUT_ACTOR: ${{ github.actor }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           DAYPASS_ARCH_FILE: ${{ github.workspace }}/config/architectures.json
-          DAYPASS_OUTPUT_DIR: ${{ github.workspace }}/release-assets
+          DAYPASS_OUTPUT_DIR: ${{ github.workspace }}/build-artifacts
         run: |
           cd .github/actions/engine/
           go run .
@@ -93,8 +93,8 @@ jobs:
       - name: 🕵️‍♀️ Prepare GitHub Pages Assets for ignoring zip heavy files
         run: |
           mkdir -p github-pages-content
-          cp release-assets/install.sh github-pages-content/
-          cp release-assets/manifest.json github-pages-content/
+          cp build-artifacts/install.sh github-pages-content/
+          cp build-artifacts/manifest.json github-pages-content/
           echo "✅ Isolated install.sh and manifest.json for Pages deployment."
 
           
@@ -107,13 +107,13 @@ jobs:
         
       - name: 📊 Verify Release Assets Size & Guardrail
         run: |
-          echo "📁 Listing all files in release-assets with their sizes:"
-          ls -lh release-assets/
+          echo "📁 Listing all files in build-artifacts with their sizes:"
+          ls -lh build-artifacts/
           echo "--------------------------------------------------------"
           echo "🚨 Checking for zero-byte files ..."
-          if find release-assets/ -type f -empty | grep -q .; then
-            echo "❌ Error : Zero-byte files detected in release-assets!"
-            find release-assets/ -type f -empty
+          if find build-artifacts/ -type f -empty | grep -q .; then
+            echo "❌ Error : Zero-byte files detected in build-artifacts!"
+            find build-artifacts/ -type f -empty
             exit 1
           fi
           echo "✅ All release assets have valid file sizes and are ready for upload!"
@@ -129,8 +129,8 @@ jobs:
             📅 Date  : `${{ env.VERSION }}`
             🧪 Build : `${{ github.run_number }}`
           files: |
-            release-assets/*.zip
-            release-assets/*.sha256
+            build-artifacts/*.zip
+            build-artifacts/*.sha256
 
       - name: 🧹 Cleanup old beta releases
         uses: dev-drprasad/delete-older-releases@v0.3.4
