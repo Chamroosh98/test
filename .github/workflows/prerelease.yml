@@ -30,14 +30,16 @@ jobs:
           go-version: 'stable'
 
       - name: 📥 Download Packages & Create Zip via Go Fetcher
+        working-directory: .github/actions
         run: |
-          go run .github/actions/fetch.go ${{ matrix.arch }}
+          go run fetch.go ${{ matrix.arch }}
+          mv DayPass_${{ matrix.arch }}_*_beta.zip ../../
 
-      - name: ⬆️ Upload Zip Artifacts
+      - name: ⬆️ Upload Matrix Zip Artifact
         uses: actions/upload-artifact@v4
         with:
           name: daypass-artifact-${{ matrix.arch }}
-          path: DayPass_${{ matrix.arch }}_beta.zip
+          path: DayPass_${{ matrix.arch }}_*_beta.zip
           retention-days: 1
 
   deploy:

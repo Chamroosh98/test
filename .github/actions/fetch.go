@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http" // پکیج شبکه اومد اینجا، جایی که قانوناً بهش تعلق داره
+	"net/http"
 	"os"
 	"path/filepath"
 )
 
 type ArchConfig struct {
+	Release       string `json:"release"`
 	Architectures []struct {
 		Name    string   `json:"name"`
 		BaseURL string   `json:"base_url"`
@@ -58,7 +59,14 @@ func zipDirectory(sourceDir, targetZip string) error {
 }
 
 func downloadFile(url, destPath string) error {
-	resp, err := http.Get(url)
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -97,8 +105,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	outputDir := fmt.Sprintf("matrix-download/%s", targetArch)
-	os.MkdirAll(outputDir, 0755)
+	baseDownloadDir := fmt.Sprintf("matrix-download/%s", targetArch)
+	os.MkdirAll(baseDownloadDir, 0755)
 
 	found := false
 	for _, arch := range archConfig.Architectures {
@@ -109,10 +117,13 @@ func main() {
 		fmt.Printf("📥 Fetching feeds for %s...\n", targetArch)
 
 		for _, feed := range arch.Feeds {
+			feedOutputDir := filepath.Join(baseDownloadDir, feed)
+			os.MkdirAll(feedOutputDir, 0755)
+
 			fullFeedURL := fmt.Sprintf("%s/%s", arch.BaseURL, feed)
-			tempIndexPath := filepath.Join(outputDir, fmt.Sprintf("%s_index.json", feed))
+			tempIndexPath := filepath.Join(feedOutputDir, "index.json")
 			
-			fmt.Printf("🌐 Connecting to feed: %s\n", fullFeedURL)
+			fmt.Printf("🌐 Connecting to feed: %s/index.json\n", fullFeedURL)
 			if err := downloadFile(fullFeedURL+"/index.json", tempIndexPath); err != nil {
 				fmt.Printf("⚠️ Skipped feed %s: %v\n", feed, err)
 				continue
@@ -131,14 +142,16 @@ func main() {
 
 			for pkgName, pkgVersion := range feedIdx.Packages {
 				apkFileName := fmt.Sprintf("%s_%s_%s.apk", pkgName, pkgVersion, targetArch)
-				pkgPath := filepath.Join(outputDir, apkFileName)
+				pkgPath := filepath.Join(feedOutputDir, apkFileName)
 				
-				fmt.Printf("⬇️ Downloading package: %s\n", apkFileName)
+				fmt.Printf("⬇️ Downloading package to %s: %s\n", feed, apkFileName)
 				if err := downloadFile(fullFeedURL+"/"+apkFileName, pkgPath); err != nil {
 					fmt.Printf("❌ Download failed for %s: %v\n", apkFileName, err)
 				}
 			}
-			os.Remove(tempIndexPath)
+			
+			// در صورت تمایل برای نگه‌داشتن index.json داخل پوشه فید، این خط را کامنت کن:
+			// os.Remove(tempIndexPath)
 		}
 	}
 
@@ -147,8 +160,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	zipName := fmt.Sprintf("DayPass_%s_beta.zip", targetArch)
-	if err := zipDirectory(outputDir, zipName); err != nil {
+	zipName := fmt.Sprintf("DayPass_%s_%s_beta.zip", targetArch, archConfig.Release)
+	if err := zipDirectory(baseDownloadDir, zipName); err != nil {
 		fmt.Printf("❌ Zipping failed: %v\n", err)
 		os.Exit(1)
 	}
