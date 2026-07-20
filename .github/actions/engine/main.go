@@ -92,6 +92,11 @@ func main() {
 			}
 
 			for _, f := range r.File {
+
+				if filepath.Base(f.Name) == "index.json" {
+					continue
+				}
+				
 				fpath := filepath.Join(destDir, f.Name)
 				if f.FileInfo().IsDir() {
 					os.MkdirAll(fpath, os.ModePerm)
