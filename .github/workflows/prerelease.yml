@@ -136,7 +136,7 @@ jobs:
           DAYPASS_OUTPUT_DIR: ${{ github.workspace }}/merged-output
         run: |
           cd .github/actions/engine/
-          go run .
+          go run main.go types.go provider.go template.go
 
       - name: 🌐 Deploy Dynamic Beta Installer to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4

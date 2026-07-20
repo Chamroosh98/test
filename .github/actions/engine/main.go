@@ -14,36 +14,17 @@ import (
 	"time"
 )
 
-type InlineKeyboardButton struct {
-	Text string `json:"text"`
-	URL  string `json:"url"`
-}
-
-type InlineKeyboardMarkup struct {
-	InlineKeyboard [][]InlineKeyboardButton `json:"inline_keyboard"`
-}
-
-type TelegramMessage struct {
-	ChatID                string               	 `json:"chat_id"`
-	Text                  string               	 `json:"text"`
-	ParseMode             string               	 `json:"parse_mode"`
-	ReplyMarkup           InlineKeyboardMarkup 	 `json:"reply_markup"`
-	DisableWebPagePreview bool                 	 `json:"disable_web_page_preview"`
-}
-
 func copyFile(src, dst string) error {
 	in, err := os.Open(src)
 	if err != nil {
 		return err
 	}
 	defer in.Close()
-
 	out, err := os.Create(dst)
 	if err != nil {
 		return err
 	}
 	defer out.Close()
-
 	_, err = io.Copy(out, in)
 	return err
 }
@@ -51,19 +32,15 @@ func copyFile(src, dst string) error {
 func main() {
 	workspace := os.Getenv("GITHUB_WORKSPACE")
 	if workspace != "" {
-		if err := os.Chdir(workspace); err != nil {
-			fmt.Printf("❌ Failed to change working directory to workspace : %v\n", err)
-		} else {
-			fmt.Printf("🏠 Working directory changed to : %s\n", workspace)
-		}
+		os.Chdir(workspace)
 	}
 
-	botToken  := os.Getenv("INPUT_TELEGRAM_BOT_TOKEN")
-	chatID    := os.Getenv("INPUT_TELEGRAM_CHAT_ID")
-	version   := os.Getenv("INPUT_VERSION")
-	buildNum  := os.Getenv("INPUT_BUILD_NUMBER")
-	actor     := os.Getenv("INPUT_ACTOR")
-	repo      := os.Getenv("GITHUB_REPOSITORY")
+	botToken := os.Getenv("INPUT_TELEGRAM_BOT_TOKEN")
+	chatID := os.Getenv("INPUT_TELEGRAM_CHAT_ID")
+	version := os.Getenv("INPUT_VERSION")
+	buildNum := os.Getenv("INPUT_BUILD_NUMBER")
+	actor := os.Getenv("INPUT_ACTOR")
+	repo := os.Getenv("GITHUB_REPOSITORY")
 
 	archConfigFile := os.Getenv("DAYPASS_ARCH_FILE")
 	if archConfigFile == "" {
@@ -74,7 +51,7 @@ func main() {
 		outputDirectory = "merged-output"
 	}
 
-	fmt.Println("🦫 Go Engine Active ...")
+	fmt.Println("🦫 Go Engine Active & Modularized ...")
 
 	archs := []string{
 		"aarch64_cortex-a53", "aarch64_cortex-a72", "aarch64_cortex-a76",
@@ -95,11 +72,8 @@ func main() {
 		matches, _ := filepath.Glob(fmt.Sprintf("merged-beta/DayPass_%s_*.zip", arch))
 		if len(matches) > 0 {
 			zipFile := matches[0]
-			fmt.Printf("🤐 Unzipping via Go Archive : %s\n", zipFile)
-
 			r, err := zip.OpenReader(zipFile)
 			if err != nil {
-				fmt.Printf("❌ Error opening zip : %v\n", err)
 				continue
 			}
 
@@ -111,35 +85,21 @@ func main() {
 				}
 				os.MkdirAll(filepath.Dir(fpath), os.ModePerm)
 
-				err := func() error {
-					outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-					if err != nil {
-						return err
-					}
+				func() {
+					outFile, _ := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 					defer outFile.Close()
-
-					rc, err := f.Open()
-					if err != nil {
-						return err
-					}
+					rc, _ := f.Open()
 					defer rc.Close()
-
-					_, err = io.Copy(outFile, rc)
-					return err
+					io.Copy(outFile, rc)
 				}()
-
-				if err != nil {
-					fmt.Printf("❌ Failed to extract file [%s] : [%v]\n", f.Name, err)
-				}
 			}
 			r.Close()
 		}
 	}
 
-	fmt.Println("🧠 Processing & Generating Real Manifest Data via Go module ...")
-	os.MkdirAll(outputDirectory, 0755)
+	fmt.Println("🧠 Processing & Generating Real Manifest Data...")
 	if err := GenerateManifest(archConfigFile, outputDirectory); err != nil {
-		fmt.Printf("❌ Error generating manifest : %v\n", err)
+		fmt.Printf("❌ Error generating manifest: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -148,19 +108,12 @@ func main() {
 		matches, _ := filepath.Glob(fmt.Sprintf("merged-beta/DayPass_%s_*.zip", arch))
 		if len(matches) > 0 {
 			zipFile := matches[0]
-
 			func() {
-				f, err := os.Open(zipFile)
-				if err != nil {
-					fmt.Printf("❌ Failed to open file for SHA calculation : %v\n", err)
-					return
-				}
+				f, _ := os.Open(zipFile)
 				defer f.Close()
-
 				h := sha256.New()
 				io.Copy(h, f)
 				fileSHA := fmt.Sprintf("%x", h.Sum(nil))
-
 				shaFileName := filepath.Base(zipFile) + ".sha256"
 				os.WriteFile("release-assets/"+shaFileName, []byte(fileSHA+"  "+filepath.Base(zipFile)+"\n"), 0644)
 			}()
@@ -169,14 +122,9 @@ func main() {
 
 	copyFile(filepath.Join(outputDirectory, "manifest.json"), "release-assets/manifest.json")
 
-	if _, err := os.Stat("merged-beta/install.sh"); err == nil {
-
-		fmt.Println("📝 Copying [install.sh] to release-assets for GitHub Pages ...")
-		
-		copyFile("merged-beta/install.sh", "release-assets/install.sh")
+	if err := generateInstallScript("release-assets/install.sh"); err != nil {
+		fmt.Printf("❌ Failed to compile install.sh: %v\n", err)
 	}
-
-	fmt.Println("📬 Dispatched Telegram Message ...")
 
 	var tagFormat string
 	if isBeta {
@@ -190,7 +138,6 @@ func main() {
 		matches, _ := filepath.Glob(fmt.Sprintf("merged-beta/DayPass_%s_*.zip", arch))
 		if len(matches) > 0 {
 			actualFileName := filepath.Base(matches[0])
-
 			btn := InlineKeyboardButton{
 				Text: "🧪 " + arch,
 				URL:  fmt.Sprintf("https://github.com/%s/releases/download/%s/%s", repo, tagFormat, actualFileName),
@@ -204,14 +151,14 @@ func main() {
 		inlineKeyboard = append(inlineKeyboard, []InlineKeyboardButton{btn})
 	}
 
-	buildType := "Stable Production"
-	if isBeta {
-		buildType = "Beta Development"
+	buildType := "Beta Development"
+	if !isBeta {
+		buildType = "Stable Production"
 	}
 
 	msgText := fmt.Sprintf(
-		"🦫 *New DayPass Build Ready (%s)*\n\n🏷️ *Version :* `%s`\n🛠️ *Build :* `%s`\n👤 *By :* `%s`",
-		buildType, tagFormat, buildNum, actor,
+		"🦫 *New DayPass Build Ready (%s)*\n\n🏷️ *Version :* `%s`\n🛠️ *Build :* `%s`\n👤 *By :* `%s`\n🌐 *Installer:* `wget -O- %s/dev/install.sh | sh`",
+		buildType, tagFormat, buildNum, actor, "https://chamroosh98.github.io/DayPass",
 	)
 
 	payload := TelegramMessage{
@@ -224,13 +171,11 @@ func main() {
 
 	jsonPayload, _ := json.Marshal(payload)
 	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", botToken)
-
 	req, _ := http.NewRequest("POST", apiURL, bytes.NewBuffer(jsonPayload))
 	req.Header.Set("Content-Type", "application/json")
-
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err == nil && resp.StatusCode == http.StatusOK {
-		fmt.Println("✅ Telegram notification sent successfully!")
+		fmt.Println("✅ Dynamic notification sent successfully!")
 	}
 }
