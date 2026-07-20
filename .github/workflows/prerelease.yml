@@ -10,32 +10,29 @@ permissions:
   contents: write
 
 jobs:
-  pipeline:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: 🔎 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🏷️ Generate Beta Version
+      - name: 🏷️ Generate Beta Version (For Tagging)
         run: |
           echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
 
-      - name: 🛠️ Setup Go Environment
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
+      - name: 🛠️ Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bash curl jq coreutils findutils zip
 
-      - name: 🛡️ Run ShellCheck on Installer Scripts
-        uses: ludeeus/action-shellcheck@master
-        with:
-          scandir: './installer'
-          severity: warning
+      - name: 📝 Make Scripts Executable
+        run: |
+          find . -type f -name "*.sh" -exec chmod +x {} \;
 
       - name: 📁 Prepare Workspace Directories
         run: |
           mkdir -p merged-beta
           mkdir -p merged-output
-          mkdir -p release-assets
 
       - name: 🦫 Run Go Engine
         env:
@@ -49,7 +46,7 @@ jobs:
           DAYPASS_OUTPUT_DIR: ${{ github.workspace }}/merged-output
         run: |
           cd .github/actions/engine/
-          go run main.go types.go provider.go template.go
+          go run main.go types.go provider.go template.go manifest.go
 
       - name: 🌐 Deploy Dynamic Beta Installer to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
@@ -59,15 +56,24 @@ jobs:
           target-folder: dev         
           single-commit: true
 
+      - name: 👩‍🏭 Creating new GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}-beta-${{ github.run_number }}
+          files: |
+            merged-beta/*.zip
+            merged-beta/*.sha256
+            merged-output/manifest.json
+
       - name: 🧪 Create and Upload Pre-Release Packages to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}-beta-${{ github.run_number }}
-          name: 🧪 DayPass v${{ env.VERSION }} (Beta)
+          name: 🧪 DayPass v${{ env.VERSION }}
           prerelease: true
           body: |
             ## 🧪 DayPass Beta Release
-            ⚠️ Experimental build via Go Engine!
+            ⚠️ Experimental build!
             📅 Date  : `${{ env.VERSION }}`
             🧪 Build : `${{ github.run_number }}`
           files: |

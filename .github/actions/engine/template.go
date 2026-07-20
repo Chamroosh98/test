@@ -20,25 +20,27 @@ func generateInstallScript(outputFile string) error {
 	installerFiles := []string{
 		"installer/network_checker.sh", "installer/package_manager.sh", 
 		"installer/install_core.sh", "installer/package_deployer.sh", "installer/package_resolver.sh",
-		"ui/lib/styles.sh", "ui/lib/box_utils.sh",
 		"modules/zero_deps.sh", "modules/version_check.sh", "modules/system_info.sh",
 		"modules/network_info.sh", "modules/resource_monitor.sh", "modules/dns_fix.sh",
-		"ui/style.sh", "ui/banner.sh", "ui/state.sh", "ui/progress.sh", 
+		"ui/style.sh", "ui/banner.sh", "ui/state.sh", 
 		"ui/engine_menu.sh", "ui/menu_recommended.sh", "ui/menu_custom.sh", 
 		"ui/menu_language.sh", "ui/menu_geo.sh", "ui/review.sh", "ui/menu_package.sh", "ui/main_menu.sh",
 	}
 
 	for _, file := range installerFiles {
-		if data, err := os.ReadFile(file); err == nil {
-			scriptBuilder.WriteString(fmt.Sprintf("\n# 📄 Source : %s\n", filepath.Base(file)))
-			lines := strings.Split(string(data), "\n")
-			for _, line := range lines {
-				if !strings.HasPrefix(line, "#!") {
-					scriptBuilder.WriteString(line + "\n")
-				}
-			}
-			fmt.Printf("✅ [%s] appended dynamically!\n", filepath.Base(file))
+		data, err := os.ReadFile(file)
+		if err != nil {
+			fmt.Printf("⚠️ Warning: File [%s] not found, skipping...\n", file)
+			continue
 		}
+		scriptBuilder.WriteString(fmt.Sprintf("\n# 📄 Source : %s\n", filepath.Base(file)))
+		lines := strings.Split(string(data), "\n")
+		for _, line := range lines {
+			if !strings.HasPrefix(line, "#!") {
+				scriptBuilder.WriteString(line + "\n")
+			}
+		}
+		fmt.Printf("✅ [%s] appended dynamically!\n", filepath.Base(file))
 	}
 
 	scriptBuilder.WriteString(`

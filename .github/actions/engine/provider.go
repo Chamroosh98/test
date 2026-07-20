@@ -55,26 +55,29 @@ func providerDownload(downloadURL, outputPath, proxy string) error {
 	}
 
 	var resp *http.Response
-	var err error
+    var err error
 
-	for i := 0; i <= retryCount; i++ {
-		resp, err = client.Get(downloadURL)
-		if err == nil && resp.StatusCode == http.StatusOK {
-			break
-		}
-		if i < retryCount {
-			fmt.Printf("⚠️ Retrying download (%d/%d) for: %s\n", i+1, retryCount, downloadURL)
-			time.Sleep(2 * time.Second)
-		}
-	}
+    for i := 0; i <= retryCount; i++ {
+        resp, err = client.Get(downloadURL)
+        if err == nil {
+            if resp.StatusCode == http.StatusOK {
+                break
+            }
+			
+            resp.Body.Close()
+            err = fmt.Errorf("bad status: %s", resp.Status)
+        }
+        if i < retryCount {
+            fmt.Printf("⚠️ Retrying download (%d/%d) for: %s\n", i+1, retryCount, downloadURL)
+            time.Sleep(2 * time.Second)
+        }
+    }
 
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("bad status: %s", resp.Status)
-	}
-	defer resp.Body.Close()
+    if err != nil {
+        return err
+    }
+    defer resp.Body.Close()
+
 
 	os.MkdirAll(filepath.Dir(outputPath), 0755)
 	out, err := os.Create(outputPath)

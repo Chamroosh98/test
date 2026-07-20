@@ -77,22 +77,33 @@ func main() {
 				continue
 			}
 
-			for _, f := range r.File {
-				fpath := filepath.Join(destDir, f.Name)
-				if f.FileInfo().IsDir() {
-					os.MkdirAll(fpath, os.ModePerm)
-					continue
-				}
-				os.MkdirAll(filepath.Dir(fpath), os.ModePerm)
-
-				func() {
-					outFile, _ := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-					defer outFile.Close()
-					rc, _ := f.Open()
-					defer rc.Close()
-					io.Copy(outFile, rc)
-				}()
+		for _, f := range r.File {
+			fpath := filepath.Join(destDir, f.Name)
+			if f.FileInfo().IsDir() {
+				os.MkdirAll(fpath, os.ModePerm)
+				continue
 			}
+			os.MkdirAll(filepath.Dir(fpath), os.ModePerm)
+
+			err := func() error {
+				outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+				if err != nil {
+					return err
+				}
+				defer outFile.Close()
+				rc, err := f.Open()
+				if err != nil {
+					return err
+				}
+				defer rc.Close()
+				_, err = io.Copy(outFile, rc)
+				return err
+			}()
+			if err != nil {
+				fmt.Printf("⚠️ Error extracting file %s: %v\n", f.Name, err)
+			}
+		}
+			
 			r.Close()
 		}
 	}
