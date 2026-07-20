@@ -176,25 +176,11 @@ func main() {
 
 	fmt.Println("📬 Dispatched Telegram Message ...")
 
-	// 🔍 استفاده از تگ واقعی فرستاده شده توسط خود گیت‌هاب اگر در دسترس باشد، در غیر این صورت ساخت داینامیک آن
-	tagFormat := os.Getenv("GITHUB_REF_NAME")
-	if tagFormat == "" || !strings.HasPrefix(tagFormat, "v") {
-		// اگر تگ دستی ست نشده بود، دقیقاً فرمت بیلد جاری شما رو شبیه‌سازی می‌کنه: v26.07.20-66
+	var tagFormat string
+	if isBeta {
+		tagFormat = fmt.Sprintf("v%s-beta-%s", version, buildNum)
+	} else {
 		tagFormat = fmt.Sprintf("v%s-%s", version, buildNum)
-	}
-
-	var keyboard []InlineKeyboardButton
-	for _, arch := range archs {
-		matches, _ := filepath.Glob(fmt.Sprintf("merged-beta/DayPass_%s_*.zip", arch))
-		if len(matches) > 0 {
-			actualFileName := filepath.Base(matches[0])
-
-			btn := InlineKeyboardButton{
-				Text: "🧪 " + arch,
-				URL:  fmt.Sprintf("https://github.com/%s/releases/download/%s/%s", repo, tagFormat, actualFileName),
-			}
-			keyboard = append(keyboard, btn)
-		}
 	}
 
 	var inlineKeyboard [][]InlineKeyboardButton

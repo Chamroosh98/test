@@ -155,7 +155,7 @@ jobs:
             merged-beta/*.sha256
             merged-output/manifest.json
 
-      - name: 🧪 Upload Pre-Release packages to GitHub Release
+      - name: 🧪 Create and Upload Pre-Release Packages to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}-beta-${{ github.run_number }}
@@ -167,9 +167,10 @@ jobs:
             📅 Date  : `${{ env.VERSION }}`
             🧪 Build : `${{ github.run_number }}`
           files: |
-            release-assets/DayPass_*.zip
-            release-assets/DayPass_*.sha256
+            merged-beta/*.zip
+            release-assets/*.sha256
             release-assets/manifest.json
+            release-assets/install.sh
 
       - name: 🧹 Cleanup old beta releases
         uses: dev-drprasad/delete-older-releases@v0.3.4
