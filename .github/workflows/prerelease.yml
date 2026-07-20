@@ -1,4 +1,4 @@
-name: 🧪 DayPass Beta Matrix
+name: 🧪 DayPass Beta
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  build-matrix:
+  build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -24,47 +24,24 @@ jobs:
       - name: 🔎 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 📁 Prepare Matrix Output Directory
-        run: mkdir -p matrix-download/${{ matrix.arch }}
+      - name: 🦫 Setup Go Environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
 
-      - name: 📥 Download Packages via Feeds
+      - name: 📥 Download Packages & Create Zip via Go Fetcher
         run: |
-          # Read feeds from architectures.json matching current matrix architecture using jq
-          FEEDS=$(jq -r '.architectures[] | select(.name=="${{ matrix.arch }}") | .feeds[]' config/architectures.json)
-          
-          if [ -z "$FEEDS" ]; then
-            echo "⚠️ No feeds found for ${{ matrix.arch }}, skipping..."
-            exit 0
-          fi
+          go run fetch.go ${{ matrix.arch }}
 
-          for FEED in $FEEDS; do
-            echo "Reading feed: $FEED"
-            curl -sL "$FEED/index.json" -o index.json || continue
-            
-            # Extract files array from index.json and download each file
-            FILES=$(jq -r '.[] | .file' index.json 2>/dev/null || true)
-            for FILE in $FILES; do
-              if [ "$FILE" != "null" ]; then
-                echo "Downloading $FILE..."
-                curl -sL "$FEED/$FILE" -o "matrix-download/${{ matrix.arch }}/$FILE"
-              fi
-            done
-          done
-
-      - name: 📦 Zip Architecture Packages
-        run: |
-          cd matrix-download/${{ matrix.arch }}
-          zip -r ../../DayPass_${{ matrix.arch }}_beta.zip ./* || echo "Empty directory"
-
-      - name: ⬆️ Upload Matrix Zip Artifact
+      - name: ⬆️ Upload Zip Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: daypass-artifact-${{ matrix.arch }}
           path: DayPass_${{ matrix.arch }}_beta.zip
           retention-days: 1
 
-  deploy-and-merge:
-    needs: build-matrix
+  deploy:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: 🔎 Checkout Repository
@@ -73,7 +50,12 @@ jobs:
       - name: 🏷️ Generate Beta Version
         run: echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
 
-      - name: 🛠️ Install Go Environments & Core Utilities
+      - name: 🦫 Setup Go Environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+
+      - name: 🛠️ Install Core Utilities
         run: |
           sudo apt-get update
           sudo apt-get install -y bash jq coreutils findutils zip
@@ -84,7 +66,7 @@ jobs:
           mkdir -p merged-output
           mkdir -p release-assets
 
-      - name: 📥 Download All Matrix Zip Artifacts
+      - name: 📥 Download All Zip Artifacts
         uses: actions/download-artifact@v4
         with:
           pattern: daypass-artifact-*
