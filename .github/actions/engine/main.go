@@ -13,17 +13,28 @@ import (
 	"time"
 )
 
+// 🟢 تابع مستقل و هوشمند کپی با قابلیت محافظت از فایل‌های هم‌نام
 func copyFile(src, dst string) error {
+	srcStat, err1 := os.Stat(src)
+	dstStat, err2 := os.Stat(dst)
+	
+	// اگر مبدا و مقصد دقیقاً یک فایل فیزیکی روی دیسک باشند، کپی انجام نمی‌شود تا فایل صفر بایت نشود
+	if err1 == nil && err2 == nil && os.SameFile(srcStat, dstStat) {
+		return nil
+	}
+
 	in, err := os.Open(src)
 	if err != nil {
 		return err
 	}
 	defer in.Close()
+
 	out, err := os.Create(dst)
 	if err != nil {
 		return err
 	}
 	defer out.Close()
+
 	_, err = io.Copy(out, in)
 	return err
 }
@@ -133,21 +144,33 @@ func main() {
 			shaFileName := filepath.Base(zipFile) + ".sha256"
 			
 			os.WriteFile("release-assets/"+shaFileName, []byte(fileSHA+"  "+filepath.Base(zipFile)+"\n"), 0644)
-
+			
 			copyFile(zipFile, "release-assets/"+filepath.Base(zipFile))
 		}()
 	}
 
-	srcManifest := filepath.Join(outputDirectory, "manifest.json")
-	dstManifest := "release-assets/manifest.json"
-	if filepath.Clean(srcManifest) != filepath.Clean(dstManifest) {
-		copyFile(srcManifest, dstManifest)
-	}
-	
+	// 🟢 کپی ایمن مانیفست به پوشه خروجی نهایی ریلیس
+	copyFile(filepath.Join(outputDirectory, "manifest.json"), "release-assets/manifest.json")
 
+	// جنریت کردن اسکریپت نصب
 	if err := generateInstallScript("release-assets/install.sh"); err != nil {
 		fmt.Printf("❌ Failed to compile install.sh : [%v]\n", err)
 	}
+
+	// 📊 گزارش ابداعی تو برای مانیتور و اطمینان از حجم فایل‌ها در لاگ
+	fmt.Println("\n📊 Checking Release Assets Sizes:")
+	files, _ := filepath.Glob("release-assets/*")
+	for _, f := range files {
+		info, err := os.Stat(f)
+		if err == nil {
+			if info.Size() == 0 {
+				fmt.Printf("❌ CRITICAL WARNING: [%s] is 0 bytes!\n", filepath.Base(f))
+			} else {
+				fmt.Printf("📦 [%s] -> %d bytes (%.2f KB)\n", filepath.Base(f), info.Size(), float64(info.Size())/1024.0)
+			}
+		}
+	}
+	fmt.Println()
 
 	tagFormat := fmt.Sprintf("v%s-beta-%s", version, buildNum)
 
