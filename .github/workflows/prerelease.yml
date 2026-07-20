@@ -170,7 +170,7 @@ jobs:
             merged-beta/*.zip
             release-assets/*.sha256
             release-assets/manifest.json
-            release-assets/install.sh
+            release-assets/install.sh 
 
       - name: 🧹 Cleanup old beta releases
         uses: dev-drprasad/delete-older-releases@v0.3.4
