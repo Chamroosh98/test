@@ -198,7 +198,7 @@ func main() {
 
 	msgText := fmt.Sprintf(
 		"📬 *New Beta DayPass Ready! *\n\n🏷️ *Version :* `%s`\n🛠️ *Build :* `%s`\n👤 *By :* `%s`\n\n🔬 *Installer :* `wget -O- %s/dev/install.sh | sh`",
-		tagFormat, buildNum, actor, "https://chamroosh98.github.io/DayPass",
+		tagFormat, buildNum, actor, "https://Chamroosh98.github.io/DayPass",
 	)
 
 	payload := TelegramMessage{
