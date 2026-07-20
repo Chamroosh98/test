@@ -127,7 +127,7 @@ func GenerateManifest(archConfigPath, outputDir string) error {
 		}
 
 		manifest.Architectures = append(manifest.Architectures, archOut)
-		fmt.Printf(" 🧠 Generated manifest for [%s] with [%d] packages!\n", arch.Name, len(archOut.Packages))
+		fmt.Printf("✅ Generated manifest for [%s] with [%d] packages!\n", arch.Name, len(archOut.Packages))
 	}
 
 	finalManifestPath := filepath.Join(outputDir, "manifest.json")
