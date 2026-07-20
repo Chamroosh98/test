@@ -13,12 +13,10 @@ import (
 	"time"
 )
 
-// 🟢 تابع مستقل و هوشمند کپی با قابلیت محافظت از فایل‌های هم‌نام
 func copyFile(src, dst string) error {
 	srcStat, err1 := os.Stat(src)
 	dstStat, err2 := os.Stat(dst)
 	
-	// اگر مبدا و مقصد دقیقاً یک فایل فیزیکی روی دیسک باشند، کپی انجام نمی‌شود تا فایل صفر بایت نشود
 	if err1 == nil && err2 == nil && os.SameFile(srcStat, dstStat) {
 		return nil
 	}
@@ -149,22 +147,23 @@ func main() {
 		}()
 	}
 
-	// 🟢 کپی ایمن مانیفست به پوشه خروجی نهایی ریلیس
 	copyFile(filepath.Join(outputDirectory, "manifest.json"), "release-assets/manifest.json")
 
-	// جنریت کردن اسکریپت نصب
 	if err := generateInstallScript("release-assets/install.sh"); err != nil {
 		fmt.Printf("❌ Failed to compile install.sh : [%v]\n", err)
 	}
 
-	// 📊 گزارش ابداعی تو برای مانیتور و اطمینان از حجم فایل‌ها در لاگ
-	fmt.Println("\n📊 Checking Release Assets Sizes:")
+	fmt.Println("\n📊 Checking Release Assets Sizes :")
 	files, _ := filepath.Glob("release-assets/*")
 	for _, f := range files {
 		info, err := os.Stat(f)
 		if err == nil {
+			if info.IsDir() {
+				continue 
+			}
+			
 			if info.Size() == 0 {
-				fmt.Printf("❌ CRITICAL WARNING: [%s] is 0 bytes!\n", filepath.Base(f))
+				fmt.Printf("❌ CRITICAL WARNING : [%s] is 0 bytes!\n", filepath.Base(f))
 			} else {
 				fmt.Printf("📦 [%s] -> %d bytes (%.2f KB)\n", filepath.Base(f), info.Size(), float64(info.Size())/1024.0)
 			}
@@ -210,8 +209,16 @@ func main() {
 	req, _ := http.NewRequest("POST", apiURL, bytes.NewBuffer(jsonPayload))
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{Timeout: 10 * time.Second}
+	
 	resp, err := client.Do(req)
+
 	if err == nil && resp.StatusCode == http.StatusOK {
-		fmt.Println("✅ Dynamic notification sent successfully!")
+    fmt.Println("✅ Dynamic notification sent successfully!")
+	} else {
+		if err != nil {
+			fmt.Printf("❌ Telegram API Network Error : [%v]\n", err)
+		} else {
+			fmt.Printf("❌ Telegram API Refused with Status : [%s] \n", resp.Status)
+		}
 	}
 }
