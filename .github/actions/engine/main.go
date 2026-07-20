@@ -176,10 +176,10 @@ func main() {
 
 	fmt.Println("📬 Dispatched Telegram Message ...")
 
-	var tagFormat string
-	if isBeta {
-		tagFormat = fmt.Sprintf("v%s-beta-%s", version, buildNum)
-	} else {
+	// 🔍 استفاده از تگ واقعی فرستاده شده توسط خود گیت‌هاب اگر در دسترس باشد، در غیر این صورت ساخت داینامیک آن
+	tagFormat := os.Getenv("GITHUB_REF_NAME")
+	if tagFormat == "" || !strings.HasPrefix(tagFormat, "v") {
+		// اگر تگ دستی ست نشده بود، دقیقاً فرمت بیلد جاری شما رو شبیه‌سازی می‌کنه: v26.07.20-66
 		tagFormat = fmt.Sprintf("v%s-%s", version, buildNum)
 	}
 
