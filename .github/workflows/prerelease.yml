@@ -39,7 +39,7 @@ jobs:
       - name: ⬆️ Upload Zip Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: daypass-artifact-${{ matrix.arch }}
+          name: beta-${{ matrix.arch }}
           path: DayPass_${{ matrix.arch }}_*_beta.zip
           retention-days: 1
 
@@ -72,7 +72,7 @@ jobs:
       - name: 📥 Download All Zip Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: daypass-artifact-*
+          pattern: beta-*
           path: merged-beta/
           merge-multiple: true
 
@@ -105,7 +105,7 @@ jobs:
           name: 🧪 DayPass v${{ env.VERSION }}
           prerelease: true
           body: |
-            ## 🧪 DayPass Beta Release (Parallel Build)
+            ## 🧪 DayPass Beta Release
             📅 Date  : `${{ env.VERSION }}`
             🧪 Build : `${{ github.run_number }}`
           files: |

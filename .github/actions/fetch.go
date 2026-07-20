@@ -13,16 +13,16 @@ import (
 type ArchConfig struct {
 	Release       string `json:"release"`
 	Architectures []struct {
-		Name    string   `json:"name"`
-		BaseURL string   `json:"base_url"`
-		Feeds   []string `json:"feeds"`
+		Name     string    `json:"name"`
+		BaseURL  string    `json:"base_url"`
+		Feeds    []string  `json:"feeds"`
 	} `json:"architectures"`
 }
 
 type FeedIndex struct {
-	Version      int               `json:"version"`
-	Architecture string            `json:"architecture"`
-	Packages     map[string]string `json:"packages"`
+	Version      int               	`json:"version"`
+	Architecture string            	`json:"architecture"`
+	Packages     map[string]string 	`json:"packages"`
 }
 
 func zipDirectory(sourceDir, targetZip string) error {
@@ -65,7 +65,7 @@ func downloadWithCurl(url, destPath string) error {
 
 func main() {
 	if len(os.Args) < 3 {
-		fmt.Println("❌ Usage: go run fetch.go <architecture> <release_version>")
+		fmt.Println("❌ Usage : go run fetch.go <architecture> <release_version>")
 		os.Exit(1)
 	}
 	targetArch := os.Args[1]
@@ -73,13 +73,13 @@ func main() {
 
 	configData, err := os.ReadFile("config/architectures.json")
 	if err != nil {
-		fmt.Printf("❌ Failed to read arch config: %v\n", err)
+		fmt.Printf("❌ Failed to read arch config : %v\n", err)
 		os.Exit(1)
 	}
 
 	var archConfig ArchConfig
 	if err := json.Unmarshal(configData, &archConfig); err != nil {
-		fmt.Printf("❌ Failed to parse json: %v\n", err)
+		fmt.Printf("❌ Failed to parse json : %v\n", err)
 		os.Exit(1)
 	}
 
@@ -92,7 +92,7 @@ func main() {
 			continue
 		}
 		found = true
-		fmt.Printf("🗜️ Processing %s\n", targetArch)
+		fmt.Printf("🗜️ Processing [%s]\n", targetArch)
 
 		for _, feed := range arch.Feeds {
 			feedOutputDir := filepath.Join(baseDownloadDir, feed)
@@ -103,7 +103,7 @@ func main() {
 			
 			fmt.Printf("💰 Feed : %s\n", feed)
 			if err := downloadWithCurl(feedURL+"/index.json", tempIndexPath); err != nil {
-				fmt.Printf("❌ Failed to download index for %s\n", feed)
+				fmt.Printf("❌ Failed to download index for [%s]\n", feed)
 				continue
 			}
 
@@ -114,7 +114,7 @@ func main() {
 
 			var feedIdx FeedIndex
 			if err := json.Unmarshal(indexData, &feedIdx); err != nil {
-				fmt.Printf("⚠️ Formatting error on index %s: %v\n", feed, err)
+				fmt.Printf("⚠️ Formatting error on index [%s]: %v\n", feed, err)
 				continue
 			}
 
@@ -125,9 +125,9 @@ func main() {
 				pkgPath := filepath.Join(feedOutputDir, apkFileName)
 				pkgURL := fmt.Sprintf("%s/%s", feedURL, apkFileName)
 				
-				fmt.Printf("📥 Downloading : %s\n", apkFileName)
+				fmt.Printf("📥 Downloading : [%s]\n", apkFileName)
 				if err := downloadWithCurl(pkgURL, pkgPath); err != nil {
-					fmt.Printf("  ❌ Download failed or skipped for: %s\n", apkFileName)
+					fmt.Printf("  ❌ Download failed or skipped for: [%s]\n", apkFileName)
 					os.Remove(pkgPath)
 				}
 			}
@@ -137,16 +137,16 @@ func main() {
 	}
 
 	if !found {
-		fmt.Printf("❌ Architecture %s not found\n", targetArch)
+		fmt.Printf("❌ Architecture [%s] not found\n", targetArch)
 		os.Exit(1)
 	}
 
 	zipName := fmt.Sprintf("DayPass_%s_%s_beta.zip", targetArch, releaseVersion)
 	if err := zipDirectory(baseDownloadDir, zipName); err != nil {
-		fmt.Printf("❌ Zipping failed: %v\n", err)
+		fmt.Printf("❌ Zipping failed : [%v]\n", err)
 		os.Exit(1)
 	}
 	
 	os.RemoveAll("matrix-download")
-	fmt.Printf("✅ Package created successfully: %s\n", zipName)
+	fmt.Printf("✅ Package created successfully : [%s]\n", zipName)
 }
