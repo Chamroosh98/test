@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -58,32 +58,9 @@ func zipDirectory(sourceDir, targetZip string) error {
 	})
 }
 
-func downloadFile(url, destPath string) error {
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("status code: %d", resp.StatusCode)
-	}
-	
-	out, err := os.Create(destPath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-	
-	_, err = io.Copy(out, resp.Body)
-	return err
+func downloadWithCurl(url, destPath string) error {
+	cmd := exec.Command("curl", "-sL", url, "-o", destPath)
+	return cmd.Run()
 }
 
 func main() {
@@ -114,7 +91,7 @@ func main() {
 			continue
 		}
 		found = true
-		fmt.Printf("📥 Fetching feeds for %s...\n", targetArch)
+		fmt.Printf("📥 Fetching feeds for architecture: %s\n", targetArch)
 
 		for _, feed := range arch.Feeds {
 			feedOutputDir := filepath.Join(baseDownloadDir, feed)
@@ -123,9 +100,9 @@ func main() {
 			fullFeedURL := fmt.Sprintf("%s/%s", arch.BaseURL, feed)
 			tempIndexPath := filepath.Join(feedOutputDir, "index.json")
 			
-			fmt.Printf("🌐 Connecting to feed: %s/index.json\n", fullFeedURL)
-			if err := downloadFile(fullFeedURL+"/index.json", tempIndexPath); err != nil {
-				fmt.Printf("⚠️ Skipped feed %s: %v\n", feed, err)
+			fmt.Printf("🌐 Fetching index: %s/index.json\n", fullFeedURL)
+			if err := downloadWithCurl(fullFeedURL+"/index.json", tempIndexPath); err != nil {
+				fmt.Printf("⚠️ Skipped feed %s due to download error\n", feed)
 				continue
 			}
 
@@ -134,9 +111,14 @@ func main() {
 				continue
 			}
 
+			if len(indexData) > 0 && indexData[0] == '<' {
+				fmt.Printf("❌ Error: Received HTML for feed %s. Route blocked.\n", feed)
+				continue
+			}
+
 			var feedIdx FeedIndex
 			if err := json.Unmarshal(indexData, &feedIdx); err != nil {
-				fmt.Printf("⚠️ Formatting error on feed index for %s: %v\n", feed, err)
+				fmt.Printf("⚠️ Formatting error on feed index %s: %v\n", feed, err)
 				continue
 			}
 
@@ -144,11 +126,14 @@ func main() {
 				apkFileName := fmt.Sprintf("%s_%s_%s.apk", pkgName, pkgVersion, targetArch)
 				pkgPath := filepath.Join(feedOutputDir, apkFileName)
 				
-				fmt.Printf("⬇️ Downloading package to %s: %s\n", feed, apkFileName)
-				if err := downloadFile(fullFeedURL+"/"+apkFileName, pkgPath); err != nil {
-					fmt.Printf("❌ Download failed for %s: %v\n", apkFileName, err)
+				fmt.Printf("  ⬇️ Downloading [%s]: %s\n", feed, apkFileName)
+				pkgURL := fmt.Sprintf("%s/%s", fullFeedURL, apkFileName)
+				if err := downloadWithCurl(pkgURL, pkgPath); err != nil {
+					fmt.Printf("  ❌ Download failed for: %s\n", apkFileName)
 				}
 			}
+
+			// os.Remove(tempIndexPath)
 		}
 	}
 
@@ -162,5 +147,8 @@ func main() {
 		fmt.Printf("❌ Zipping failed: %v\n", err)
 		os.Exit(1)
 	}
+	
+	os.RemoveAll("matrix-download")
+	
 	fmt.Printf("✅ Package created successfully: %s\n", zipName)
 }
