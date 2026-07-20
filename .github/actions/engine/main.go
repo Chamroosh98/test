@@ -176,20 +176,15 @@ func main() {
 
 	fmt.Println("📬 Dispatched Telegram Message ...")
 
-	var tagFormat string
-	if isBeta {
-		tagFormat = fmt.Sprintf("v%s-beta-%s", version, buildNum)
-	} else {
-		tagFormat = fmt.Sprintf("v%s-%s", version, buildNum)
-	}
+	tagFormat := fmt.Sprintf("v%s-%s", version, buildNum)
 
-	var keyboard []InlineKeyboardButton
-	for _, arch := range archs {
-		matches, _ := filepath.Glob(fmt.Sprintf("merged-beta/DayPass_%s_*.zip", arch))
-		if len(matches) > 0 {
-			actualFileName := filepath.Base(matches[0])
+    var keyboard []InlineKeyboardButton
+    for _, arch := range archs {
+        matches, _ := filepath.Glob(fmt.Sprintf("merged-beta/DayPass_%s_*.zip", arch))
+        if len(matches) > 0 {
+            actualFileName := filepath.Base(matches[0])
 
-			btn := InlineKeyboardButton{
+            btn := InlineKeyboardButton{
 				Text: "🦫 " + arch,
 				URL:  fmt.Sprintf("https://github.com/%s/releases/download/%s/%s", repo, tagFormat, actualFileName),
 			}
