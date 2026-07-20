@@ -24,6 +24,9 @@ jobs:
       - name: 🔎 Checkout Repository
         uses: actions/checkout@v4
 
+      - name: 🏷️ Generate Beta Version for Filenames
+        run: echo "VERSION=v$(date +%y.%m.%d)" >> $GITHUB_ENV
+
       - name: 🦫 Setup Go Environment
         uses: actions/setup-go@v5
         with:
@@ -31,9 +34,9 @@ jobs:
 
       - name: 📥 Download Packages & Create Zip via Go Fetcher
         run: |
-          go run .github/actions/fetch.go ${{ matrix.arch }} ${{ github.ref_name }}
+          go run .github/actions/fetch.go ${{ matrix.arch }} ${{ env.VERSION }}
 
-      - name: ⬆️ Upload Matrix Zip Artifact
+      - name: ⬆️ Upload Zip Artifact
         uses: actions/upload-artifact@v4
         with:
           name: daypass-artifact-${{ matrix.arch }}
