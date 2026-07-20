@@ -50,17 +50,17 @@ func main() {
 		outputDirectory = "merged-output"
 	}
 
-	fmt.Println("🦫 Go Engine Active & Merging Matrix Artifacts...")
+	fmt.Println("🦫 Go Engine Active & Merging Matrix Artifacts ...")
 
 	configData, err := os.ReadFile(archConfigFile)
 	if err != nil {
-		fmt.Printf("❌ Failed to read arch config: %v\n", err)
+		fmt.Printf("❌ Failed to read arch config : [%v]\n", err)
 		os.Exit(1)
 	}
 
 	var archConfig ArchConfig
 	if err := json.Unmarshal(configData, &archConfig); err != nil {
-		fmt.Printf("❌ Failed to parse arch config: %v\n", err)
+		fmt.Printf("❌ Failed to parse arch config : [%v]\n", err)
 		os.Exit(1)
 	}
 
@@ -74,11 +74,11 @@ func main() {
 		matches, _ := filepath.Glob(fmt.Sprintf("merged-beta/DayPass_%s_*.zip", arch.Name))
 		if len(matches) > 0 {
 			zipFile := matches[0]
-			fmt.Printf("📦 Extracting matrix artifact: %s\n", zipFile)
+			fmt.Printf("📦 Extracting matrix artifact : [%s]\n", zipFile)
 			
 			r, err := zip.OpenReader(zipFile)
 			if err != nil {
-				fmt.Printf("⚠️ Error opening zip %s: %v\n", zipFile, err)
+				fmt.Printf("❌ Error opening zip [%s] : [%v]\n", zipFile, err)
 				continue
 			}
 
@@ -105,16 +105,16 @@ func main() {
 					return err
 				}()
 				if err != nil {
-					fmt.Printf("⚠️ Error extracting file %s: %v\n", f.Name, err)
+					fmt.Printf("❌ Error extracting file [%s] :[ %v]\n", f.Name, err)
 				}
 			}
 			r.Close()
 		}
 	}
 
-	fmt.Println("🧠 Processing & Generating Real Manifest Data...")
+	fmt.Println("🧠 Processing & Generating Real Manifest Data ...")
 	if err := GenerateManifest(archConfigFile, outputDirectory); err != nil {
-		fmt.Printf("❌ Error generating manifest: %v\n", err)
+		fmt.Printf("❌ Error generating manifest : [%v]\n", err)
 		os.Exit(1)
 	}
 
@@ -133,6 +133,7 @@ func main() {
 			shaFileName := filepath.Base(zipFile) + ".sha256"
 			
 			os.WriteFile("release-assets/"+shaFileName, []byte(fileSHA+"  "+filepath.Base(zipFile)+"\n"), 0644)
+			
 			copyFile(zipFile, "release-assets/"+filepath.Base(zipFile))
 		}()
 	}
@@ -140,7 +141,7 @@ func main() {
 	copyFile(filepath.Join(outputDirectory, "manifest.json"), "release-assets/manifest.json")
 
 	if err := generateInstallScript("release-assets/install.sh"); err != nil {
-		fmt.Printf("❌ Failed to compile install.sh: %v\n", err)
+		fmt.Printf("❌ Failed to compile install.sh : [%v]\n", err)
 	}
 
 	tagFormat := fmt.Sprintf("v%s-beta-%s", version, buildNum)
@@ -164,7 +165,7 @@ func main() {
 	}
 
 	msgText := fmt.Sprintf(
-		"🦫 *New DayPass Build Ready (Beta Matrix)*\n\n🏷️ *Version :* `%s`\n🛠️ *Build :* `%s`\n👤 *By :* `%s`\n🌐 *Installer:* `wget -O- %s/dev/install.sh | sh`",
+		"📬 *New Beta DayPass Ready! *\n\n🏷️ *Version :* `%s`\n🛠️ *Build :* `%s`\n👤 *By :* `%s`\n\n🔬 *Installer :* `wget -O- %s/dev/install.sh | sh`",
 		tagFormat, buildNum, actor, "https://chamroosh98.github.io/DayPass",
 	)
 

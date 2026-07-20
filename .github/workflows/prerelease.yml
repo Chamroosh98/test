@@ -85,7 +85,7 @@ jobs:
           INPUT_ACTOR: ${{ github.actor }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           DAYPASS_ARCH_FILE: ${{ github.workspace }}/config/architectures.json
-          DAYPASS_OUTPUT_DIR: ${{ github.workspace }}/merged-output
+          DAYPASS_OUTPUT_DIR: ${{ github.workspace }}/release-assets
         run: |
           cd .github/actions/engine/
           go run .
