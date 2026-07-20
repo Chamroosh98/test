@@ -29,51 +29,6 @@ func copyFile(src, dst string) error {
 	return err
 }
 
-func zipDirectory(sourceDir, targetZip string) error {
-	zipFile, err := os.Create(targetZip)
-	if err != nil {
-		return err
-	}
-	defer zipFile.Close()
-
-	archive := zip.NewWriter(zipFile)
-	defer archive.Close()
-
-	err = filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() {
-			return nil
-		}
-
-		relPath, err := filepath.Rel(sourceDir, path)
-		if err != nil {
-			return err
-		}
-
-		if strings.HasSuffix(relPath, "index.json") {
-			return nil
-		}
-
-		file, err := os.Open(path)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-
-		writer, err := archive.Create(relPath)
-		if err != nil {
-			return err
-		}
-
-		_, err = io.Copy(writer, file)
-		return err
-	})
-
-	return err
-}
-
 func main() {
 	workspace := os.Getenv("GITHUB_WORKSPACE")
 	if workspace != "" {
@@ -96,7 +51,7 @@ func main() {
 		outputDirectory = "merged-output"
 	}
 
-	fmt.Println("🦫 Go Engine Active & Fetching Remote Packages...")
+	fmt.Println("🦫 Go Engine Active & Merging Matrix Artifacts...")
 
 	configData, err := os.ReadFile(archConfigFile)
 	if err != nil {
@@ -110,48 +65,51 @@ func main() {
 		os.Exit(1)
 	}
 
-	os.MkdirAll("merged-beta", 0755)
 	os.MkdirAll("release-assets", 0755)
 
+	// Unzip all matrix outputs into their respective directories for manifest generation
 	for _, arch := range archConfig.Architectures {
 		destDir := fmt.Sprintf("%s/%s", outputDirectory, arch.Name)
 		os.MkdirAll(destDir, 0755)
 
-		fmt.Printf("📥 Fetching packages for architecture: %s\n", arch.Name)
-		
-		for _, feedURL := range arch.Feeds {
-			tempIndexPath := filepath.Join(destDir, "index.json")
-
-			if err := providerDownloadIndex(feedURL, tempIndexPath, ""); err != nil {
-				fmt.Printf("⚠️ Failed to download index for %s: %v\n", arch.Name, err)
-				continue
-			}
-
-			indexData, err := os.ReadFile(tempIndexPath)
+		matches, _ := filepath.Glob(fmt.Sprintf("merged-beta/DayPass_%s_*.zip", arch.Name))
+		if len(matches) > 0 {
+			zipFile := matches[0]
+			fmt.Printf("📦 Extracting matrix artifact: %s\n", zipFile)
+			
+			r, err := zip.OpenReader(zipFile)
 			if err != nil {
+				fmt.Printf("⚠️ Error opening zip %s: %v\n", zipFile, err)
 				continue
 			}
 
-			var remotePackages []struct {
-				File string `json:"file"`
-			}
-			if err := json.Unmarshal(indexData, &remotePackages); err != nil {
+			for _, f := range r.File {
+				fpath := filepath.Join(destDir, f.Name)
+				if f.FileInfo().IsDir() {
+					os.MkdirAll(fpath, os.ModePerm)
+					continue
+				}
+				os.MkdirAll(filepath.Dir(fpath), os.ModePerm)
 
-				continue
-			}
-
-			for _, pkg := range remotePackages {
-				pkgPath := filepath.Join(destDir, pkg.File)
-				if err := providerDownloadPackage(feedURL, pkg.File, pkgPath, ""); err != nil {
-					fmt.Printf("❌ Failed to download package %s: %v\n", pkg.File, err)
+				err := func() error {
+					outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+					if err != nil {
+						return err
+					}
+					defer outFile.Close()
+					rc, err := f.Open()
+					if err != nil {
+						return err
+					}
+					defer rc.Close()
+					_, err = io.Copy(outFile, rc)
+					return err
+				}()
+				if err != nil {
+					fmt.Printf("⚠️ Error extracting file %s: %v\n", f.Name, err)
 				}
 			}
-		}
-
-		zipName := fmt.Sprintf("merged-beta/DayPass_%s_v%s-beta.zip", arch.Name, version)
-		fmt.Printf("📦 Zipping assets for %s -> %s\n", arch.Name, zipName)
-		if err := zipDirectory(destDir, zipName); err != nil {
-			fmt.Printf("❌ Error zipping directory %s: %v\n", arch.Name, err)
+			r.Close()
 		}
 	}
 
@@ -161,8 +119,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	matches, _ := filepath.Glob("merged-beta/DayPass_*_v*.zip")
-	for _, zipFile := range matches {
+	// Generate SHA256 hashes for all zip packages
+	zipMatches, _ := filepath.Glob("merged-beta/DayPass_*_*.zip")
+	for _, zipFile := range zipMatches {
 		func() {
 			f, err := os.Open(zipFile)
 			if err != nil {
@@ -174,9 +133,7 @@ func main() {
 			fileSHA := fmt.Sprintf("%x", h.Sum(nil))
 			shaFileName := filepath.Base(zipFile) + ".sha256"
 			
-			
 			os.WriteFile("release-assets/"+shaFileName, []byte(fileSHA+"  "+filepath.Base(zipFile)+"\n"), 0644)
-
 			copyFile(zipFile, "release-assets/"+filepath.Base(zipFile))
 		}()
 	}
@@ -208,7 +165,7 @@ func main() {
 	}
 
 	msgText := fmt.Sprintf(
-		"🦫 *New DayPass Build Ready (Beta Development)*\n\n🏷️ *Version :* `%s`\n🛠️ *Build :* `%s`\n👤 *By :* `%s`\n🌐 *Installer:* `wget -O- %s/dev/install.sh | sh`",
+		"🦫 *New DayPass Build Ready (Beta Matrix)*\n\n🏷️ *Version :* `%s`\n🛠️ *Build :* `%s`\n👤 *By :* `%s`\n🌐 *Installer:* `wget -O- %s/dev/install.sh | sh`",
 		tagFormat, buildNum, actor, "https://chamroosh98.github.io/DayPass",
 	)
 

@@ -1,4 +1,4 @@
-name: 🧪 DayPass Beta
+name: 🧪 DayPass Beta Matrix
 
 on:
   push:
@@ -10,32 +10,88 @@ permissions:
   contents: write
 
 jobs:
-  deploy:
+  build-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [
+          "aarch64_cortex-a53", "aarch64_cortex-a72", "aarch64_cortex-a76",
+          "aarch64_generic", "arm_cortex-a7_neon-vfpv4", "arm_cortex-a9_vfpv3-d16",
+          "i386_pentium4", "mipsel_24kc", "x86_64"
+        ]
+      fail-fast: false
+    steps:
+      - name: 🔎 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📁 Prepare Matrix Output Directory
+        run: mkdir -p matrix-download/${{ matrix.arch }}
+
+      - name: 📥 Download Packages via Feeds
+        run: |
+          # Read feeds from architectures.json matching current matrix architecture using jq
+          FEEDS=$(jq -r '.architectures[] | select(.name=="${{ matrix.arch }}") | .feeds[]' config/architectures.json)
+          
+          if [ -z "$FEEDS" ]; then
+            echo "⚠️ No feeds found for ${{ matrix.arch }}, skipping..."
+            exit 0
+          fi
+
+          for FEED in $FEEDS; do
+            echo "Reading feed: $FEED"
+            curl -sL "$FEED/index.json" -o index.json || continue
+            
+            # Extract files array from index.json and download each file
+            FILES=$(jq -r '.[] | .file' index.json 2>/dev/null || true)
+            for FILE in $FILES; do
+              if [ "$FILE" != "null" ]; then
+                echo "Downloading $FILE..."
+                curl -sL "$FEED/$FILE" -o "matrix-download/${{ matrix.arch }}/$FILE"
+              fi
+            done
+          done
+
+      - name: 📦 Zip Architecture Packages
+        run: |
+          cd matrix-download/${{ matrix.arch }}
+          zip -r ../../DayPass_${{ matrix.arch }}_beta.zip ./* || echo "Empty directory"
+
+      - name: ⬆️ Upload Matrix Zip Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: daypass-artifact-${{ matrix.arch }}
+          path: DayPass_${{ matrix.arch }}_beta.zip
+          retention-days: 1
+
+  deploy-and-merge:
+    needs: build-matrix
     runs-on: ubuntu-latest
     steps:
       - name: 🔎 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🏷️ Generate Beta Version (For Tagging)
-        run: |
-          echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
+      - name: 🏷️ Generate Beta Version
+        run: echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
 
-      - name: 🛠️ Install Dependencies
+      - name: 🛠️ Install Go Environments & Core Utilities
         run: |
           sudo apt-get update
-          sudo apt-get install -y bash curl jq coreutils findutils zip
+          sudo apt-get install -y bash jq coreutils findutils zip
 
-      - name: 📝 Make Scripts Executable
-        run: |
-          find . -type f -name "*.sh" -exec chmod +x {} \;
-
-      - name: 📁 Prepare Workspace Directories
+      - name: 📁 Prepare Workspace Tree
         run: |
           mkdir -p merged-beta
           mkdir -p merged-output
           mkdir -p release-assets
 
-      - name: 🦫 Run Go Engine
+      - name: 📥 Download All Matrix Zip Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: daypass-artifact-*
+          path: merged-beta/
+          merge-multiple: true
+
+      - name: 🦫 Run Go Engine (Merger & Manifest Compiler)
         env:
           INPUT_TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           INPUT_TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -64,8 +120,7 @@ jobs:
           name: 🧪 DayPass v${{ env.VERSION }}
           prerelease: true
           body: |
-            ## 🧪 DayPass Beta Release
-            ⚠️ Experimental build!
+            ## 🧪 DayPass Beta Release (Parallel Build)
             📅 Date  : `${{ env.VERSION }}`
             🧪 Build : `${{ github.run_number }}`
           files: |
