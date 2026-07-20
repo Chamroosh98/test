@@ -133,12 +133,17 @@ func main() {
 			shaFileName := filepath.Base(zipFile) + ".sha256"
 			
 			os.WriteFile("release-assets/"+shaFileName, []byte(fileSHA+"  "+filepath.Base(zipFile)+"\n"), 0644)
-			
+
 			copyFile(zipFile, "release-assets/"+filepath.Base(zipFile))
 		}()
 	}
 
-	copyFile(filepath.Join(outputDirectory, "manifest.json"), "release-assets/manifest.json")
+	srcManifest := filepath.Join(outputDirectory, "manifest.json")
+	dstManifest := "release-assets/manifest.json"
+	if filepath.Clean(srcManifest) != filepath.Clean(dstManifest) {
+		copyFile(srcManifest, dstManifest)
+	}
+	
 
 	if err := generateInstallScript("release-assets/install.sh"); err != nil {
 		fmt.Printf("❌ Failed to compile install.sh : [%v]\n", err)
