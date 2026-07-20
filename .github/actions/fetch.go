@@ -149,9 +149,6 @@ func main() {
 					fmt.Printf("❌ Download failed for %s: %v\n", apkFileName, err)
 				}
 			}
-			
-			// در صورت تمایل برای نگه‌داشتن index.json داخل پوشه فید، این خط را کامنت کن:
-			// os.Remove(tempIndexPath)
 		}
 	}
 

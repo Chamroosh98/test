@@ -30,7 +30,6 @@ jobs:
           go-version: 'stable'
 
       - name: 📥 Download Packages & Create Zip via Go Fetcher
-        working-directory: .github/actions
         run: |
           go run .github/actions/fetch.go ${{ matrix.arch }}
 
