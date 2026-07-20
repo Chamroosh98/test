@@ -178,9 +178,9 @@ func main() {
 
 	var tagFormat string
 	if isBeta {
-		tagFormat = fmt.Sprintf("v%s-beta", version)
+		tagFormat = fmt.Sprintf("v%s-beta-%s", version, buildNum)
 	} else {
-		tagFormat = fmt.Sprintf("v%s", version)
+		tagFormat = fmt.Sprintf("v%s-%s", version, buildNum)
 	}
 
 	var keyboard []InlineKeyboardButton
