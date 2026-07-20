@@ -24,11 +24,11 @@ type InlineKeyboardMarkup struct {
 }
 
 type TelegramMessage struct {
-	ChatID                string               `json:"chat_id"`
-	Text                  string               `json:"text"`
-	ParseMode             string               `json:"parse_mode"`
-	ReplyMarkup           InlineKeyboardMarkup `json:"reply_markup"`
-	DisableWebPagePreview bool                 `json:"disable_web_page_preview"`
+	ChatID                string               	 `json:"chat_id"`
+	Text                  string               	 `json:"text"`
+	ParseMode             string               	 `json:"parse_mode"`
+	ReplyMarkup           InlineKeyboardMarkup 	 `json:"reply_markup"`
+	DisableWebPagePreview bool                 	 `json:"disable_web_page_preview"`
 }
 
 func copyFile(src, dst string) error {
@@ -58,12 +58,12 @@ func main() {
 		}
 	}
 
-	botToken := os.Getenv("INPUT_TELEGRAM_BOT_TOKEN")
-	chatID := os.Getenv("INPUT_TELEGRAM_CHAT_ID")
-	version := os.Getenv("INPUT_VERSION")
-	buildNum := os.Getenv("INPUT_BUILD_NUMBER")
-	actor := os.Getenv("INPUT_ACTOR")
-	repo := os.Getenv("GITHUB_REPOSITORY")
+	botToken  := os.Getenv("INPUT_TELEGRAM_BOT_TOKEN")
+	chatID    := os.Getenv("INPUT_TELEGRAM_CHAT_ID")
+	version   := os.Getenv("INPUT_VERSION")
+	buildNum  := os.Getenv("INPUT_BUILD_NUMBER")
+	actor     := os.Getenv("INPUT_ACTOR")
+	repo      := os.Getenv("GITHUB_REPOSITORY")
 
 	archConfigFile := os.Getenv("DAYPASS_ARCH_FILE")
 	if archConfigFile == "" {
@@ -129,7 +129,7 @@ func main() {
 				}()
 
 				if err != nil {
-					fmt.Printf("❌ Failed to extract file %s: %v\n", f.Name, err)
+					fmt.Printf("❌ Failed to extract file [%s] : [%v]\n", f.Name, err)
 				}
 			}
 			r.Close()
@@ -139,7 +139,7 @@ func main() {
 	fmt.Println("🧠 Processing & Generating Real Manifest Data via Go module ...")
 	os.MkdirAll(outputDirectory, 0755)
 	if err := GenerateManifest(archConfigFile, outputDirectory); err != nil {
-		fmt.Printf("❌ Error generating manifest: %v\n", err)
+		fmt.Printf("❌ Error generating manifest : %v\n", err)
 		os.Exit(1)
 	}
 
@@ -152,7 +152,7 @@ func main() {
 			func() {
 				f, err := os.Open(zipFile)
 				if err != nil {
-					fmt.Printf("❌ Failed to open file for SHA calculation: %v\n", err)
+					fmt.Printf("❌ Failed to open file for SHA calculation : %v\n", err)
 					return
 				}
 				defer f.Close()
@@ -170,7 +170,9 @@ func main() {
 	copyFile(filepath.Join(outputDirectory, "manifest.json"), "release-assets/manifest.json")
 
 	if _, err := os.Stat("merged-beta/install.sh"); err == nil {
-		fmt.Println("📝 Copying install.sh to release-assets for GitHub Pages ...")
+
+		fmt.Println("📝 Copying [install.sh] to release-assets for GitHub Pages ...")
+		
 		copyFile("merged-beta/install.sh", "release-assets/install.sh")
 	}
 
@@ -181,6 +183,20 @@ func main() {
 		tagFormat = fmt.Sprintf("v%s-beta-%s", version, buildNum)
 	} else {
 		tagFormat = fmt.Sprintf("v%s-%s", version, buildNum)
+	}
+
+	var keyboard []InlineKeyboardButton
+	for _, arch := range archs {
+		matches, _ := filepath.Glob(fmt.Sprintf("merged-beta/DayPass_%s_*.zip", arch))
+		if len(matches) > 0 {
+			actualFileName := filepath.Base(matches[0])
+
+			btn := InlineKeyboardButton{
+				Text: "🧪 " + arch,
+				URL:  fmt.Sprintf("https://github.com/%s/releases/download/%s/%s", repo, tagFormat, actualFileName),
+			}
+			keyboard = append(keyboard, btn)
+		}
 	}
 
 	var inlineKeyboard [][]InlineKeyboardButton
