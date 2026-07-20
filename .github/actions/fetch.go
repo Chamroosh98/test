@@ -59,16 +59,18 @@ func zipDirectory(sourceDir, targetZip string) error {
 }
 
 func downloadWithCurl(url, destPath string) error {
+	// استفاده از فلگ‌های سرسخت curl برای لود کردن ریدایرکت‌های فایل سورس‌فورج
 	cmd := exec.Command("curl", "-sL", url, "-o", destPath)
 	return cmd.Run()
 }
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("❌ Architecture name argument is required")
+	if len(os.Args) < 3 {
+		fmt.Println("❌ Usage: go run fetch.go <architecture> <release_version>")
 		os.Exit(1)
 	}
 	targetArch := os.Args[1]
+	releaseVersion := os.Args[2] // گرفتن ورژن (مثلاً v26.07.20) از ورودی
 
 	configData, err := os.ReadFile("config/architectures.json")
 	if err != nil {
@@ -91,7 +93,7 @@ func main() {
 			continue
 		}
 		found = true
-		fmt.Printf("📥 Fetching feeds for architecture: %s\n", targetArch)
+		fmt.Printf("📥 Fetching feeds for %s...\n", targetArch)
 
 		for _, feed := range arch.Feeds {
 			feedOutputDir := filepath.Join(baseDownloadDir, feed)
@@ -102,7 +104,7 @@ func main() {
 			
 			fmt.Printf("🌐 Fetching index: %s/index.json\n", fullFeedURL)
 			if err := downloadWithCurl(fullFeedURL+"/index.json", tempIndexPath); err != nil {
-				fmt.Printf("⚠️ Skipped feed %s due to download error\n", feed)
+				fmt.Printf("⚠️ Skipped feed %s\n", feed)
 				continue
 			}
 
@@ -111,44 +113,37 @@ func main() {
 				continue
 			}
 
-			if len(indexData) > 0 && indexData[0] == '<' {
-				fmt.Printf("❌ Error: Received HTML for feed %s. Route blocked.\n", feed)
-				continue
-			}
-
 			var feedIdx FeedIndex
 			if err := json.Unmarshal(indexData, &feedIdx); err != nil {
-				fmt.Printf("⚠️ Formatting error on feed index %s: %v\n", feed, err)
+				fmt.Printf("⚠️ Formatting error on index %s: %v\n", feed, err)
 				continue
 			}
 
 			for pkgName, pkgVersion := range feedIdx.Packages {
-				apkFileName := fmt.Sprintf("%s_%s_%s.apk", pkgName, pkgVersion, targetArch)
+				apkFileName := fmt.Sprintf("%s_%s_%s.apk", pkgName, pkgVersion, feedIdx.Architecture)
 				pkgPath := filepath.Join(feedOutputDir, apkFileName)
 				
-				fmt.Printf("  ⬇️ Downloading [%s]: %s\n", feed, apkFileName)
-				pkgURL := fmt.Sprintf("%s/%s", fullFeedURL, apkFileName)
+				pkgURL := fmt.Sprintf("%s/%s/download", fullFeedURL, apkFileName)
+				
+				fmt.Printf("  ⬇️ Downloading: %s\n", apkFileName)
 				if err := downloadWithCurl(pkgURL, pkgPath); err != nil {
 					fmt.Printf("  ❌ Download failed for: %s\n", apkFileName)
 				}
 			}
-
-			// os.Remove(tempIndexPath)
 		}
 	}
 
 	if !found {
-		fmt.Printf("❌ Architecture %s not found in json config\n", targetArch)
+		fmt.Printf("❌ Architecture %s not found\n", targetArch)
 		os.Exit(1)
 	}
 
-	zipName := fmt.Sprintf("DayPass_%s_%s_beta.zip", targetArch, archConfig.Release)
+	zipName := fmt.Sprintf("DayPass_%s_%s_beta.zip", targetArch, releaseVersion)
 	if err := zipDirectory(baseDownloadDir, zipName); err != nil {
-		fmt.Printf("❌ Zipping failed: %v\n", err)
+		fmt.Printf("❌ Zipping failed : %v\n", err)
 		os.Exit(1)
 	}
 	
 	os.RemoveAll("matrix-download")
-	
-	fmt.Printf("✅ Package created successfully: %s\n", zipName)
+	fmt.Printf("✅ Package created successfully : %s\n", zipName)
 }

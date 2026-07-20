@@ -31,7 +31,7 @@ jobs:
 
       - name: 📥 Download Packages & Create Zip via Go Fetcher
         run: |
-          go run .github/actions/fetch.go ${{ matrix.arch }}
+          go run .github/actions/fetch.go ${{ matrix.arch }} ${{ github.ref_name }}
 
       - name: ⬆️ Upload Matrix Zip Artifact
         uses: actions/upload-artifact@v4
