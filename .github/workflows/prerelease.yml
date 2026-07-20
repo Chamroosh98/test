@@ -129,7 +129,8 @@ jobs:
             📅 Date  : `${{ env.VERSION }}`
             🧪 Build : `${{ github.run_number }}`
           files: |
-            release-assets/*
+            release-assets/*.zip
+            release-assets/*.sha256
 
       - name: 🧹 Cleanup old beta releases
         uses: dev-drprasad/delete-older-releases@v0.3.4
