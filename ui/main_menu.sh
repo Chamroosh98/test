@@ -8,9 +8,9 @@ main_menu()
         show_system_info
         get_network_info
 
-        echo " 📦 1) Install Package"
-        echo " 🖥️ 2) Network Speed Monitor"
-        echo " 🚪 3) Exit"
+        echo "  📦 1) Install Package"
+        echo "  🖥️ 2) Network Speed Monitor"
+        echo "  🚪 3) Exit"
         echo
 
         printf "   ⁉️ Choice : "

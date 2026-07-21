@@ -23,21 +23,21 @@ fetch_ip_data()
     # ipwho.is
     NETWORK_JSON="$($FETCH_CMD https://ipwho.is/ 2>/dev/null || true)"
     if echo "$NETWORK_JSON" | grep -q '"success":true'; then
-        echo "$NETWORK_JSON" | jq -r '"true|\(.ip // "")|\(.country // "")|\(.country_code // "")|\(.flag.emoji // "")|\(.city // "")|\(.connection.isp // "")|\(.connection.asn // "")"' 2>/dev/null
+        echo "$NETWORK_JSON" | jq -r '"true|\(.ip // "")|\(.country // "")|\(.country_code // "")|\(.flag.emoji // "")|\(.city // "")|\(.connection.isp // "")|\(.connection.asn // "")"' 2>/dev/null || echo "false|||||||"
         return 0
     fi
 
     # ipapi.co
     NETWORK_JSON="$($FETCH_CMD https://ipapi.co/json/ 2>/dev/null || true)"
     if echo "$NETWORK_JSON" | grep -q '"ip"'; then
-        echo "$NETWORK_JSON" | jq -r '"true|\(.ip // "")|\(.country_name // "")|\(.country_code // "")||\(.city // "")|\(.org // "")|\(.asn // "")"' 2>/dev/null
+        echo "$NETWORK_JSON" | jq -r '"true|\(.ip // "")|\(.country_name // "")|\(.country_code // "")||\(.city // "")|\(.org // "")|\(.asn // "")"' 2>/dev/null || echo "false|||||||"
         return 0
     fi
 
     # ifconfig.co
     NETWORK_JSON="$($FETCH_CMD https://ifconfig.co/json 2>/dev/null || true)"
     if echo "$NETWORK_JSON" | grep -q '"ip"'; then
-        echo "$NETWORK_JSON" | jq -r '"true|\(.ip // "")|\(.country // "")|\(.country_iso // "")||\(.city // "")|\(.asn_org // "")|\(.asn // "")"' 2>/dev/null
+        echo "$NETWORK_JSON" | jq -r '"true|\(.ip // "")|\(.country // "")|\(.country_iso // "")||\(.city // "")|\(.asn_org // "")|\(.asn // "")"' 2>/dev/null || echo "false|||||||"
         return 0
     fi
 
@@ -47,36 +47,47 @@ fetch_ip_data()
 get_network_info_content()
 {
     if command -v curl >/dev/null 2>&1; then
-        FETCH_CMD="curl -fsS --max-time 5"
+        FETCH_CMD="curl -fsS --max-time 4"
     elif command -v uclient-fetch >/dev/null 2>&1; then
-        FETCH_CMD="uclient-fetch -q -T 5 -O-"
+        FETCH_CMD="uclient-fetch -q -T 4 -O-"
     else
-        log_warn "curl/uclient-fetch unavailable!"
-        return
+        log_warn "curl/uclient-fetch unavailable!" 2>/dev/null || echo "curl/uclient-fetch unavailable!"
+        return 0
     fi
 
     if ! command -v jq >/dev/null 2>&1; then
-        log_warn "jq missing!"
-        return
+        log_warn "jq missing!" 2>/dev/null || echo "jq missing!"
+        return 0
     fi
 
-    PARSED_DATA="$(fetch_ip_data)"
+    PARSED_DATA="$(fetch_ip_data || echo "false|||||||")"
 
     IFS='|' read -r SUCCESS PUBLIC_IP COUNTRY COUNTRY_CODE FLAG CITY ISP ASN <<EOF
 $PARSED_DATA
 EOF
 
-    if [ "${SUCCESS:-false}" != "true" ]; then
-        log_warn "Network location unavailable!"
-        return
+    if [ "${SUCCESS:-false}" != "true" ] || [ -z "$PUBLIC_IP" ]; then
+        if command -v log_warn >/dev/null 2>&1; then
+            log_warn "Network location unavailable!"
+        else
+            echo "⚠ Network location unavailable!"
+        fi
+        return 0
     fi
 
-    [ -z "$FLAG" ] && FLAG="$(country_flag "$COUNTRY_CODE")"
+    if [ "$COUNTRY_CODE" = "IR" ]; then
+        FLAG="🦁☀️"
+    elif [ -z "$FLAG" ]; then
+        FLAG="$(country_flag "$COUNTRY_CODE")"
+    fi
+
+    CITY_STR=""
+    [ -n "$CITY" ] && CITY_STR=" ($CITY)"
 
     box_line "IP      : $PUBLIC_IP"
-    box_line "Country : $FLAG $COUNTRY  ($CITY)"
+    box_line "Country : $FLAG $COUNTRY$CITY_STR"
     [ -n "$ISP" ] && box_line "ISP     : $ISP"
-    [ -n "$ASN" ] && box_line "ASN     : $ASN"
+    [ -n "$ASN" ] && box_line "ASN     : AS$ASN"
 }
 
 get_network_info()
@@ -92,13 +103,17 @@ show_live_speed() {
     [ ! -d "/sys/class/net/$IFACE" ] && IFACE="eth0"
 
     echo
-    log_info "Monitoring live speed on [$IFACE] (Press Ctrl+C to stop)..."
+    if command -v log_info >/dev/null 2>&1; then
+        log_info "Monitoring live speed on [$IFACE] (Press Ctrl+C to stop)..."
+    else
+        echo "Monitoring live speed on [$IFACE] (Press Ctrl+C to stop)..."
+    fi
     echo
 
     RX_PREV=$(cat "/sys/class/net/$IFACE/statistics/rx_bytes" 2>/dev/null || echo 0)
     TX_PREV=$(cat "/sys/class/net/$IFACE/statistics/tx_bytes" 2>/dev/null || echo 0)
 
-    trap 'echo ""; log_info "Speed monitor stopped."; return 0' INT
+    trap 'echo ""; return 0' INT
 
     while true; do
         sleep 1
