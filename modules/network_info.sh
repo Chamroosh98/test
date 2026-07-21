@@ -67,7 +67,7 @@ EOF
     box_line "IP      : $PUBLIC_IP"
     box_line "Country : $FLAG $COUNTRY  ($CITY)"
     [ -n "$ISP" ] && box_line "ISP     : $ISP"
-    [ -n "$ASN" ] && box_line "ASN     : $ASN"
+    [ -n "$ASN" ] && box_line "ASN     : AS$ASN"
 }
 
 get_network_info()
@@ -76,6 +76,46 @@ get_network_info()
     box_header "🌐 Network"
     get_network_info_content
     box_footer
+}
+
+show_live_speed() {
+    IFACE=$(uci get network.wan.device 2>/dev/null || echo "wan")
+    [ ! -d "/sys/class/net/$IFACE" ] && IFACE="eth0"
+
+    echo
+    log_info "Monitoring live speed on [$IFACE] (Press Ctrl+C to stop)..."
+    echo
+
+    RX_PREV=$(cat "/sys/class/net/$IFACE/statistics/rx_bytes" 2>/dev/null || echo 0)
+    TX_PREV=$(cat "/sys/class/net/$IFACE/statistics/tx_bytes" 2>/dev/null || echo 0)
+
+    trap 'echo ""; log_info "Speed monitor stopped."; return 0' INT
+
+    while true; do
+        sleep 1
+        RX_NOW=$(cat "/sys/class/net/$IFACE/statistics/rx_bytes" 2>/dev/null || echo 0)
+        TX_NOW=$(cat "/sys/class/net/$IFACE/statistics/tx_bytes" 2>/dev/null || echo 0)
+
+        RX_SPEED=$(( (RX_NOW - RX_PREV) / 1024 ))
+        TX_SPEED=$(( (TX_NOW - TX_PREV) / 1024 ))
+
+        if [ "$RX_SPEED" -gt 1024 ]; then
+            RX_FMT="$(awk "BEGIN {printf \"%.2f MB/s\", $RX_SPEED/1024}")"
+        else
+            RX_FMT="${RX_SPEED} KB/s"
+        fi
+
+        if [ "$TX_SPEED" -gt 1024 ]; then
+            TX_FMT="$(awk "BEGIN {printf \"%.2f MB/s\", $TX_SPEED/1024}")"
+        else
+            TX_FMT="${TX_SPEED} KB/s"
+        fi
+
+        printf "\r  📥 Down: %-12s | 📤 Up: %-12s" "$RX_FMT" "$TX_FMT"
+
+        RX_PREV=$RX_NOW
+        TX_PREV=$TX_NOW
+    done
 }
 
 case "$0" in
