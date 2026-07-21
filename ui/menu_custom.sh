@@ -13,12 +13,19 @@ handle_custom_profile()
     CURRENT_PAGE=1
     TOTAL_PKGS=$(echo "$ALL_AVAILABLE_PKGS" | wc -w)
     TOTAL_PAGES=$(( (TOTAL_PKGS + PAGE_SIZE - 1) / PAGE_SIZE ))
+    
+    FIRST_RENDER=1
 
     while true; do
         render_persistent_header
 
-        echo " 🛠️ Custom Package Selection (Page $CURRENT_PAGE of $TOTAL_PAGES)"
-        echo " ──────────────────────────────────────────────────────────"
+        SEL_COUNT=0
+        for _p in $SELECTED_PACKAGES; do
+            SEL_COUNT=$((SEL_COUNT + 1))
+        done
+
+        echo "  🛠️  ${BOLD}Custom Package Selection${RESET} ${GRAY}(Page ${YELLOW}$CURRENT_PAGE${RESET}${GRAY}/$TOTAL_PAGES | Selected: ${GREEN}$SEL_COUNT${RESET}${GRAY})${RESET}"
+        echo "  ${GRAY}──────────────────────────────────────────────────────────${RESET}"
 
         START_IDX=$(( (CURRENT_PAGE - 1) * PAGE_SIZE + 1 ))
         END_IDX=$(( CURRENT_PAGE * PAGE_SIZE ))
@@ -30,22 +37,29 @@ handle_custom_profile()
         for pkg in "$@"; do
             if [ "$i" -ge "$START_IDX" ] && [ "$i" -le "$END_IDX" ]; then
                 
-                is_selected=" "
+                is_selected="${GRAY}[ ]${RESET}"
                 case " $SELECTED_PACKAGES " in
-                    *" $pkg "*) is_selected="🟢" ;;
+                    *" $pkg "*) is_selected="${GREEN}[✔]${RESET}" ;;
                 esac
                 
-                printf "  %d) [%s] %s\n" "$item_no" "$is_selected" "$pkg"
+                printf "   ${CYAN}%d${RESET}) %b %s\n" "$item_no" "$is_selected" "$pkg"
+                
+                if [ "$FIRST_RENDER" -eq 1 ]; then
+                    command -v usleep >/dev/null 2>&1 && usleep 12000
+                fi
+
                 item_no=$((item_no + 1))
             fi
             i=$((i + 1))
         done
 
-        echo " ──────────────────────────────────────────────────────────"
-        echo "  [n] Next Page  |  [p] Prev Page  |  [d] Done Selection"
+        FIRST_RENDER=0
+
+        echo "  ${GRAY}──────────────────────────────────────────────────────────${RESET}"
+        echo "   ${GRAY}[${CYAN}n${RESET}${GRAY}] Next Page  |  [${CYAN}p${RESET}${GRAY}] Prev Page  |  [${GREEN}d${RESET}${GRAY}] Done Selection${RESET}"
         echo
 
-        printf "  ⁉️ Toggle Item (1-%d) or Action (n/p/d) : " $((item_no - 1))
+        printf "   ⁉️  ${YELLOW}Toggle Item${RESET} ${GRAY}(1-$((item_no - 1))) or Action (${CYAN}n${RESET}${GRAY}/${CYAN}p${RESET}${GRAY}/${GREEN}d${RESET}${GRAY}) :${RESET} "
         read -r cmd </dev/tty
 
         case "$cmd" in
