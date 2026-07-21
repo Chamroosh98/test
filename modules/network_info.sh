@@ -24,21 +24,18 @@ country_flag()
 
 fetch_ip_data()
 {
-    # ipwho.is
     NETWORK_JSON="$($FETCH_CMD https://ipwho.is/ 2>/dev/null || true)"
     if echo "$NETWORK_JSON" | grep -q '"success":true'; then
         echo "$NETWORK_JSON" | jq -r '"true|\(.ip // "")|\(.country // "")|\(.country_code // "")|\(.flag.emoji // "")|\(.city // "")|\(.connection.isp // "")|\(.connection.asn // "")"' 2>/dev/null || echo "false|||||||"
         return 0
     fi
 
-    # ipapi.co
     NETWORK_JSON="$($FETCH_CMD https://ipapi.co/json/ 2>/dev/null || true)"
     if echo "$NETWORK_JSON" | grep -q '"ip"'; then
         echo "$NETWORK_JSON" | jq -r '"true|\(.ip // "")|\(.country_name // "")|\(.country_code // "")||\(.city // "")|\(.org // "")|\(.asn // "")"' 2>/dev/null || echo "false|||||||"
         return 0
     fi
 
-    # ifconfig.co
     NETWORK_JSON="$($FETCH_CMD https://ifconfig.co/json 2>/dev/null || true)"
     if echo "$NETWORK_JSON" | grep -q '"ip"'; then
         echo "$NETWORK_JSON" | jq -r '"true|\(.ip // "")|\(.country // "")|\(.country_iso // "")||\(.city // "")|\(.asn_org // "")|\(.asn // "")"' 2>/dev/null || echo "false|||||||"
