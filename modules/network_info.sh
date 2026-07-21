@@ -25,19 +25,19 @@ country_flag()
 fetch_ip_data()
 {
     NETWORK_JSON="$($FETCH_CMD https://ipwho.is/ 2>/dev/null || true)"
-    if echo "$NETWORK_JSON" | grep -q '"success":true'; then
+    if [ -n "$NETWORK_JSON" ] && echo "$NETWORK_JSON" | grep -q '"success":true'; then
         echo "$NETWORK_JSON" | jq -r '"true|\(.ip // "")|\(.country // "")|\(.country_code // "")|\(.flag.emoji // "")|\(.city // "")|\(.connection.isp // "")|\(.connection.asn // "")"' 2>/dev/null || echo "false|||||||"
         return 0
     fi
 
     NETWORK_JSON="$($FETCH_CMD https://ipapi.co/json/ 2>/dev/null || true)"
-    if echo "$NETWORK_JSON" | grep -q '"ip"'; then
+    if [ -n "$NETWORK_JSON" ] && echo "$NETWORK_JSON" | grep -q '"ip"'; then
         echo "$NETWORK_JSON" | jq -r '"true|\(.ip // "")|\(.country_name // "")|\(.country_code // "")||\(.city // "")|\(.org // "")|\(.asn // "")"' 2>/dev/null || echo "false|||||||"
         return 0
     fi
 
     NETWORK_JSON="$($FETCH_CMD https://ifconfig.co/json 2>/dev/null || true)"
-    if echo "$NETWORK_JSON" | grep -q '"ip"'; then
+    if [ -n "$NETWORK_JSON" ] && echo "$NETWORK_JSON" | grep -q '"ip"'; then
         echo "$NETWORK_JSON" | jq -r '"true|\(.ip // "")|\(.country // "")|\(.country_iso // "")||\(.city // "")|\(.asn_org // "")|\(.asn // "")"' 2>/dev/null || echo "false|||||||"
         return 0
     fi
@@ -48,27 +48,28 @@ fetch_ip_data()
 get_network_info_content()
 {
     if command -v curl >/dev/null 2>&1; then
-        FETCH_CMD="curl -fsS --max-time 4"
+        FETCH_CMD="curl -fsS --connect-timeout 2 --max-time 3"
     elif command -v uclient-fetch >/dev/null 2>&1; then
-        FETCH_CMD="uclient-fetch -q -T 4 -O-"
+        FETCH_CMD="uclient-fetch -q -T 3 -O-"
     else
-        log_warn "curl/uclient-fetch unavailable!"
+        box_line "${YELLOW}curl / uclient-fetch unavailable!${RESET}"
         return 0
     fi
 
     if ! command -v jq >/dev/null 2>&1; then
-        log_warn "jq missing!"
+        box_line "${YELLOW}jq is missing!${RESET}"
         return 0
     fi
 
-    PARSED_DATA="$(fetch_ip_data || echo "false|||||||")"
+    PARSED_DATA="$(fetch_ip_data 2>/dev/null || echo "false|||||||")"
 
     IFS='|' read -r SUCCESS PUBLIC_IP COUNTRY COUNTRY_CODE FLAG CITY ISP ASN <<EOF
 $PARSED_DATA
 EOF
 
     if [ "${SUCCESS:-false}" != "true" ] || [ -z "$PUBLIC_IP" ]; then
-        log_warn "Network location unavailable!"
+        box_line "${GRAY}IP      :${RESET} ${RED}Offline / Unavailable${RESET}"
+        box_line "${GRAY}Status  :${RESET} ${YELLOW}No Internet Connection${RESET}"
         return 0
     fi
 
