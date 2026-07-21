@@ -8,22 +8,22 @@ main_menu()
         show_system_info
         get_network_info
 
-        echo "  📦 1) Install Package"
-        echo "  🖥️ 2) Network Speed Monitor"
-        echo "  🚪 3) Exit"
+        echo "  📦 ${CYAN}1${RESET}) Install Package"
+        echo "  🖥️  ${CYAN}2${RESET}) Network Speed Monitor"
+        echo "  🚪 ${CYAN}3${RESET}) Exit"
         echo
 
-        printf "   ⁉️ Choice : "
+        printf "    ⁉️  ${YELLOW}Choice${RESET} ${GRAY}:${RESET} "
         read -r choice </dev/tty
 
         case "$choice" in
             1)
-                if command -v package_menu>/dev/null 2>&1; then
+                if command -v package_menu >/dev/null 2>&1; then
                     package_menu || true
                 elif command -v install_package_menu >/dev/null 2>&1; then
                     install_package_menu || true
                 else
-                    log_error "Package menu function not found! "
+                    log_error "Package menu function not found!"
                     sleep 1
                 fi
                 ;;
@@ -31,10 +31,10 @@ main_menu()
                 if command -v show_live_speed >/dev/null 2>&1; then
                     show_live_speed || true
                     echo
-                    printf " ⌨️ Press [Enter] to return to main menu ..."
+                    printf "  ${GRAY}Press [Enter] to return to main menu ...${RESET}"
                     read -r _ </dev/tty
                 else
-                    log_error "Live speed function not found! "
+                    log_error "Live speed function not found!"
                     sleep 1
                 fi
                 ;;
@@ -43,7 +43,7 @@ main_menu()
                 exit 0
                 ;;
             *)
-                log_error "Invalid choice! "
+                log_error "Invalid choice!"
                 sleep 1
                 ;;
         esac
