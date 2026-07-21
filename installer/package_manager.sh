@@ -28,6 +28,17 @@ pkg_update()
     fi
 }
 
+pkg_installed()
+{
+    PACKAGE_NAME="$1"
+
+    if [ "$PKG_MANAGER" = "apk" ]; then
+        apk info -e "$PACKAGE_NAME" >/dev/null 2>&1
+    elif [ "$PKG_MANAGER" = "opkg" ]; then
+        opkg list-installed | grep -q "^$PACKAGE_NAME - "
+    fi
+}
+
 pkg_install()
 {
     PACKAGE_NAME="$1"
