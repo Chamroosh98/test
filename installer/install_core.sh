@@ -46,7 +46,7 @@ initialize_installer()
         exit 1
     fi
 
-    log_success "Manifest loaded successfully for architecture : [$ARCH]"
+    log_success "Manifest loaded successfully for architecture : [$ARCH] "
 
     export ARCH
     export TMP_DIR
