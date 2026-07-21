@@ -8,12 +8,11 @@ main_menu()
         show_system_info
         get_network_info
 
-        echo "  📦 ${CYAN}1${RESET}) Install Package"
-        echo "  🖥️  ${CYAN}2${RESET}) Network Speed Monitor"
-        echo "  🚪 ${CYAN}3${RESET}) Exit"
-        echo
+        printf "  📦 %b1%b) Install Package\n" "$CYAN" "$RESET"
+        printf "  🖥️  %b2%b) Network Speed Monitor\n" "$CYAN" "$RESET"
+        printf "  🚪 %b3%b) Exit\n\n" "$CYAN" "$RESET"
 
-        printf "    ⁉️  ${YELLOW}Choice${RESET} ${GRAY}:${RESET} "
+        printf "    ⁉️  %bChoice%b %b:%b " "$YELLOW" "$RESET" "$GRAY" "$RESET"
         read -r choice </dev/tty
 
         case "$choice" in
@@ -31,7 +30,7 @@ main_menu()
                 if command -v show_live_speed >/dev/null 2>&1; then
                     show_live_speed || true
                     echo
-                    printf "  ${GRAY}Press [Enter] to return to main menu ...${RESET}"
+                    printf "  %bPress [Enter] to return to main menu ...%b" "$GRAY" "$RESET"
                     read -r _ </dev/tty
                 else
                     log_error "Live speed function not found!"
