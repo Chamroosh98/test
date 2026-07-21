@@ -4,6 +4,7 @@ country_flag()
 {
     case "$1" in
         IR) echo "🦁☀️" ;;
+        AZ) echo "🇦🇿" ;;
         DE) echo "🇩🇪" ;;
         US) echo "🇺🇸" ;;
         NL) echo "🇳🇱" ;;
@@ -14,7 +15,10 @@ country_flag()
         TR) echo "🇹🇷" ;;
         GB) echo "🇬🇧" ;;
         FR) echo "🇫🇷" ;;
-        *)  echo "🏳️" ;;
+        FI) echo "🇫🇮" ;;
+        SE) echo "🇸🇪" ;;
+        PL) echo "🇵🇱" ;;
+        *)  echo "🌐" ;;
     esac
 }
 
@@ -51,12 +55,12 @@ get_network_info_content()
     elif command -v uclient-fetch >/dev/null 2>&1; then
         FETCH_CMD="uclient-fetch -q -T 4 -O-"
     else
-        log_warn "curl/uclient-fetch unavailable!" 2>/dev/null || echo "curl/uclient-fetch unavailable!"
+        log_warn "${RED}curl/uclient-fetch unavailable!${RESET}" 2>/dev/null || echo "${RED}curl/uclient-fetch unavailable!${RESET}"
         return 0
     fi
 
     if ! command -v jq >/dev/null 2>&1; then
-        log_warn "jq missing!" 2>/dev/null || echo "jq missing!"
+        log_warn "${RED}jq missing!${RESET}" 2>/dev/null || echo "${RED}jq missing!${RESET}"
         return 0
     fi
 
@@ -68,9 +72,9 @@ EOF
 
     if [ "${SUCCESS:-false}" != "true" ] || [ -z "$PUBLIC_IP" ]; then
         if command -v log_warn >/dev/null 2>&1; then
-            log_warn "Network location unavailable!"
+            log_warn "${YELLOW}Network location unavailable!${RESET}"
         else
-            echo "⚠ Network location unavailable!"
+            echo "${YELLOW}⚠ Network location unavailable!${RESET}"
         fi
         return 0
     fi
@@ -82,12 +86,12 @@ EOF
     fi
 
     CITY_STR=""
-    [ -n "$CITY" ] && CITY_STR=" ($CITY)"
+    [ -n "$CITY" ] && CITY_STR=" ${GRAY}($CITY)${RESET}"
 
-    box_line "IP      : $PUBLIC_IP"
-    box_line "Country : $FLAG $COUNTRY$CITY_STR"
-    [ -n "$ISP" ] && box_line "ISP     : $ISP"
-    [ -n "$ASN" ] && box_line "ASN     : AS$ASN"
+    box_line "${GRAY}IP      :${RESET} ${CYAN}$PUBLIC_IP${RESET}"
+    box_line "${GRAY}Country :${RESET} $FLAG ${WHITE}$COUNTRY${RESET}$CITY_STR"
+    [ -n "$ISP" ] && box_line "${GRAY}ISP     :${RESET} ${WHITE}$ISP${RESET}"
+    [ -n "$ASN" ] && box_line "${GRAY}ASN     :${RESET} ${GRAY}AS$ASN${RESET}"
 }
 
 get_network_info()
@@ -103,10 +107,11 @@ show_live_speed() {
     [ ! -d "/sys/class/net/$IFACE" ] && IFACE="eth0"
 
     echo
+    MSG="Monitoring live speed on [${CYAN}$IFACE${RESET}] ${GRAY}(Press Ctrl+C to stop)...${RESET}"
     if command -v log_info >/dev/null 2>&1; then
-        log_info "Monitoring live speed on [$IFACE] (Press Ctrl+C to stop)..."
+        log_info "$MSG"
     else
-        echo "Monitoring live speed on [$IFACE] (Press Ctrl+C to stop)..."
+        echo "$MSG"
     fi
     echo
 
@@ -135,7 +140,7 @@ show_live_speed() {
             TX_FMT="${TX_SPEED} KB/s"
         fi
 
-        printf "\r  📥 Down: %-12s | 📤 Up: %-12s" "$RX_FMT" "$TX_FMT"
+        printf "\r  📥 ${GRAY}Down:${RESET} %-12s ${GRAY}|${RESET} 📤 ${GRAY}Up:${RESET} %-12s" "${GREEN}$RX_FMT${RESET}" "${YELLOW}$TX_FMT${RESET}"
 
         RX_PREV=$RX_NOW
         TX_PREV=$TX_NOW
