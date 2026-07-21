@@ -41,19 +41,25 @@ get_network_info_content()
         return
     fi
 
-    SUCCESS="$(echo "$NETWORK_JSON" | jq -r '.success')"
+    eval "$(echo "$NETWORK_JSON" | jq -r '
+        if .success == true then
+            "SUCCESS=true\n" +
+            "PUBLIC_IP=\(.ip // "")\n" +
+            "COUNTRY=\(.country // "")\n" +
+            "COUNTRY_CODE=\(.country_code // "")\n" +
+            "FLAG=\(.flag.emoji // "")\n" +
+            "CITY=\(.city // "")\n" +
+            "ISP=\(.connection.isp // "")\n" +
+            "ASN=\(.connection.asn // "")"
+        else
+            "SUCCESS=false"
+        fi
+    ' 2>/dev/null)"
+
     if [ "$SUCCESS" != "true" ]; then
         log_warn "IP lookup failed!"
         return
     fi
-
-    PUBLIC_IP="$(echo "$NETWORK_JSON" | jq -r '.ip')"
-    COUNTRY="$(echo "$NETWORK_JSON" | jq -r '.country')"
-    COUNTRY_CODE="$(echo "$NETWORK_JSON" | jq -r '.country_code')"
-    FLAG="$(echo "$NETWORK_JSON" | jq -r '.flag.emoji // empty')"
-    CITY="$(echo "$NETWORK_JSON" | jq -r '.city')"
-    ISP="$(echo "$NETWORK_JSON" | jq -r '.connection.isp')"
-    ASN="$(echo "$NETWORK_JSON" | jq -r '.connection.asn')"
 
     [ -z "$FLAG" ] && FLAG="$(country_flag "$COUNTRY_CODE")"
 

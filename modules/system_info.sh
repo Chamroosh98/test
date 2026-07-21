@@ -1,38 +1,15 @@
 #!/bin/sh
 
-get_free_ram_mb()
-{
-    FREE_KB=$(grep MemAvailable /proc/meminfo | awk '{print $2}')
-    [ -z "$FREE_KB" ] && FREE_KB=$(grep MemFree /proc/meminfo | awk '{print $2}')
-    echo $((FREE_KB / 1024))
-}
-
-get_total_ram_mb()
-{
-    TOTAL_KB=$(grep MemTotal /proc/meminfo | awk '{print $2}')
-    echo $((TOTAL_KB / 1024))
-}
-
-get_free_storage_mb()
-{
-    df -k / | awk 'NR==2 {printf "%.0f\n", $4 / 1024}'
-}
-
-get_total_storage_mb()
-{
-    df -k / | awk 'NR==2 {printf "%.0f\n", $2 / 1024}'
-}
-
 detect_arch()
 {
     if [ -f /etc/openwrt_release ]; then
         ARCH=$(grep "DISTRIB_ARCH" /etc/openwrt_release | cut -d"'" -f2)
     else
         case "$(uname -m)" in
-            armv7l)   ARCH="arm_cortex-a7_neon-vfpv4" ;;
-            aarch64)  ARCH="aarch64_generic" ;;
-            x86_64)   ARCH="x86_64" ;;
-            *)        ARCH="$(uname -m)" ;;
+            armv7l)  ARCH="arm_cortex-a7_neon-vfpv4" ;;
+            aarch64) ARCH="aarch64_generic" ;;
+            x86_64)  ARCH="x86_64" ;;
+            *)       ARCH="$(uname -m)" ;;
         esac
     fi
     export ARCH

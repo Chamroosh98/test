@@ -2,43 +2,37 @@
 
 package_menu()
 {
-    clear
-    show_banner
-    show_system_info
+    render_persistent_header
 
-
-    echo "Package Type"
+    echo " Package Type"
+    echo " ────────────"
+    echo "  1) Passwall-1"
+    echo "  2) Passwall-2"
     echo
-
-    echo "1) Passwall-1"
-    echo "2) Passwall-2"
 
     printf "  ⁉️ Choice : "
     read -r choice </dev/tty
 
-
     case "$choice" in
-
         1)
             SELECTED_PROFILE="passwall"
             add_selected_package "luci-app-passwall"
-            engine_menu
-        ;;
-
+            ;;
         2)
             SELECTED_PROFILE="passwall2"
             add_selected_package "luci-app-passwall2"
-            engine_menu
-        ;;
-
+            ;;
         *)
-            echo "  ❌ Invalid choice!"
+            log_error "Invalid choice!"
             return 1
-        ;;
-
+            ;;
     esac
 
     export SELECTED_PROFILE
+
+    menu_mode
+
+    engine_menu
 
     language_menu
 
@@ -47,19 +41,13 @@ package_menu()
     review_install || return 1
 
     if deploy_targeted_packages; then
-
         echo
-        echo "  ✅ Installation completed :)"
-
+        log_success "Installation completed :)"
     else
-
         echo
-        echo "  ❌ Installation failed!"
-
-    return 1
-
+        log_error "Installation failed!"
+        return 1
     fi
 
     return 0
-
 }

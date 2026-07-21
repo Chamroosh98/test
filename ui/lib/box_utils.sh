@@ -51,37 +51,19 @@ draw_bar()
 
     BAR=""
     i=0
-    while [ "$i" -lt "$FILLED" ]; 
-        do 
-            BAR="${BAR}█"; i=$((i+1)); 
-        done
-    while [ "$i" -lt "$BW" ]; 
-        do 
-            BAR="${BAR}░"; i=$((i+1)); 
-        done
+    while [ "$i" -lt "$FILLED" ]; do 
+        BAR="${BAR}█"
+        i=$((i+1))
+    done
+    while [ "$i" -lt "$BW" ]; do 
+        BAR="${BAR}░"
+        i=$((i+1))
+    done
 
     printf "   ${COLOR}%s${RESET}" "$BAR"
 }
 
-log_warn()
-{
-    printf "   ${YELLOW}⚠️  %s${RESET}\n" "$1" >&2
-}
-
-SPINNER_FRAMES="⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏"
-
-spinner_frame()
-{
-    IDX="$1"
-    set -- $SPINNER_FRAMES
-    COUNT=$#
-    N=$(( IDX % COUNT + 1 ))
-    I=1
-    for F in "$@"; do
-        if [ "$I" -eq "$N" ]; then
-            printf "   %s" "$F"
-            return
-        fi
-        I=$((I + 1))
-    done
-}
+log_info()    { printf "   ${CYAN}ℹ️  %s${RESET}\n" "$1"; }
+log_success() { printf "   ${GREEN}✅  %s${RESET}\n" "$1"; }
+log_warn()    { printf "   ${YELLOW}⚠️  %s${RESET}\n" "$1" >&2; }
+log_error()   { printf "   ${RED}❌  %s${RESET}\n" "$1" >&2; }

@@ -2,7 +2,7 @@
 
 spin_sleep() {
     if command -v usleep >/dev/null 2>&1; then
-        usleep 100000                           # 100,000 microseconds = 0.1 second
+        usleep 100000
     else
         sleep 1
     fi
@@ -47,8 +47,7 @@ run_cell()
 
     spin_chars='-\|/'
     i=0
-    while kill -0 "$pid" 2>/dev/null; 
-    do
+    while kill -0 "$pid" 2>/dev/null; do
         c="$(printf '%s' "$spin_chars" | cut -c$(( (i % 4) + 1 )))"
         redraw_row "$c"
         i=$((i + 1))
@@ -115,89 +114,6 @@ process_host()
     done
 }
 
-is_openwrt() { [ -f /etc/openwrt_release ]; }
-
-get_current_dns()
-{
-    echo
-    printf "  ${CYAN}🗿${RESET} Current DNS :  "
-    
-    if is_openwrt; then
-        DNS="$(uci get network.lan.dns 2>/dev/null)"
-
-        if [ -n "$DNS" ]; then
-            echo "$DNS"
-        else
-            echo "dnsmasq (127.0.0.1)"
-        fi
-    else
-        grep nameserver /etc/resolv.conf | awk '{print $2}' | tr '\n' ' '
-        echo
-    fi
-}
-
-backup_dns()
-{
-    mkdir -p /tmp/daypass
-
-    if is_openwrt; then
-        uci export network > /tmp/daypass/network_dns_backup
-    fi
-}
-
-apply_dns()
-{
-    backup_dns
-
-    if ! is_openwrt; then
-        printf "  ${RED}🔴${RESET} Automatic DNS fix only supports OpenWrt!\n"
-        return 1
-    fi
-
-    printf "  ${CYAN}💉 Applying DNS ...${RESET}\n"
-    uci set network.lan.peerdns='0'
-    uci set network.lan.dns='1.1.1.1 8.8.8.8 1.0.0.1 8.8.4.4'
-    uci commit network
-    /etc/init.d/network restart
-    printf "  ${GREEN}🟢 DNS updated successfully!${RESET}\n"
-}
-
-restore_dns()
-{
-    if [ -f /tmp/daypass/network_dns_backup ]; then
-        uci import network < /tmp/daypass/network_dns_backup
-        uci commit network
-        /etc/init.d/network restart
-        printf "  ${GREEN}🟢 DNS restored!${RESET}\n"
-    else
-        printf "  ${RED}🔴 No DNS backup found!${RESET}\n"
-    fi
-}
-
-dns_fix_menu()
-{
-    echo
-    printf "  ${BOLD}${YELLOW}🛠️  DNS Quick Fix${RESET}\n"
-    printf "  ${DIM}──────────────────────────────────────────${RESET}\n"
-    get_current_dns
-    echo
-    printf "    ${BOLD}👻 Recommended :${RESET}\n"
-    printf "        ${CYAN}🌐 Google${RESET}      (8.8.8.8, 8.8.4.4)\n"
-    printf "        ${CYAN}🌥️ Cloudflare${RESET}  (1.1.1.1, 1.0.0.1)\n"
-    echo
-
-    while true; do
-        printf "  ⁉️ ${BOLD}Apply DNS fix? [y/N]:${RESET} "
-        read -r answer </dev/tty
-
-        case "$answer" in
-            y|Y) apply_dns; break ;;
-            n|N|"") printf "  🫸 ${CYAN}DNS fix skipped!${RESET}\n"; break ;;
-            *) echo "  ❌ Invalid input! Please enter JUST y or n!" ;;
-        esac
-    done
-}
-
 network_check()
 {
     GREEN_COUNT=0
@@ -207,9 +123,7 @@ network_check()
     DNS_FAILED=0
 
     echo
-    printf "  ${BOLD}${CYAN}🔎 DayPass Network Check${RESET}\n"
-    echo
-
+    printf "  ${BOLD}${CYAN}🔎 DayPass Network Check${RESET}\n\n"
     printf "  %-18s  %-5s    %-5s    %-5s\n" "Host" "DNS" "Ping" "HTTPS"
     printf "  ${DIM}──────────────────────────────────────────${RESET}\n"
 
@@ -225,26 +139,23 @@ network_check()
 
     printf "  Overall Status   "
     draw_bar "$PCT" 15 "score" 
-    printf " %s%% (🟢 %s  🟡 %s  🔴 %s)\n" "$PCT" "$GREEN_COUNT" "$YELLOW_COUNT" "$RED_COUNT"
-    echo
+    printf " %s%% (🟢 %s  🟡 %s  🔴 %s)\n\n" "$PCT" "$GREEN_COUNT" "$YELLOW_COUNT" "$RED_COUNT"
 
     if [ "$DNS_FAILED" -eq 0 ] && [ "$RED_COUNT" -eq 0 ]; then
-        printf "  ${GREEN}🟢 Network looks good and healthy!${RESET}\n"
-        sleep 2   # 2 seconds to wait before clearing the screen
-        clear
+        log_success "Network looks good and healthy!"
+        sleep 2
         return 0
     fi
 
     if [ "$DNS_FAILED" -eq 1 ]; then
-        printf "  ${RED}🔴 DNS problems detected! ${RESET}\n"
-        if ping -c 1 -W 2 cloudflare.com >/dev/null 2>&1; then
+        log_error "DNS problems detected!"
+        if ping -c 1 -W 2 1.1.1.1 >/dev/null 2>&1; then
             dns_fix_menu
-            sleep 2   # 2 seconds to wait before clearing the screen
-            clear
+            sleep 2
             return 0
         fi
     elif [ "$YELLOW_COUNT" -gt 0 ]; then
-        printf "  ${YELLOW}🟡 Network is up but degraded! ${RESET}\n"
+        log_warn "Network is up but degraded!"
     fi
     
     return 0

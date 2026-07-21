@@ -15,14 +15,17 @@ get_total_ram_mb()
 
 get_free_storage_mb()
 {
-    df -k / | awk 'NR==2 {printf "%.0f\n", $4 / 1024}'
+    TARGET="/"
+    [ -d /overlay ] && TARGET="/overlay"
+    df -k "$TARGET" | awk 'END {printf "%.0f\n", $4 / 1024}'
 }
 
 get_total_storage_mb()
 {
-    df -k / | awk 'NR==2 {printf "%.0f\n", $2 / 1024}'
+    TARGET="/"
+    [ -d /overlay ] && TARGET="/overlay"
+    df -k "$TARGET" | awk 'END {printf "%.0f\n", $2 / 1024}'
 }
-
 
 resource_snapshot()
 {
@@ -38,8 +41,17 @@ resource_compare()
     CURRENT_RAM_FREE="$(get_free_ram_mb)"
     CURRENT_STORAGE_FREE="$(get_free_storage_mb)"
 
-    RAM_USED=$((SNAPSHOT_RAM_FREE - CURRENT_RAM_FREE))
-    STORAGE_USED=$((SNAPSHOT_STORAGE_FREE - CURRENT_STORAGE_FREE))
+    if [ "$SNAPSHOT_RAM_FREE" -gt "$CURRENT_RAM_FREE" ]; then
+        RAM_USED=$((SNAPSHOT_RAM_FREE - CURRENT_RAM_FREE))
+    else
+        RAM_USED=0
+    fi
+
+    if [ "$SNAPSHOT_STORAGE_FREE" -gt "$CURRENT_STORAGE_FREE" ]; then
+        STORAGE_USED=$((SNAPSHOT_STORAGE_FREE - CURRENT_STORAGE_FREE))
+    else
+        STORAGE_USED=0
+    fi
 
     echo
     log_info "Resource Usage"
@@ -53,13 +65,10 @@ estimate_install_size()
 {
     TOTAL_SIZE=0
 
-    for pkg in $FINAL_PACKAGES
-    do
+    for pkg in $FINAL_PACKAGES; do
         size="$(manifest_lookup "size" "$pkg")"
 
-        [ -z "$size" ] && continue
-        [ "$size" = "null" ] && continue
-
+        [ -z "$size" ] || [ "$size" = "null" ] && continue
         TOTAL_SIZE=$((TOTAL_SIZE + size))
     done
 

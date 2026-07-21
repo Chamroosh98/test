@@ -65,10 +65,10 @@ func providerDownload(downloadURL, outputPath, proxy string) error {
             }
 			
             resp.Body.Close()
-            err = fmt.Errorf("bad status: %s", resp.Status)
+            err = fmt.Errorf("bad status : %s", resp.Status)
         }
         if i < retryCount {
-            fmt.Printf("⚠️ Retrying download (%d/%d) for: %s\n", i+1, retryCount, downloadURL)
+            fmt.Printf("⚠️ Retrying download (%d/%d) for : %s\n", i+1, retryCount, downloadURL)
             time.Sleep(2 * time.Second)
         }
     }

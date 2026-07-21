@@ -100,7 +100,7 @@ func GenerateManifest(archConfigPath, outputDir string) error {
 			} else if strings.HasSuffix(loweredName, ".ipk") {
 				pkgName = strings.TrimSuffix(fileName, ".ipk")
 			} else {
-				return nil // فایل پکیج نیست، رد می‌شویم
+				return nil 
 			}
 
 			fileInfo, err := d.Info()
