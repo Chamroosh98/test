@@ -10,25 +10,26 @@ import (
 func generateInstallScript(outputFile string) error {
 	fmt.Println("⌛ Processing Core Components with Go Engine ...")
 	
+	branch := os.Getenv("GITHUB_REF_NAME")
+	if branch == "" {
+		branch = "dev" 
+	}
+
 	var scriptBuilder strings.Builder
 	scriptBuilder.WriteString("#!/bin/sh\nset -eu\n\n")
 	scriptBuilder.WriteString("###############################################################################\n")
 	scriptBuilder.WriteString("# DayPass Installer (Auto-generated via Go Action)\n")
 	scriptBuilder.WriteString("###############################################################################\n\n")
 
-	// Smart detected REPO_URL
-	scriptBuilder.WriteString(`# Dynamic REPO_URL Auto-Detection
-		if [ -z "${REPO_URL:-}" ]; then
-			DETECTED_URL=$(ps -o args= $$ 2>/dev/null | grep -oE 'https://[^ ]+' | head -n1 || true)
-			if [ -n "$DETECTED_URL" ]; then
-				REPO_URL="${DETECTED_URL%/install.sh}"
-			else
-				REPO_URL="https://chamroosh98.github.io/DayPass"
-			fi
-		fi
-		export REPO_URL
-
-		`)
+	scriptBuilder.WriteString("# Dynamic REPO_URL configuration\n")
+	scriptBuilder.WriteString("if [ -z \"${REPO_URL:-}\" ]; then\n")
+	if branch == "main" {
+		scriptBuilder.WriteString("    REPO_URL=\"https://chamroosh98.github.io/DayPass\"\n")
+	} else {
+		scriptBuilder.WriteString(fmt.Sprintf("    REPO_URL=\"https://chamroosh98.github.io/DayPass/%s\"\n", branch))
+	}
+	scriptBuilder.WriteString("fi\n")
+	scriptBuilder.WriteString("export REPO_URL\n\n")
 
 	installerFiles := []string{
 		// 1. Core Installer Logic
@@ -76,7 +77,7 @@ func generateInstallScript(outputFile string) error {
 		scriptBuilder.WriteString(fmt.Sprintf("\n# 📄 Source : %s\n", filepath.Base(file)))
 		lines := strings.Split(string(data), "\n")
 		for _, line := range lines {
-			// remove Shebangs
+			
 			if !strings.HasPrefix(line, "#!") {
 				scriptBuilder.WriteString(line + "\n")
 			}
