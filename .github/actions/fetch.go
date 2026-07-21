@@ -108,7 +108,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// ۱. پوشه کش ماندگار و پوشه موقت زیپ
 	persistentCacheDir := fmt.Sprintf(".cache/downloads/%s", targetArch)
 	baseDownloadDir := fmt.Sprintf("matrix-download/%s", targetArch)
 	os.MkdirAll(persistentCacheDir, 0755)
@@ -162,7 +161,6 @@ func main() {
 				pkgURL := fmt.Sprintf("%s/%s", feedURL, apkFileName)
 
 				if fileExists(cachePkgPath) {
-					// ⚡ اگر فایل در کش بود، مستقیم کپی می‌شود
 					if err := copyFile(cachePkgPath, targetPkgPath); err == nil {
 						fmt.Printf("🔄 Cached : [%-45s]\n", apkFileName)
 						cachedCount++
@@ -170,7 +168,6 @@ func main() {
 					}
 				}
 
-				// 📥 اگر در کش نبود، دانلود و در کش ذخیره می‌شود
 				fmt.Printf("📥 Saved in Cache : [%-45s] ", apkFileName)
 				if err := downloadWithCurl(pkgURL, cachePkgPath); err != nil {
 					fmt.Println("❌ FAILED")
@@ -198,5 +195,5 @@ func main() {
 	}
 
 	os.RemoveAll("matrix-download")
-	fmt.Printf("\n🎉 Package created successfully : [%s]\n", zipName)
+	fmt.Printf("\n📦 Package created successfully : [%s]\n", zipName)
 }
