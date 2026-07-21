@@ -144,7 +144,7 @@ network_check()
     if [ "$DNS_FAILED" -eq 0 ] && [ "$RED_COUNT" -eq 0 ]; then
         log_success "Network looks good and healthy!"
         sleep 2
-        clear
+        # clear
         return 0
     fi
 
@@ -153,7 +153,7 @@ network_check()
         if ping -c 1 -W 2 1.1.1.1 >/dev/null 2>&1; then
             dns_fix_menu
             sleep 2
-            clear
+            # clear
             return 0
         fi
     elif [ "$YELLOW_COUNT" -gt 0 ]; then
