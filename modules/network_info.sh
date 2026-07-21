@@ -29,7 +29,7 @@ get_network_info_content()
         return
     fi
 
-    NETWORK_JSON="$($FETCH_CMD https://ipwho.is/ 2>/dev/null)"
+    NETWORK_JSON="$($FETCH_CMD https://ipwho.is/ 2>/dev/null || true)"
 
     if [ -z "$NETWORK_JSON" ]; then
         log_warn "Network location unavailable!"
@@ -41,22 +41,19 @@ get_network_info_content()
         return
     fi
 
-    eval "$(echo "$NETWORK_JSON" | jq -r '
+    PARSED_DATA=$(echo "$NETWORK_JSON" | jq -r '
         if .success == true then
-            "SUCCESS=true\n" +
-            "PUBLIC_IP=\(.ip // "")\n" +
-            "COUNTRY=\(.country // "")\n" +
-            "COUNTRY_CODE=\(.country_code // "")\n" +
-            "FLAG=\(.flag.emoji // "")\n" +
-            "CITY=\(.city // "")\n" +
-            "ISP=\(.connection.isp // "")\n" +
-            "ASN=\(.connection.asn // "")"
+            "true|\(.ip // "")|\(.country // "")|\(.country_code // "")|\(.flag.emoji // "")|\(.city // "")|\(.connection.isp // "")|\(.connection.asn // "")"
         else
-            "SUCCESS=false"
+            "false|||||||"
         fi
-    ' 2>/dev/null)"
+    ' 2>/dev/null || echo "false|||||||")
 
-    if [ "$SUCCESS" != "true" ]; then
+    IFS='|' read -r SUCCESS PUBLIC_IP COUNTRY COUNTRY_CODE FLAG CITY ISP ASN <<EOF
+$PARSED_DATA
+EOF
+
+    if [ "${SUCCESS:-false}" != "true" ]; then
         log_warn "IP lookup failed!"
         return
     fi
