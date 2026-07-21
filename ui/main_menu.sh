@@ -8,11 +8,12 @@ main_menu()
         show_system_info
         get_network_info
 
-        printf "  📦 %b1%b) Install Package\n" "$CYAN" "$RESET"
-        printf "  🖥️  %b2%b) Network Speed Monitor\n" "$CYAN" "$RESET"
-        printf "  🚪 %b3%b) Exit\n\n" "$CYAN" "$RESET"
+        printf "  📦 %s1%s) Install Package\n" "$CYAN" "$RESET"
+        printf "  🖥️  %s2%s) Network Speed Monitor\n" "$CYAN" "$RESET"
+        printf "  🚪 %s3%s) Exit\n\n" "$CYAN" "$RESET"
 
-        printf "    ⁉️  %bChoice%b %b:%b " "$YELLOW" "$RESET" "$GRAY" "$RESET"
+        printf "  ⁉️  %sChoice%s %s:%s " "$YELLOW" "$RESET" "$GRAY" "$RESET"
+
         read -r choice </dev/tty
 
         case "$choice" in

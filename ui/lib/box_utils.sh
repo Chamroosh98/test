@@ -5,7 +5,6 @@ BOX_WIDTH=50
 box_header()
 {
     TITLE="$1"
-    # محاسبه خطوط کشیده شده متناسب با عنوان
     TITLE_LEN=$(printf "%s" "$TITLE" | wc -c)
     DASH_COUNT=$((BOX_WIDTH - TITLE_LEN - 4))
     [ "$DASH_COUNT" -lt 5 ] && DASH_COUNT=5
@@ -17,18 +16,17 @@ box_header()
         i=$((i+1))
     done
 
-    printf "╭─ %b%s%b %b%s%b\n" "$BOLD" "$TITLE" "$RESET$CYAN" "$CYAN" "$DASHES" "$RESET"
+    printf "╭─ %s%s%s %s%s%s\n" "$BOLD" "$TITLE" "$RESET" "$CYAN" "$DASHES" "$RESET"
 }
 
 box_line()
 {
-    # استفاده از %b کاراکترهای \033 را به رنگ واقعی تبدیل می‌کند
-    printf "%b│%b %b\n" "$CYAN" "$RESET" "$1"
+    printf "%s│%s %s\n" "$CYAN" "$RESET" "$1"
 }
 
 box_empty()
 {
-    printf "%b│%b\n" "$CYAN" "$RESET"
+    printf "%s│%s\n" "$CYAN" "$RESET"
 }
 
 box_subheader()
@@ -45,7 +43,7 @@ box_subheader()
         i=$((i+1))
     done
 
-    printf "%b├─ %b%s%b %b%s%b\n" "$CYAN" "$BOLD" "$TITLE" "$RESET$CYAN" "$CYAN" "$DASHES" "$RESET"
+    printf "%s├─ %s%s%s %s%s%s\n" "$CYAN" "$BOLD" "$TITLE" "$RESET" "$CYAN" "$DASHES" "$RESET"
 }
 
 box_footer()
@@ -57,7 +55,7 @@ box_footer()
         i=$((i+1))
     done
 
-    printf "%b╰%s%b\n" "$CYAN" "$DASHES" "$RESET"
+    printf "%s╰%s%s\n" "$CYAN" "$DASHES" "$RESET"
 }
 
 draw_bar()
@@ -91,10 +89,10 @@ draw_bar()
         i=$((i+1))
     done
 
-    printf "%b%s%b" "$COLOR" "$BAR" "$RESET"
+    printf "%s%s%s" "$COLOR" "$BAR" "$RESET"
 }
 
-log_info()    { printf "%bℹ️  %s%b\n" "$CYAN" "$1" "$RESET"; }
-log_success() { printf "%b✅  %s%b\n" "$GREEN" "$1" "$RESET"; }
-log_warn()    { printf "%b⚠️  %s%b\n" "$YELLOW" "$1" "$RESET" >&2; }
-log_error()   { printf "%b❌  %s%b\n" "$RED" "$1" "$RESET" >&2; }
+log_info()    { printf "%sℹ️  %s%s\n" "$CYAN" "$1" "$RESET"; }
+log_success() { printf "%s✅  %s%s\n" "$GREEN" "$1" "$RESET"; }
+log_warn()    { printf "%s⚠️  %s%s\n" "$YELLOW" "$1" "$RESET" >&2; }
+log_error()   { printf "%s❌  %s%s\n" "$RED" "$1" "$RESET" >&2; }
