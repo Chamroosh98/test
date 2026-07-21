@@ -13,16 +13,16 @@ import (
 type ArchConfig struct {
 	Release       string `json:"release"`
 	Architectures []struct {
-		Name     string    `json:"name"`
-		BaseURL  string    `json:"base_url"`
-		Feeds    []string  `json:"feeds"`
+		Name    string   `json:"name"`
+		BaseURL string   `json:"base_url"`
+		Feeds   []string `json:"feeds"`
 	} `json:"architectures"`
 }
 
 type FeedIndex struct {
-	Version      int               	`json:"version"`
-	Architecture string            	`json:"architecture"`
-	Packages     map[string]string 	`json:"packages"`
+	Version      int               `json:"version"`
+	Architecture string            `json:"architecture"`
+	Packages     map[string]string `json:"packages"`
 }
 
 func zipDirectory(sourceDir, targetZip string) error {
@@ -58,9 +58,34 @@ func zipDirectory(sourceDir, targetZip string) error {
 	})
 }
 
+func copyFile(src, dst string) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, in)
+	return err
+}
+
 func downloadWithCurl(url, destPath string) error {
 	cmd := exec.Command("curl", "--silent", "--show-error", "--location", "--fail", "-o", destPath, url)
 	return cmd.Run()
+}
+
+func fileExists(path string) bool {
+	info, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir() && info.Size() > 0
 }
 
 func main() {
@@ -83,7 +108,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	// ۱. پوشه کش ماندگار و پوشه موقت زیپ
+	persistentCacheDir := fmt.Sprintf(".cache/downloads/%s", targetArch)
 	baseDownloadDir := fmt.Sprintf("matrix-download/%s", targetArch)
+	os.MkdirAll(persistentCacheDir, 0755)
 	os.MkdirAll(baseDownloadDir, 0755)
 
 	found := false
@@ -95,13 +123,15 @@ func main() {
 		fmt.Printf("🗜️ Processing [%s]\n", targetArch)
 
 		for _, feed := range arch.Feeds {
+			feedCacheDir := filepath.Join(persistentCacheDir, feed)
 			feedOutputDir := filepath.Join(baseDownloadDir, feed)
+			os.MkdirAll(feedCacheDir, 0755)
 			os.MkdirAll(feedOutputDir, 0755)
 
 			feedURL := fmt.Sprintf("%s/%s", arch.BaseURL, feed)
 			tempIndexPath := filepath.Join(feedOutputDir, "index.json")
-			
-			fmt.Printf("💰 Feed : %s\n", feed)
+
+			fmt.Printf("\n💰 Feed : %s\n", feed)
 			if err := downloadWithCurl(feedURL+"/index.json", tempIndexPath); err != nil {
 				fmt.Printf("❌ Failed to download index for [%s]\n", feed)
 				continue
@@ -118,21 +148,41 @@ func main() {
 				continue
 			}
 
-			fmt.Println("⌛ Repository updated!")
+			fmt.Println("⌛ Repository index updated!")
+
+			// Smart Download!
+
+			cachedCount := 0
+			downloadedCount := 0
 
 			for pkgName, pkgVersion := range feedIdx.Packages {
 				apkFileName := fmt.Sprintf("%s-%s.apk", pkgName, pkgVersion)
-				pkgPath := filepath.Join(feedOutputDir, apkFileName)
+				cachePkgPath := filepath.Join(feedCacheDir, apkFileName)
+				targetPkgPath := filepath.Join(feedOutputDir, apkFileName)
 				pkgURL := fmt.Sprintf("%s/%s", feedURL, apkFileName)
-				
-				fmt.Printf("📥 Downloading : [%s]\n", apkFileName)
-				if err := downloadWithCurl(pkgURL, pkgPath); err != nil {
-					fmt.Printf("  ❌ Download failed or skipped for: [%s]\n", apkFileName)
-					os.Remove(pkgPath)
+
+				if fileExists(cachePkgPath) {
+					// ⚡ اگر فایل در کش بود، مستقیم کپی می‌شود
+					if err := copyFile(cachePkgPath, targetPkgPath); err == nil {
+						fmt.Printf("🔄 Cached : [%-45s]\n", apkFileName)
+						cachedCount++
+						continue
+					}
+				}
+
+				// 📥 اگر در کش نبود، دانلود و در کش ذخیره می‌شود
+				fmt.Printf("📥 Saved in Cache : [%-45s] ", apkFileName)
+				if err := downloadWithCurl(pkgURL, cachePkgPath); err != nil {
+					fmt.Println("❌ FAILED")
+					os.Remove(cachePkgPath)
+				} else {
+					fmt.Println("✅ OK")
+					copyFile(cachePkgPath, targetPkgPath)
+					downloadedCount++
 				}
 			}
-			
-			fmt.Println("✅ Feed synchronized!")
+
+			fmt.Printf("✅ Feed synchronized! (🔄 [%d] cached, 📥 [%d] downloaded)\n", cachedCount, downloadedCount)
 		}
 	}
 
@@ -146,7 +196,7 @@ func main() {
 		fmt.Printf("❌ Zipping failed : [%v]\n", err)
 		os.Exit(1)
 	}
-	
+
 	os.RemoveAll("matrix-download")
-	fmt.Printf("✅ Package created successfully : [%s]\n", zipName)
+	fmt.Printf("\n🎉 Package created successfully : [%s]\n", zipName)
 }
