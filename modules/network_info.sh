@@ -55,12 +55,12 @@ get_network_info_content()
     elif command -v uclient-fetch >/dev/null 2>&1; then
         FETCH_CMD="uclient-fetch -q -T 4 -O-"
     else
-        log_warn "${RED}curl/uclient-fetch unavailable!${RESET}" 2>/dev/null || echo "${RED}curl/uclient-fetch unavailable!${RESET}"
+        log_warn "curl/uclient-fetch unavailable!"
         return 0
     fi
 
     if ! command -v jq >/dev/null 2>&1; then
-        log_warn "${RED}jq missing!${RESET}" 2>/dev/null || echo "${RED}jq missing!${RESET}"
+        log_warn "jq missing!"
         return 0
     fi
 
@@ -71,11 +71,7 @@ $PARSED_DATA
 EOF
 
     if [ "${SUCCESS:-false}" != "true" ] || [ -z "$PUBLIC_IP" ]; then
-        if command -v log_warn >/dev/null 2>&1; then
-            log_warn "${YELLOW}Network location unavailable!${RESET}"
-        else
-            echo "${YELLOW}⚠ Network location unavailable!${RESET}"
-        fi
+        log_warn "Network location unavailable!"
         return 0
     fi
 

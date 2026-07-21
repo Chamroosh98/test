@@ -1,32 +1,62 @@
 #!/bin/sh
 
-BOX_DASHES="─────────────────────────────────────────"
+BOX_WIDTH=50
 
 box_header()
 {
     TITLE="$1"
-    printf "   ${CYAN}╭─ ${RESET}${BOLD}%s${RESET} ${CYAN}%s${RESET}\n" "$TITLE" "$BOX_DASHES"
+
+    TITLE_LEN=$(echo "$TITLE" | wc -c)
+    DASH_COUNT=$((BOX_WIDTH - TITLE_LEN - 4))
+    [ "$DASH_COUNT" -lt 5 ] && DASH_COUNT=5
+
+    DASHES=""
+    i=0
+    while [ "$i" -lt "$DASH_COUNT" ]; do
+        DASHES="${DASHES}─"
+        i=$((i+1))
+    done
+
+    printf "  %b╭─ %b%s%b %b%s%b\n" "$CYAN" "$BOLD" "$TITLE" "$RESET$CYAN" "$DASHES" "$RESET"
 }
 
 box_line()
 {
-    printf "   ${CYAN}│${RESET} %s\n" "$1"
+    printf "  %b│%b %b\n" "$CYAN" "$RESET" "$1"
 }
 
 box_empty()
 {
-    printf "   ${CYAN}│${RESET}\n"
+    printf "  %b│%b\n" "$CYAN" "$RESET"
 }
 
 box_subheader()
 {
     TITLE="$1"
-    printf "   ${CYAN}├─ ${RESET}${BOLD}%s${RESET} ${CYAN}%s${RESET}\n" "$TITLE" "$BOX_DASHES"
+    TITLE_LEN=$(echo "$TITLE" | wc -c)
+    DASH_COUNT=$((BOX_WIDTH - TITLE_LEN - 4))
+    [ "$DASH_COUNT" -lt 5 ] && DASH_COUNT=5
+
+    DASHES=""
+    i=0
+    while [ "$i" -lt "$DASH_COUNT" ]; do
+        DASHES="${DASHES}─"
+        i=$((i+1))
+    done
+
+    printf "  %b├─ %b%s%b %b%s%b\n" "$CYAN" "$BOLD" "$TITLE" "$RESET$CYAN" "$DASHES" "$RESET"
 }
 
 box_footer()
 {
-    printf "   ${CYAN}╰%s${RESET}\n" "$BOX_DASHES"
+    DASHES=""
+    i=0
+    while [ "$i" -lt "$BOX_WIDTH" ]; do
+        DASHES="${DASHES}─"
+        i=$((i+1))
+    done
+
+    printf "  %b╰%s%b\n" "$CYAN" "$DASHES" "$RESET"
 }
 
 draw_bar()
@@ -60,10 +90,10 @@ draw_bar()
         i=$((i+1))
     done
 
-    printf "   ${COLOR}%s${RESET}" "$BAR"
+    printf "  %b%s%b" "$COLOR" "$BAR" "$RESET"
 }
 
-log_info()    { printf "   ${CYAN}ℹ️  %s${RESET}\n" "$1"; }
-log_success() { printf "   ${GREEN}✅  %s${RESET}\n" "$1"; }
-log_warn()    { printf "   ${YELLOW}⚠️  %s${RESET}\n" "$1" >&2; }
-log_error()   { printf "   ${RED}❌  %s${RESET}\n" "$1" >&2; }
+log_info()    { printf "  %bℹ️  %s%b\n" "$CYAN" "$1" "$RESET"; }
+log_success() { printf "  %b✅  %s%b\n" "$GREEN" "$1" "$RESET"; }
+log_warn()    { printf "  %b⚠️  %s%b\n" "$YELLOW" "$1" "$RESET" >&2; }
+log_error()   { printf "  %b❌  %s%b\n" "$RED" "$1" "$RESET" >&2; }
