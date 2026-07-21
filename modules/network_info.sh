@@ -20,15 +20,24 @@ country_flag()
 
 fetch_ip_data()
 {
+    # ipwho.is
     NETWORK_JSON="$($FETCH_CMD https://ipwho.is/ 2>/dev/null || true)"
     if echo "$NETWORK_JSON" | grep -q '"success":true'; then
         echo "$NETWORK_JSON" | jq -r '"true|\(.ip // "")|\(.country // "")|\(.country_code // "")|\(.flag.emoji // "")|\(.city // "")|\(.connection.isp // "")|\(.connection.asn // "")"' 2>/dev/null
         return 0
     fi
 
-    NETWORK_JSON="$($FETCH_CMD "http://ip-api.com/json/?fields=status,country,countryCode,city,isp,as,query" 2>/dev/null || true)"
-    if echo "$NETWORK_JSON" | grep -q '"status":"success"'; then
-        echo "$NETWORK_JSON" | jq -r '"true|\(.query // "")|\(.country // "")|\(.countryCode // "")||\(.city // "")|\(.isp // "")|\(.as // "")"' 2>/dev/null
+    # ipapi.co
+    NETWORK_JSON="$($FETCH_CMD https://ipapi.co/json/ 2>/dev/null || true)"
+    if echo "$NETWORK_JSON" | grep -q '"ip"'; then
+        echo "$NETWORK_JSON" | jq -r '"true|\(.ip // "")|\(.country_name // "")|\(.country_code // "")||\(.city // "")|\(.org // "")|\(.asn // "")"' 2>/dev/null
+        return 0
+    fi
+
+    # ifconfig.co
+    NETWORK_JSON="$($FETCH_CMD https://ifconfig.co/json 2>/dev/null || true)"
+    if echo "$NETWORK_JSON" | grep -q '"ip"'; then
+        echo "$NETWORK_JSON" | jq -r '"true|\(.ip // "")|\(.country // "")|\(.country_iso // "")||\(.city // "")|\(.asn_org // "")|\(.asn // "")"' 2>/dev/null
         return 0
     fi
 
@@ -38,9 +47,9 @@ fetch_ip_data()
 get_network_info_content()
 {
     if command -v curl >/dev/null 2>&1; then
-        FETCH_CMD="curl -fsS --max-time 7"
+        FETCH_CMD="curl -fsS --max-time 5"
     elif command -v uclient-fetch >/dev/null 2>&1; then
-        FETCH_CMD="uclient-fetch -q -T 7 -O-"
+        FETCH_CMD="uclient-fetch -q -T 5 -O-"
     else
         log_warn "curl/uclient-fetch unavailable!"
         return
@@ -67,7 +76,7 @@ EOF
     box_line "IP      : $PUBLIC_IP"
     box_line "Country : $FLAG $COUNTRY  ($CITY)"
     [ -n "$ISP" ] && box_line "ISP     : $ISP"
-    [ -n "$ASN" ] && box_line "ASN     : AS$ASN"
+    [ -n "$ASN" ] && box_line "ASN     : $ASN"
 }
 
 get_network_info()
