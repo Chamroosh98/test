@@ -1,15 +1,27 @@
 #!/bin/sh
 
+# ساخت کاراکتر واقعی Escape برای پشتیبانی کامل در BusyBox ash / POSIX shell
 ESC="$(printf '\033')"
 
-RED="${ESC}[0;31m"
-GREEN="${ESC}[0;32m"
-YELLOW="${ESC}[0;33m"
-CYAN="${ESC}[0;36m"
-WHITE="${ESC}[1;37m"
-GRAY="${ESC}[0;90m"
-BOLD="${ESC}[1m"
 RESET="${ESC}[0m"
+BOLD="${ESC}[1m"
+DIM="${ESC}[2m"
+
+BLACK="${ESC}[30m"
+RED="${ESC}[31m"
+GREEN="${ESC}[32m"
+ORANGE="${ESC}[33m"
+YELLOW="${ESC}[1;33m"
+BLUE="${ESC}[34m"
+PURPLE="${ESC}[35m"
+PINK="${ESC}[1;35m"
+CYAN="${ESC}[36m"
+WHITE="${ESC}[37m"
+GRAY="${ESC}[90m"
+
+export RESET BOLD DIM CYAN GREEN YELLOW RED BLUE BLACK WHITE GRAY PURPLE ORANGE PINK
+
+# #!/bin/sh
 
 # RESET="\033[0m"
 # BOLD="\033[1m"
@@ -27,4 +39,4 @@ RESET="${ESC}[0m"
 # WHITE="\033[37m"
 # GRAY="\033[90m"
 
-export RESET BOLD DIM CYAN GREEN YELLOW RED BLUE BLACK WHITE GRAY PURPLE ORANGE PINK
+# export RESET BOLD DIM CYAN GREEN YELLOW RED BLUE BLACK WHITE GRAY PURPLE ORANGE PINK
