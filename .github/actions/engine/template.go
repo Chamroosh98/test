@@ -15,7 +15,20 @@ func generateInstallScript(outputFile string) error {
 	scriptBuilder.WriteString("###############################################################################\n")
 	scriptBuilder.WriteString("# DayPass Installer (Auto-generated via Go Action)\n")
 	scriptBuilder.WriteString("###############################################################################\n\n")
-	scriptBuilder.WriteString("REPO_URL=\"https://chamroosh98.github.io/DayPass\"\n\n")
+
+	// Smart detected REPO_URL
+	scriptBuilder.WriteString(`# Dynamic REPO_URL Auto-Detection
+		if [ -z "${REPO_URL:-}" ]; then
+			DETECTED_URL=$(ps -o args= $$ 2>/dev/null | grep -oE 'https://[^ ]+' | head -n1 || true)
+			if [ -n "$DETECTED_URL" ]; then
+				REPO_URL="${DETECTED_URL%/install.sh}"
+			else
+				REPO_URL="https://chamroosh98.github.io/DayPass"
+			fi
+		fi
+		export REPO_URL
+
+		`)
 
 	installerFiles := []string{
 		// 1. Core Installer Logic
@@ -56,14 +69,14 @@ func generateInstallScript(outputFile string) error {
 	for _, file := range installerFiles {
 		data, err := os.ReadFile(file)
 		if err != nil {
-			fmt.Printf("⚠️ Warning: File [%s] not found, skipping...\n", file)
+			fmt.Printf("⚠️ Warning: File [%s] not found, skipping ...\n", file)
 			continue
 		}
 		
 		scriptBuilder.WriteString(fmt.Sprintf("\n# 📄 Source : %s\n", filepath.Base(file)))
 		lines := strings.Split(string(data), "\n")
 		for _, line := range lines {
-			// حذف Shebang ها
+			// remove Shebangs
 			if !strings.HasPrefix(line, "#!") {
 				scriptBuilder.WriteString(line + "\n")
 			}
