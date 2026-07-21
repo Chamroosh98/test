@@ -1,6 +1,5 @@
 #!/bin/sh
 
-# ساخت کاراکتر واقعی Escape برای پشتیبانی کامل در BusyBox ash / POSIX shell
 ESC="$(printf '\033')"
 
 RESET="${ESC}[0m"

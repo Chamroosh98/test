@@ -1,61 +1,33 @@
 #!/bin/sh
 
-BOX_WIDTH=50
+# خط افقی ثابت برای بالاو پایین باکس
+BOX_LINE="──────────────────────────────────────────────────"
 
 box_header()
 {
     TITLE="$1"
-    TITLE_LEN=$(printf "%s" "$TITLE" | wc -c)
-    DASH_COUNT=$((BOX_WIDTH - TITLE_LEN - 4))
-    [ "$DASH_COUNT" -lt 5 ] && DASH_COUNT=5
-
-    DASHES=""
-    i=0
-    while [ "$i" -lt "$DASH_COUNT" ]; do
-        DASHES="${DASHES}─"
-        i=$((i+1))
-    done
-
-    printf "╭─ %s%s%s %s%s%s\n" "$BOLD" "$TITLE" "$RESET" "$CYAN" "$DASHES" "$RESET"
+    printf "╭─  %s%s%s ──────────\n" "$BOLD" "$TITLE" "$RESET$CYAN"
 }
 
 box_line()
 {
-    printf "%s│%s %s\n" "$CYAN" "$RESET" "$1"
+    printf "│ %s\n" "$1"
 }
 
 box_empty()
 {
-    printf "%s│%s\n" "$CYAN" "$RESET"
+    printf "│\n"
 }
 
 box_subheader()
 {
     TITLE="$1"
-    TITLE_LEN=$(printf "%s" "$TITLE" | wc -c)
-    DASH_COUNT=$((BOX_WIDTH - TITLE_LEN - 4))
-    [ "$DASH_COUNT" -lt 5 ] && DASH_COUNT=5
-
-    DASHES=""
-    i=0
-    while [ "$i" -lt "$DASH_COUNT" ]; do
-        DASHES="${DASHES}─"
-        i=$((i+1))
-    done
-
-    printf "%s├─ %s%s%s %s%s%s\n" "$CYAN" "$BOLD" "$TITLE" "$RESET" "$CYAN" "$DASHES" "$RESET"
+    printf "├─  %s%s%s ──────────\n" "$BOLD" "$TITLE" "$RESET$CYAN"
 }
 
 box_footer()
 {
-    DASHES=""
-    i=0
-    while [ "$i" -lt "$BOX_WIDTH" ]; do
-        DASHES="${DASHES}─"
-        i=$((i+1))
-    done
-
-    printf "%s╰%s%s\n" "$CYAN" "$DASHES" "$RESET"
+    printf "╰%s\n" "$BOX_LINE"
 }
 
 draw_bar()
@@ -63,8 +35,12 @@ draw_bar()
     PCT="$1"
     BW="${2:-20}"
     MODE="${3:-usage}"
+    
+    # اطمینان از عدد بودن و محدود بودن درصد
+    [ "$PCT" -gt 100 ] && PCT=100
+    [ "$PCT" -lt 0 ] && PCT=0
+    
     FILLED=$(( PCT * BW / 100 ))
-    [ "$FILLED" -gt "$BW" ] && FILLED="$BW"
 
     if [ "$MODE" = "score" ]; then
         if [ "$PCT" -ge 80 ]; then COLOR="$GREEN"
