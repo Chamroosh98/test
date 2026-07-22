@@ -17,6 +17,8 @@ func generateInstallScript(outputFile string) error {
 
 	var scriptBuilder strings.Builder
 	scriptBuilder.WriteString("#!/bin/sh\n\n")
+	// scriptBuilder.WriteString("#!/bin/sh\nset -eu\n\n")
+
 	scriptBuilder.WriteString("###############################################################################\n")
 	scriptBuilder.WriteString("# DayPass Installer (Auto-generated via Go Action)\n")
 	scriptBuilder.WriteString("###############################################################################\n\n")

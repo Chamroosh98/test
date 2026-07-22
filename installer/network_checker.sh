@@ -167,6 +167,8 @@ network_check()
         log_warn "Network is active but experiencing high latency/degradation."
     fi
 
+    printf "\n  ${GRAY}Press [Enter] to continue ...${RESET}"
+    read -r _ </dev/tty
     return 0
 }
 
