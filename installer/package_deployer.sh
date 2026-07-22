@@ -51,7 +51,7 @@ download_package()
     sha256=$(manifest_lookup "sha256" "$package")
 
     if [ -z "$file" ] || [ "$file" = "null" ]; then
-        log_error "Package not found in manifest: $package"
+        log_error "Package not found in manifest : [$package]"
         return 1
     fi
 
@@ -64,28 +64,28 @@ download_package()
     log_info "Package : $(manifest_info "$package")"
     log_info "File    : $file"
     log_info "URL     : $REPO_URL/$ARCH/$file"
-    log_info "Downloading $package..."
+    log_info "Downloading [$package] ..."
 
     if ! curl -fsSL "$REPO_URL/$ARCH/$file" -o "$tmp"; then
-        log_error "Download failed for $package"
+        log_error "Download failed for [$package]"
         rm -f "$tmp"
         return 1
     fi
 
     if [ ! -s "$tmp" ]; then
-        log_error "Invalid package: empty file ($package)"
+        log_error "Invalid package : empty file [$package]"
         rm -f "$tmp"
         return 1
     fi
 
     if ! echo "$sha256  $tmp" | sha256sum -c - >/dev/null 2>&1; then
-        log_error "Checksum verification failed: $package"
+        log_error "Checksum verification failed : [$package]"
         rm -f "$tmp"
         return 1
     fi
 
     mv "$tmp" "$target"
-    log_success "Verified $package"
+    log_success "Verified [$package]"
 }
 
 deploy_targeted_packages()
@@ -96,7 +96,7 @@ deploy_targeted_packages()
     touch "$TRANSACTION_LOG"
 
     echo
-    log_info "Starting installation..."
+    log_info "Starting installation ..."
     echo
 
     resource_snapshot
@@ -106,7 +106,7 @@ deploy_targeted_packages()
 
     for pkg in $FINAL_PACKAGES; do
         if ! download_package "$pkg"; then
-            log_error "Download failed: $pkg"
+            log_error "Download failed : [$pkg]"
             rollback_failed_install
             return 1
         fi
@@ -116,8 +116,8 @@ deploy_targeted_packages()
     done
 
     echo
-    log_info "Installing packages:"
-    echo "$INSTALL_FILES"
+    log_info "Installing packages :"
+    echo "[$INSTALL_FILES]"
     echo
 
     case "$PKG_MANAGER" in
@@ -145,7 +145,7 @@ deploy_targeted_packages()
 rollback_failed_install()
 {
     echo
-    log_warn "Rolling back installation..."
+    log_warn "Rolling back installation ..."
     echo
 
     [ -f "$TRANSACTION_LOG" ] || return
@@ -154,19 +154,19 @@ rollback_failed_install()
         opkg)
             while read -r pkg; do
                 [ -z "$pkg" ] && continue
-                log_info "Removing ($pkg) for rollback..."
+                log_info "Removing ($pkg) for rollback ..."
                 opkg remove "$pkg" || true
             done < "$TRANSACTION_LOG"
             ;;
         apk)
             while read -r pkg; do
                 [ -z "$pkg" ] && continue
-                log_info "Removing ($pkg) for rollback..."
+                log_info "Removing ($pkg) for rollback ..."
                 apk del "$pkg" || true
             done < "$TRANSACTION_LOG"
             ;;
     esac
 
     rm -f "$TRANSACTION_LOG"
-    log_success "Rollback completed."
+    log_success "Rollback completed!"
 }
