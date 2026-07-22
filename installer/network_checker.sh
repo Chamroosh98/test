@@ -154,8 +154,8 @@ network_check()
         log_warn "Network is up but degraded!"
     fi
 
-    sleep 2
-    clear
+    # sleep 2
+    # clear
     return 0
 }
 
