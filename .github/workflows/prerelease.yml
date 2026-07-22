@@ -3,7 +3,7 @@ name: 🧪 DayPass Beta
 on:
   push:
     branches:
-      - dev
+      - beta
   workflow_dispatch:
 
 permissions:
@@ -108,7 +108,7 @@ jobs:
           mkdir -p github-pages-content
           cp build-artifacts/install.sh github-pages-content/
           cp build-artifacts/manifest.json github-pages-content/
-          echo "✅ Isolated install.sh and manifest.json for Pages deployment."
+          echo "✅ Isolated install.sh and manifest.json for Pages deployment!"
 
           
       - name: 🌐 Deploy to GitHub Pages
@@ -120,7 +120,7 @@ jobs:
         
       - name: 📊 Verify Release Assets Size & Guardrail
         run: |
-          echo "📁 Listing all files in build-artifacts with their sizes:"
+          echo "📁 Listing all files in build-artifacts with their sizes :"
           ls -lh build-artifacts/
           echo "--------------------------------------------------------"
           echo "🚨 Checking for zero-byte files ..."
