@@ -33,7 +33,7 @@ redraw_row()
         https) h="$spin" ;;
     esac
 
-    printf "\r  %-18s  %-5s    %-5s    %-5s" "$ROW_HOST" "$d" "$p" "$h"
+    printf "\r  %-16s %-6b %-7b %-6b\033[K" "$ROW_HOST" "$d" "$p" "$h"
 }
 
 run_cell()
@@ -49,7 +49,7 @@ run_cell()
     i=0
     while kill -0 "$pid" 2>/dev/null; do
         c="$(printf '%s' "$spin_chars" | cut -c$(( (i % 4) + 1 )))"
-        redraw_row "$c"
+        redraw_row "${CYAN}$c${RESET}"
         i=$((i + 1))
         spin_sleep
     done
@@ -67,8 +67,9 @@ process_host()
     ROW_PING_ICON="·"
     ROW_HTTPS_ICON="·"
     ROW_ACTIVE=""
-    redraw_row " "
+    redraw_row "·"
 
+    # ۱. تست DNS
     run_cell "dns" "/tmp/.nc_dns_$$" nslookup "$ROW_HOST" 127.0.0.1
     if [ "$CELL_EXIT" -eq 0 ]; then
         ROW_DNS_ICON="🟢"
@@ -77,6 +78,7 @@ process_host()
         DNS_FAILED=1
     fi
 
+    # ۲. تست Ping
     run_cell "ping" "/tmp/.nc_ping_$$" ping -c 2 -W 2 "$ROW_HOST"
     LOSS="$(printf '%s' "$CELL_OUTPUT" | grep -o '[0-9]*% packet loss' | grep -o '^[0-9]*')"
     [ -z "$LOSS" ] && LOSS=100
@@ -88,6 +90,7 @@ process_host()
         ROW_PING_ICON="🔴"
     fi
 
+    # ۳. تست HTTPS
     run_cell "https" "/tmp/.nc_https_$$" curl -fsS -o /dev/null -w '%{time_total}' --connect-timeout 5 "https://$ROW_HOST"
     if [ "$CELL_EXIT" -ne 0 ]; then
         ROW_HTTPS_ICON="🔴"
@@ -123,39 +126,42 @@ network_check()
     DNS_FAILED=0
 
     echo
-    printf "  ${BOLD}${CYAN}🔎 DayPass Network Check${RESET}\n\n"
-    printf "  %-18s  %-5s    %-5s    %-5s\n" "Host" "DNS" "Ping" "HTTPS"
-    printf "  ${DIM}──────────────────────────────────────────${RESET}\n"
+    printf "  ${BOLD}${CYAN}🔎 DayPass Network Health Check${RESET}\n\n"
+
+    printf "  ${BOLD}%-16s %-6s %-6s %-6s${RESET}\n" "Host" "DNS" "Ping" "HTTPS"
+    printf "  ${GRAY}──────────────────────────────────────────${RESET}\n"
 
     process_host "google.com"
     process_host "github.com"
     process_host "openwrt.org"
     process_host "cloudflare.com"
 
-    printf "  ${DIM}──────────────────────────────────────────${RESET}\n"
+    printf "  ${GRAY}──────────────────────────────────────────${RESET}\n"
 
     PCT=0
     [ "$TOTAL_CHECKS" -gt 0 ] && PCT=$((GREEN_COUNT * 100 / TOTAL_CHECKS))
 
-    printf "  Overall Status   "
-    draw_bar "$PCT" 15 "score" 
-    printf " %s%% (🟢 %s  🟡 %s  🔴 %s)\n\n" "$PCT" "$GREEN_COUNT" "$YELLOW_COUNT" "$RED_COUNT"
+    printf "  ${BOLD}Overall Status:${RESET} "
+    if command -v draw_bar >/dev/null 2>&1; then
+        draw_bar "$PCT" 12 "score"
+    fi
+    printf " %s%% (🟢%s  🟡%s  🔴%s)\n\n" "$PCT" "$GREEN_COUNT" "$YELLOW_COUNT" "$RED_COUNT"
 
     if [ "$DNS_FAILED" -eq 0 ] && [ "$RED_COUNT" -eq 0 ]; then
-        log_success "Network looks good and healthy!"
+        log_success "Network is fully functional!"
     fi
 
     if [ "$DNS_FAILED" -eq 1 ]; then
-        log_error "DNS problems detected!"
+        log_error "DNS failure detected!"
         if ping -c 1 -W 2 1.1.1.1 >/dev/null 2>&1; then
-            dns_fix_menu
+            if command -v dns_fix_menu >/dev/null 2>&1; then
+                dns_fix_menu
+            fi
         fi
     elif [ "$YELLOW_COUNT" -gt 0 ]; then
-        log_warn "Network is up but degraded!"
+        log_warn "Network is active but experiencing high latency/degradation."
     fi
 
-    # sleep 2
-    # clear
     return 0
 }
 
