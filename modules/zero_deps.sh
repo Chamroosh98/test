@@ -22,7 +22,7 @@ deploy_system_dependencies()
         echo "  🔎 Checking dnsmasq ..."
 
         if ! pkg_installed "dnsmasq-full"; then
-            echo "  📍 Upgrading dnsmasq to dnsmasq-full..."
+            echo "  📍 Upgrading dnsmasq to dnsmasq-full ..."
             case "$PKG_MANAGER" in
                 opkg)
                     opkg install dnsmasq-full --replace-files
@@ -32,7 +32,7 @@ deploy_system_dependencies()
                     ;;
             esac
         else
-            echo "  ✅ dnsmasq-full is already installed."
+            echo "  💣 dnsmasq-full is already installed!"
         fi
     fi
 }
