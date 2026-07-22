@@ -131,7 +131,12 @@ network_check()
     DNS_FAILED=0
 
     echo
-    printf "  ${BOLD}${CYAN}🔎 DayPass Network Health Check${RESET}\n\n"
+    printf "  ${BOLD}${CYAN}🔎 DayPass Network Health Check${RESET}\n"
+    
+    printf "  ${GRAY}──────────────────────────────────────────${RESET}\n"
+    printf "  ${BOLD}Status Legend:${RESET}\n"
+    printf "    🟢 ${GREEN}Passed / Fast${RESET}  |  🟡 ${YELLOW}Degraded / Slow${RESET}  |  🔴 ${RED}Failed / Blocked${RESET}\n"
+    printf "  ${GRAY}──────────────────────────────────────────${RESET}\n\n"
 
     printf "  ${BOLD}%-16s %-6s %-7s %-6s${RESET}\n" "Host" "DNS" "Ping" "HTTPS"
     printf "  ${GRAY}──────────────────────────────────────────${RESET}\n"
@@ -146,29 +151,48 @@ network_check()
     PCT=0
     [ "$TOTAL_CHECKS" -gt 0 ] && PCT=$((GREEN_COUNT * 100 / TOTAL_CHECKS))
 
-    printf "  ${BOLD}Overall Status:${RESET} "
+    printf "  ${BOLD}Overall Score:${RESET} "
     if command -v draw_bar >/dev/null 2>&1; then
         draw_bar "$PCT" 12 "score"
     fi
-    printf " %s%% (🟢%s  🟡%s  🔴%s)\n\n" "$PCT" "$GREEN_COUNT" "$YELLOW_COUNT" "$RED_COUNT"
+    printf " %s%% (🟢 %s  🟡 %s  🔴 %s)\n\n" "$PCT" "$GREEN_COUNT" "$YELLOW_COUNT" "$RED_COUNT"
 
-    if [ "$DNS_FAILED" -eq 0 ] && [ "$RED_COUNT" -eq 0 ]; then
-        log_success "Network is fully functional!"
-    fi
-
+    printf "  ${BOLD}Diagnostic Report:${RESET}\n"
     if [ "$DNS_FAILED" -eq 1 ]; then
-        log_error "DNS failure detected!"
+        if command -v log_error >/dev/null 2>&1; then
+            log_error "DNS resolution is failing! Router cannot translate domain names."
+        else
+            printf "  ❌ ${RED}DNS resolution failed! Domain name lookup is broken.${RESET}\n"
+        fi
         if ping -c 1 -W 2 1.1.1.1 >/dev/null 2>&1; then
             if command -v dns_fix_menu >/dev/null 2>&1; then
                 dns_fix_menu
             fi
         fi
+    elif [ "$RED_COUNT" -gt 0 ]; then
+        if command -v log_warn >/dev/null 2>&1; then
+            log_warn "HTTPS connections are blocked or filtered (Possible Censorship/DPI)."
+        else
+            printf "  ⚠️ ${YELLOW}HTTPS traffic is blocked or severely interfered with.${RESET}\n"
+        fi
     elif [ "$YELLOW_COUNT" -gt 0 ]; then
-        log_warn "Network is active but experiencing high latency/degradation."
+        if command -v log_warn >/dev/null 2>&1; then
+            log_warn "Network is active but experiencing high packet loss/latency (>2s)."
+        else
+            printf "  ⚠️ ${YELLOW}High latency or degraded response time detected.${RESET}\n"
+        fi
+    else
+        if command -v log_success >/dev/null 2>&1; then
+            log_success "Network is fully functional with clean connectivity!"
+        else
+            printf "  ✅ ${GREEN}Network is fully functional!${RESET}\n"
+        fi
     fi
 
-    printf "\n  ${GRAY}Press [Enter] to continue ...${RESET}"
+    echo
+    printf "  ${GRAY}Press [Enter] to continue ...${RESET}"
     read -r _ </dev/tty
+    echo
     return 0
 }
 
