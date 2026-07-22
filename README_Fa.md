@@ -61,10 +61,10 @@ wget -qO- https://chamroosh98.github.io/DayPass/install.sh | sh
 ### 🟠 ورژن آزمایشی
 **curl :**
 ```bash
-curl -sSL https://chamroosh98.github.io/DayPass/dev/install.sh | sh
+curl -sSL https://chamroosh98.github.io/DayPass/beta/install.sh | sh
 ```
 
 **wget :**
 ```bash
-wget -qO- https://chamroosh98.github.io/DayPass/dev/install.sh | sh
+wget -qO- https://chamroosh98.github.io/DayPass/beta/install.sh | sh
 ```

@@ -64,9 +64,9 @@ wget -qO- https://chamroosh98.github.io/DayPass/install.sh | sh
 
 **Using curl :**
 ``` bash
-curl -sL https://chamroosh98.github.io/DayPass/dev/install.sh | sh
+curl -sL https://chamroosh98.github.io/DayPass/beta/install.sh | sh
 ```
 **Using wget :**
 ```bash
-wget -qO- https://chamroosh98.github.io/DayPass/dev/install.sh | sh
+wget -qO- https://chamroosh98.github.io/DayPass/beta/install.sh | sh
 ```

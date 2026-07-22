@@ -12,7 +12,7 @@ func generateInstallScript(outputFile string) error {
 	
 	branch := os.Getenv("GITHUB_REF_NAME")
 	if branch == "" {
-		branch = "dev" 
+		branch = "beta" 
 	}
 
 	var scriptBuilder strings.Builder

@@ -3,7 +3,7 @@ name: 🧪 DayPass Beta
 on:
   push:
     branches:
-      - dev
+      - beta
   workflow_dispatch:
 
 permissions:
@@ -115,12 +115,12 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: github-pages-content  
-          target-folder: dev             
+          target-folder: beta             
           branch: gh-pages
         
       - name: 📊 Verify Release Assets Size & Guardrail
         run: |
-          echo "📁 Listing all files in build-artifacts with their sizes:"
+          echo "📁 Listing all files in build-artifacts with their sizes :"
           ls -lh build-artifacts/
           echo "--------------------------------------------------------"
           echo "🚨 Checking for zero-byte files ..."

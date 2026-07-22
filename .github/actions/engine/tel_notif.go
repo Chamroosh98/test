@@ -33,7 +33,7 @@ func SendTelegramNotification(
 	} else {
 		tagFormat = fmt.Sprintf("v%s-beta-%s", version, buildNum)
 		msgHeader = "🧪 *New Beta DayPass Ready!*"
-		installURL = "https://Chamroosh98.github.io/DayPass/dev/install.sh"
+		installURL = "https://Chamroosh98.github.io/DayPass/beta/install.sh"
 		btnEmoji = "🧪 "
 	}
 
