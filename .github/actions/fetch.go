@@ -90,11 +90,16 @@ func fileExists(path string) bool {
 
 func main() {
 	if len(os.Args) < 3 {
-		fmt.Println("❌ Usage : go run fetch.go <architecture> <release_version>")
+		fmt.Println("❌ Usage : go run fetch.go <architecture> <release_version> [release_type]")
 		os.Exit(1)
 	}
 	targetArch := os.Args[1]
 	releaseVersion := os.Args[2]
+
+	releaseType := "release"
+	if len(os.Args) > 3 {
+		releaseType = os.Args[3]
+	}
 
 	configData, err := os.ReadFile("config/architectures.json")
 	if err != nil {
@@ -188,7 +193,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	zipName := fmt.Sprintf("DayPass_%s_%s_beta.zip", targetArch, releaseVersion)
+	var zipName string
+	if releaseType == "release" || releaseType == "main" || releaseType == "stable" {
+		zipName = fmt.Sprintf("DayPass_%s_%s.zip", targetArch, releaseVersion)
+	} else {
+		zipName = fmt.Sprintf("DayPass_%s_%s_beta.zip", targetArch, releaseVersion)
+	}
+
 	if err := zipDirectory(baseDownloadDir, zipName); err != nil {
 		fmt.Printf("❌ Zipping failed : [%v]\n", err)
 		os.Exit(1)
