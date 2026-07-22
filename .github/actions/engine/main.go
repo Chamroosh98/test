@@ -2,21 +2,18 @@ package main
 
 import (
 	"archive/zip"
-	"bytes"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 func copyFile(src, dst string) error {
 	srcStat, err1 := os.Stat(src)
 	dstStat, err2 := os.Stat(dst)
-	
+
 	if err1 == nil && err2 == nil && os.SameFile(srcStat, dstStat) {
 		return nil
 	}
@@ -49,6 +46,7 @@ func main() {
 	buildNum := os.Getenv("INPUT_BUILD_NUMBER")
 	actor := os.Getenv("INPUT_ACTOR")
 	repo := os.Getenv("GITHUB_REPOSITORY")
+	releaseType := os.Getenv("INPUT_RELEASE_TYPE")
 
 	archConfigFile := os.Getenv("DAYPASS_ARCH_FILE")
 	if archConfigFile == "" {
@@ -84,7 +82,7 @@ func main() {
 		if len(matches) > 0 {
 			zipFile := matches[0]
 			fmt.Printf("📦 Extracting matrix artifact : [%s]\n", zipFile)
-			
+
 			r, err := zip.OpenReader(zipFile)
 			if err != nil {
 				fmt.Printf("❌ Error opening zip [%s] : [%v]\n", zipFile, err)
@@ -92,11 +90,10 @@ func main() {
 			}
 
 			for _, f := range r.File {
-
 				if filepath.Base(f.Name) == "index.json" {
 					continue
 				}
-				
+
 				fpath := filepath.Join(destDir, f.Name)
 				if f.FileInfo().IsDir() {
 					os.MkdirAll(fpath, os.ModePerm)
@@ -119,7 +116,7 @@ func main() {
 					return err
 				}()
 				if err != nil {
-					fmt.Printf("❌ Error extracting file [%s] :[ %v]\n", f.Name, err)
+					fmt.Printf("❌ Error extracting file [%s] : [%v]\n", f.Name, err)
 				}
 			}
 			r.Close()
@@ -145,9 +142,9 @@ func main() {
 			io.Copy(h, f)
 			fileSHA := fmt.Sprintf("%x", h.Sum(nil))
 			shaFileName := filepath.Base(zipFile) + ".sha256"
-			
+
 			os.WriteFile("build-artifacts/"+shaFileName, []byte(fileSHA+"  "+filepath.Base(zipFile)+"\n"), 0644)
-			
+
 			copyFile(zipFile, "build-artifacts/"+filepath.Base(zipFile))
 		}()
 	}
@@ -164,9 +161,9 @@ func main() {
 		info, err := os.Stat(f)
 		if err == nil {
 			if info.IsDir() {
-				continue 
+				continue
 			}
-			
+
 			if info.Size() == 0 {
 				fmt.Printf("❌ CRITICAL WARNING : [%s] is 0 bytes!\n", filepath.Base(f))
 			} else {
@@ -176,54 +173,9 @@ func main() {
 	}
 	fmt.Println()
 
-	tagFormat := fmt.Sprintf("v%s-beta-%s", version, buildNum)
-
-	var keyboard []InlineKeyboardButton
-	for _, arch := range archConfig.Architectures {
-		zipMatch, _ := filepath.Glob(fmt.Sprintf("merged-beta/DayPass_%s_*.zip", arch.Name))
-		if len(zipMatch) > 0 {
-			actualFileName := filepath.Base(zipMatch[0])
-			btn := InlineKeyboardButton{
-				Text: "🧪 " + arch.Name,
-				URL:  fmt.Sprintf("https://github.com/%s/releases/download/%s/%s", repo, tagFormat, actualFileName),
-			}
-			keyboard = append(keyboard, btn)
-		}
-	}
-
-	var inlineKeyboard [][]InlineKeyboardButton
-	for _, btn := range keyboard {
-		inlineKeyboard = append(inlineKeyboard, []InlineKeyboardButton{btn})
-	}
-
-	msgText := fmt.Sprintf(
-		"📬 *New Beta DayPass Ready! *\n\n🏷️ *Version :* `%s`\n🛠️ *Build :* `%s`\n👤 *By :* `%s`\n\n🔬 *Installer :* `wget -O- %s/dev/install.sh | sh`",
-		tagFormat, buildNum, actor, "https://Chamroosh98.github.io/DayPass",
+	// Call Telegram notification module
+	SendTelegramNotification(
+		botToken, chatID, version, buildNum, actor, repo, releaseType,
+		archConfig.Architectures,
 	)
-
-	payload := TelegramMessage{
-		ChatID:                chatID,
-		Text:                  msgText,
-		ParseMode:             "Markdown",
-		ReplyMarkup:           InlineKeyboardMarkup{InlineKeyboard: inlineKeyboard},
-		DisableWebPagePreview: true,
-	}
-
-	jsonPayload, _ := json.Marshal(payload)
-	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", botToken)
-	req, _ := http.NewRequest("POST", apiURL, bytes.NewBuffer(jsonPayload))
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{Timeout: 10 * time.Second}
-	
-	resp, err := client.Do(req)
-
-	if err == nil && resp.StatusCode == http.StatusOK {
-    fmt.Println("✅ Dynamic notification sent successfully!")
-	} else {
-		if err != nil {
-			fmt.Printf("❌ Telegram API Network Error : [%v]\n", err)
-		} else {
-			fmt.Printf("❌ Telegram API Refused with Status : [%s] \n", resp.Status)
-		}
-	}
 }
