@@ -33,7 +33,7 @@ redraw_row()
         https) h="$spin" ;;
     esac
 
-    printf "\r  %-16s %-6b %-7b %-6b\033[K" "$ROW_HOST" "$d" "$p" "$h"
+    printf "\r  %-16s %-6s %-7s %-6s\033[K" "$ROW_HOST" "$d" "$p" "$h"
 }
 
 run_cell()
@@ -49,7 +49,12 @@ run_cell()
     i=0
     while kill -0 "$pid" 2>/dev/null; do
         c="$(printf '%s' "$spin_chars" | cut -c$(( (i % 4) + 1 )))"
-        redraw_row "${CYAN}$c${RESET}"
+
+        if [ -n "$CYAN" ] && [ -n "$RESET" ]; then
+            redraw_row "${CYAN}${c}${RESET}"
+        else
+            redraw_row "$c"
+        fi
         i=$((i + 1))
         spin_sleep
     done
@@ -69,7 +74,7 @@ process_host()
     ROW_ACTIVE=""
     redraw_row "·"
 
-    # ۱. تست DNS
+    # DNS
     run_cell "dns" "/tmp/.nc_dns_$$" nslookup "$ROW_HOST" 127.0.0.1
     if [ "$CELL_EXIT" -eq 0 ]; then
         ROW_DNS_ICON="🟢"
@@ -78,7 +83,7 @@ process_host()
         DNS_FAILED=1
     fi
 
-    # ۲. تست Ping
+    # Ping
     run_cell "ping" "/tmp/.nc_ping_$$" ping -c 2 -W 2 "$ROW_HOST"
     LOSS="$(printf '%s' "$CELL_OUTPUT" | grep -o '[0-9]*% packet loss' | grep -o '^[0-9]*')"
     [ -z "$LOSS" ] && LOSS=100
@@ -90,7 +95,7 @@ process_host()
         ROW_PING_ICON="🔴"
     fi
 
-    # ۳. تست HTTPS
+    # HTTPS
     run_cell "https" "/tmp/.nc_https_$$" curl -fsS -o /dev/null -w '%{time_total}' --connect-timeout 5 "https://$ROW_HOST"
     if [ "$CELL_EXIT" -ne 0 ]; then
         ROW_HTTPS_ICON="🔴"
@@ -128,7 +133,7 @@ network_check()
     echo
     printf "  ${BOLD}${CYAN}🔎 DayPass Network Health Check${RESET}\n\n"
 
-    printf "  ${BOLD}%-16s %-6s %-6s %-6s${RESET}\n" "Host" "DNS" "Ping" "HTTPS"
+    printf "  ${BOLD}%-16s %-6s %-7s %-6s${RESET}\n" "Host" "DNS" "Ping" "HTTPS"
     printf "  ${GRAY}──────────────────────────────────────────${RESET}\n"
 
     process_host "google.com"
