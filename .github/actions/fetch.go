@@ -124,7 +124,7 @@ func main() {
 			continue
 		}
 		found = true
-		fmt.Printf("🗜️ Processing [%s]\n", targetArch)
+		fmt.Printf("\n🗜️ Processing [%s]\n", targetArch)
 
 		for _, feed := range arch.Feeds {
 			feedCacheDir := filepath.Join(persistentCacheDir, feed)

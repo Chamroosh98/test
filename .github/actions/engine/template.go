@@ -93,13 +93,14 @@ func generateInstallScript(outputFile string) error {
 ###############################################################################
 DEPLOYMENT_FAILED=0
 
-# 1. Installing requirements
-deploy_system_dependencies
-
-# 2. checking network connection
+# 🔴🔴🔴🔴🔴🔴🔴 The execution order of the modules is important! 🔴🔴🔴🔴🔴🔴🔴
+# ============= Checking network connection =============
 network_check || exit 1
 
-# continue
+# ============= Installing requirements =================
+deploy_system_dependencies
+
+# Continue
 check_version
 detect_arch
 initialize_installer

@@ -103,7 +103,7 @@ jobs:
           cd .github/actions/engine/
           go run .
 
-      - name: 🕵️‍♀️ Prepare GitHub Pages Assets for ignoring zip heavy files
+      - name: 🕵️‍♀️ Prepare GitHub Pages Assets for ignoring heavy zip files
         run: |
           mkdir -p github-pages-content
           cp build-artifacts/install.sh github-pages-content/
