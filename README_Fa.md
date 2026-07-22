@@ -6,7 +6,6 @@
 
 *سریع · سبک · بدون نیاز به وابستگی · ساخته شده با POSIX Shell خالص برای دستگاه‌های OpenWrt.*
 
-[![ci](https://img.shields.io/badge/ci-passing-brightgreen?style=flat-square&logo=github-actions)](https://github.com/Chamroosh98/DayPass/actions)
 [![release](https://img.shields.io/badge/release-latest-purple?style=flat-square)](https://github.com/Chamroosh98/DayPass/releases)
 [![shell](https://img.shields.io/badge/shell-POSIX%20ash-blue?style=flat-square&logo=gnu-bash)](https://www.openwrt.org)
 [![platform](https://img.shields.io/badge/platform-OpenWrt-darkgreen?style=flat-square&logo=openwrt)](https://openwrt.org)
@@ -16,7 +15,7 @@
 </div>
 
 <div dir="rtl">
-
+    [**English**](./README.md)
 > 
 
 - [DayPass](#daypass)
