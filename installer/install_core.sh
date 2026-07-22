@@ -17,7 +17,7 @@ initialize_installer()
         exit 1
     fi
 
-    clear
+    # clear
 
     log_info "Downloading architecture manifest from : [$REPO_URL/manifest.json]"
     if ! curl -fsSL "$REPO_URL/manifest.json" -o "$MANIFEST_FILE"; then

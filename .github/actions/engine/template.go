@@ -106,6 +106,8 @@ detect_arch
 initialize_installer
 
 # Launching TUI Interface
+
+clear
 reset_state
 main_menu
 

@@ -3,7 +3,7 @@
 main_menu()
 {
     while true; do
-        clear
+        # clear
         show_banner
         show_system_info
         echo
