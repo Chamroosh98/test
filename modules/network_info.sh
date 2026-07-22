@@ -105,7 +105,7 @@ network_menu()
         
         printf "   📊 ${CYAN}1${RESET}) Live Speed Monitor\n"
         printf "   🔄 ${CYAN}2${RESET}) Refresh Information\n"
-        printf "   ⬅️  ${CYAN}0${RESET}) Back to Main Menu\n\n"
+        printf "   ⬅️ ${CYAN}0${RESET}) Back to Main Menu\n\n"
         
         printf "   ⁉️  ${YELLOW}Choice${RESET} ${GRAY}:${RESET} "
         read -r net_choice </dev/tty
@@ -157,7 +157,9 @@ show_live_speed() {
             TX_FMT="${TX_SPEED} KB/s"
         fi
 
-        printf "\r  📥 ${GRAY}Down:${RESET} %-12s ${GRAY}|${RESET} 📤 ${GRAY}Up:${RESET} %-12s" "${GREEN}$RX_FMT${RESET}" "${YELLOW}$TX_FMT${RESET}"
+        printf "\r  📥 ${GRAY}Down:${RESET} %s%-10s%s ${GRAY}|${RESET} 📤 ${GRAY}Up:${RESET} %s%-10s%s\033[K" \
+            "$GREEN" "$RX_FMT" "$RESET" \
+            "$YELLOW" "$TX_FMT" "$RESET"
 
         RX_PREV=$RX_NOW
         TX_PREV=$TX_NOW
