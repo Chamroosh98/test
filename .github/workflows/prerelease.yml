@@ -115,7 +115,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: github-pages-content  
-          target-folder: dev             
+          target-folder: beta             
           branch: gh-pages
         
       - name: 📊 Verify Release Assets Size & Guardrail
