@@ -143,23 +143,19 @@ network_check()
 
     if [ "$DNS_FAILED" -eq 0 ] && [ "$RED_COUNT" -eq 0 ]; then
         log_success "Network looks good and healthy!"
-        # sleep 2
-        # clear
-        return 0
     fi
 
     if [ "$DNS_FAILED" -eq 1 ]; then
         log_error "DNS problems detected!"
         if ping -c 1 -W 2 1.1.1.1 >/dev/null 2>&1; then
             dns_fix_menu
-            # sleep 2
-            # clear
-            return 0
         fi
     elif [ "$YELLOW_COUNT" -gt 0 ]; then
         log_warn "Network is up but degraded!"
     fi
-    
+
+    sleep 2
+    clear
     return 0
 }
 

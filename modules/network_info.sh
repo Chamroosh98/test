@@ -24,18 +24,21 @@ country_flag()
 
 fetch_ip_data()
 {
+    # Main
     NETWORK_JSON="$($FETCH_CMD https://ipwho.is/ 2>/dev/null || true)"
     if [ -n "$NETWORK_JSON" ] && echo "$NETWORK_JSON" | grep -q '"success":true'; then
         echo "$NETWORK_JSON" | jq -r '"true|\(.ip // "")|\(.country // "")|\(.country_code // "")|\(.flag.emoji // "")|\(.city // "")|\(.connection.isp // "")|\(.connection.asn // "")"' 2>/dev/null || echo "false|||||||"
         return 0
     fi
 
+    # FallBack 1
     NETWORK_JSON="$($FETCH_CMD https://ipapi.co/json/ 2>/dev/null || true)"
     if [ -n "$NETWORK_JSON" ] && echo "$NETWORK_JSON" | grep -q '"ip"'; then
         echo "$NETWORK_JSON" | jq -r '"true|\(.ip // "")|\(.country_name // "")|\(.country_code // "")||\(.city // "")|\(.org // "")|\(.asn // "")"' 2>/dev/null || echo "false|||||||"
         return 0
     fi
-
+    
+    # FallBack 2
     NETWORK_JSON="$($FETCH_CMD https://ifconfig.co/json 2>/dev/null || true)"
     if [ -n "$NETWORK_JSON" ] && echo "$NETWORK_JSON" | grep -q '"ip"'; then
         echo "$NETWORK_JSON" | jq -r '"true|\(.ip // "")|\(.country // "")|\(.country_iso // "")||\(.city // "")|\(.asn_org // "")|\(.asn // "")"' 2>/dev/null || echo "false|||||||"
@@ -45,22 +48,27 @@ fetch_ip_data()
     echo "false|||||||"
 }
 
-get_network_info_content()
+show_full_network_info()
 {
+    clear
+    printf "\n   ${CYAN}🌐 Network Diagnostics & Information${RESET}\n"
+    printf "   ${GRAY}─────────────────────────────────────────${RESET}\n"
+
     if command -v curl >/dev/null 2>&1; then
-        FETCH_CMD="curl -fsS --connect-timeout 2 --max-time 3"
+        FETCH_CMD="curl -fsS --connect-timeout 2 --max-time 4"
     elif command -v uclient-fetch >/dev/null 2>&1; then
-        FETCH_CMD="uclient-fetch -q -T 3 -O-"
+        FETCH_CMD="uclient-fetch -q -T 4 -O-"
     else
-        box_line "${YELLOW}curl / uclient-fetch unavailable!${RESET}"
+        printf "   ${YELLOW}⚠️  curl / uclient-fetch unavailable!${RESET}\n\n"
         return 0
     fi
 
     if ! command -v jq >/dev/null 2>&1; then
-        box_line "${YELLOW}jq is missing!${RESET}"
+        printf "   ${YELLOW}⚠️  jq is missing!${RESET}\n\n"
         return 0
     fi
 
+    printf "   ${GRAY}Fetching network details...${RESET}\r"
     PARSED_DATA="$(fetch_ip_data 2>/dev/null || echo "false|||||||")"
 
     IFS='|' read -r SUCCESS PUBLIC_IP COUNTRY COUNTRY_CODE FLAG CITY ISP ASN <<EOF
@@ -68,32 +76,47 @@ $PARSED_DATA
 EOF
 
     if [ "${SUCCESS:-false}" != "true" ] || [ -z "$PUBLIC_IP" ]; then
-        box_line "${GRAY}IP      :${RESET} ${RED}Offline / Unavailable${RESET}"
-        box_line "${GRAY}Status  :${RESET} ${YELLOW}No Internet Connection${RESET}"
-        return 0
+        printf "   ${GRAY}IP      :${RESET} ${RED}Offline / Disconnected${RESET}\n"
+        printf "   ${GRAY}Status  :${RESET} ${YELLOW}No Internet Access${RESET}\n"
+    else
+        if [ "$COUNTRY_CODE" = "IR" ]; then
+            FLAG="🦁☀️"
+        elif [ -z "$FLAG" ]; then
+            FLAG="$(country_flag "$COUNTRY_CODE")"
+        fi
+
+        CITY_STR=""
+        [ -n "$CITY" ] && CITY_STR=" ${GRAY}($CITY)${RESET}"
+
+        printf "   ${GRAY}Public IP   :${RESET} ${CYAN}$PUBLIC_IP${RESET}\n"
+        printf "   ${GRAY}Country     :${RESET} $FLAG ${WHITE}$COUNTRY${RESET}$CITY_STR\n"
+        [ -n "$ISP" ] && printf "   ${GRAY}ISP         :${RESET} ${WHITE}$ISP${RESET}\n"
+        [ -n "$ASN" ] && printf "   ${GRAY}ASN         :${RESET} ${GRAY}AS$ASN${RESET}\n"
     fi
 
-    if [ "$COUNTRY_CODE" = "IR" ]; then
-        FLAG="🦁☀️"
-    elif [ -z "$FLAG" ]; then
-        FLAG="$(country_flag "$COUNTRY_CODE")"
-    fi
-
-    CITY_STR=""
-    [ -n "$CITY" ] && CITY_STR=" ${GRAY}($CITY)${RESET}"
-
-    box_line "${GRAY}IP      :${RESET} ${CYAN}$PUBLIC_IP${RESET}"
-    box_line "${GRAY}Country :${RESET} $FLAG ${WHITE}$COUNTRY${RESET}$CITY_STR"
-    [ -n "$ISP" ] && box_line "${GRAY}ISP     :${RESET} ${WHITE}$ISP${RESET}"
-    [ -n "$ASN" ] && box_line "${GRAY}ASN     :${RESET} ${GRAY}AS$ASN${RESET}"
+    printf "   ${GRAY}─────────────────────────────────────────${RESET}\n\n"
 }
 
-get_network_info()
+
+network_menu()
 {
-    echo
-    box_header "🌐 Network"
-    get_network_info_content
-    box_footer
+    while true; do
+        show_full_network_info
+        
+        printf "   📊 ${CYAN}1${RESET}) Live Speed Monitor\n"
+        printf "   🔄 ${CYAN}2${RESET}) Refresh Information\n"
+        printf "   ⬅️  ${CYAN}0${RESET}) Back to Main Menu\n\n"
+        
+        printf "   ⁉️  ${YELLOW}Choice${RESET} ${GRAY}:${RESET} "
+        read -r net_choice </dev/tty
+
+        case "$net_choice" in
+            1) show_live_speed ;;
+            2) continue ;;
+            0) break ;;
+            *) log_warn "Invalid choice!" ;;
+        esac
+    done
 }
 
 show_live_speed() {
@@ -142,5 +165,5 @@ show_live_speed() {
 }
 
 case "$0" in
-    *network_info.sh) get_network_info ;;
+    *network_checker.sh|*network_info.sh) network_menu ;;
 esac
