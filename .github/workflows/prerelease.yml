@@ -47,7 +47,7 @@ jobs:
         run: |
           go run .github/actions/fetch.go ${{ matrix.arch }} ${{ env.VERSION }} beta
 
-      - name: ⬆️ Upload Zip Artifact
+      - name: 📤 Upload Zip Artifact
         uses: actions/upload-artifact@v4
         with:
           name: beta-${{ matrix.arch }}
@@ -108,7 +108,7 @@ jobs:
           mkdir -p github-pages-content
           cp build-artifacts/install.sh github-pages-content/
           cp build-artifacts/manifest.json github-pages-content/
-          echo "✅ Isolated install.sh and manifest.json for Pages deployment."
+          echo "✅ Isolated install.sh and manifest.json for Pages deployment!"
 
           
       - name: 🌐 Deploy to GitHub Pages
