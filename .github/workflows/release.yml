@@ -8,96 +8,50 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
-  prep-matrix:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-      - name: 🔎 Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: 📤 Generate Matrix Config
-        id: set-matrix
-        run: |
-          ARCH_ARRAY=$(jq -c '.architectures | [.[].name]' config/architectures.json)
-          echo "matrix={\"arch\":${ARCH_ARRAY}}" >> $GITHUB_OUTPUT
-
   build:
-    needs: prep-matrix
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJson(needs.prep-matrix.outputs.matrix) }}
+      matrix:
+        arch: [
+          "aarch64_cortex-a53", "aarch64_cortex-a72", "aarch64_cortex-a76",
+          "aarch64_generic", "arm_cortex-a7_neon-vfpv4", "arm_cortex-a9_vfpv3-d16",
+          "i386_pentium4", "mipsel_24kc", "x86_64"
+        ]
       fail-fast: false
     steps:
       - name: 🔎 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🏷️ Generate Version
-        run: |
-          echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
+      - name: 🏷️ Generate Release Version for Filenames
+        run: echo "VERSION=v$(date +%y.%m.%d)" >> $GITHUB_ENV
 
-      - name: 🗓️ Restore DayPass Cache
+      - name: 🦫 Setup Go Environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          cache: false
+
+      - name: 🗓️ Restore / Save DayPass Downloads Cache
         uses: actions/cache@v4
         with:
-          path: cache
-          key: daypass-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('config/architectures.json') }}
+          path: .cache/downloads/${{ matrix.arch }}
+          key: daypass-cache-${{ matrix.arch }}-${{ hashFiles('config/architectures.json') }}
           restore-keys: |
-            daypass-${{ runner.os }}-${{ matrix.arch }}-
+            daypass-cache-${{ matrix.arch }}-
 
-      - name: 🛡️ Run ShellCheck on Scripts
-        uses: ludeeus/action-shellcheck@master
-        with:
-          scandir: './core'
-          severity: warning
-
-      - name: 🛠️ Install Dependencies
+      - name: 📥 Download Packages & Create Zip via Go Fetcher
         run: |
-          sudo apt-get update
-          sudo apt-get install -y bash curl jq coreutils findutils zip
+          go run .github/actions/fetch.go ${{ matrix.arch }} ${{ env.VERSION }}
 
-      - name: 📝 Make Scripts Executable
-        run: |
-          find . -type f -name "*.sh" -exec chmod +x {} \;
-
-      - name: 👷‍♀️ Build DayPass for ${{ matrix.arch }}
-        shell: bash
-        run: |
-          ./core/orchestrator.sh "${{ matrix.arch }}"
-
-      - name: 🧪 Validate Build
-        shell: bash
-        run: |
-          echo "📁 Checking output root directory :"
-          ls -la output/
-          
-          if [ -f "output/install.sh" ] || [ -f "output/${{ matrix.arch }}/install.sh" ]; then
-            echo "✅ install.sh validation passed!"
-          else
-            echo "❌ install.sh not found!"
-            exit 1
-          fi
-
-      - name: 📦 Create DayPass Package
-        shell: bash
-        run: |
-          ZIP_NAME="DayPass_${{ matrix.arch }}_v${{ env.VERSION }}.zip"
-          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
-
-          cd "output/${{ matrix.arch }}"
-          zip -r "../../$ZIP_NAME" passwall_luci passwall2 passwall_packages -x "*/index.json"
-          
-          cd ../..
-          sha256sum "$ZIP_NAME" > "${ZIP_NAME}.sha256"
-
-      - name: 📤 Upload Build Artifact
+      - name: ⬆️ Upload Zip Artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-${{ matrix.arch }}
-          path: |
-            DayPass_${{ matrix.arch }}_*.zip
-            DayPass_${{ matrix.arch }}_*.sha256
+          path: DayPass_${{ matrix.arch }}_*.zip
           retention-days: 1
 
   deploy:
@@ -107,55 +61,86 @@ jobs:
       - name: 🔎 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🏷️ Generate Version (For Tagging)
-        run: |
-          echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
+      - name: 🏷️ Generate Release Version
+        run: echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
 
-      - name: 📁 Prepare Workspace Directories
+      - name: 🦫 Setup Go Environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          cache: false
+
+      - name: 🛠️ Install Core Utilities
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bash jq coreutils findutils zip
+
+      - name: 📁 Prepare Workspace Tree
         run: |
           mkdir -p merged-beta
-          mkdir -p merged-output
+          mkdir -p manifest-workspace
+          mkdir -p build-artifacts
 
-      - name: 📥 Download All Production Artifacts
+      - name: 📥 Download All Zip Artifacts
         uses: actions/download-artifact@v4
         with:
-          path: merged-beta/
           pattern: release-*
+          path: merged-beta/
           merge-multiple: true
 
-      - name: 🦫 Run Go Engine
-        uses: ./.github/actions
-        with:
-          telegram_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          telegram_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
-          version: ${{ env.VERSION }}
-          build_number: ${{ github.run_number }}
-          actor: ${{ github.actor }}
+      - name: 🦫 Run Go Engine (Merger & Manifest Compiler)
+        env:
+          INPUT_TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          INPUT_TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          INPUT_VERSION: ${{ env.VERSION }}
+          INPUT_BUILD_NUMBER: ${{ github.run_number }}
+          INPUT_ACTOR: ${{ github.actor }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          DAYPASS_ARCH_FILE: ${{ github.workspace }}/config/architectures.json
+          DAYPASS_OUTPUT_DIR: ${{ github.workspace }}/build-artifacts
+        run: |
+          cd .github/actions/engine/
+          go run .
 
-      - name: 🌐 Deploy Installer to GitHub Pages
+      - name: 🕵️‍♀️ Prepare GitHub Pages Assets for ignoring zip heavy files
+        run: |
+          mkdir -p github-pages-content
+          cp build-artifacts/install.sh github-pages-content/
+          cp build-artifacts/manifest.json github-pages-content/
+          echo "✅ Isolated install.sh and manifest.json for Pages deployment."
+
+      - name: 🌐 Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: release-assets
+          folder: github-pages-content  
+          target-folder: .              
           branch: gh-pages
-          target-folder: .
           single-commit: true
-          clean-exclude: |
-            *.zip
-            *.sha256
 
+      - name: 📊 Verify Release Assets Size & Guardrail
+        run: |
+          echo "📁 Listing all files in build-artifacts with their sizes:"
+          ls -lh build-artifacts/
+          echo "--------------------------------------------------------"
+          echo "🚨 Checking for zero-byte files ..."
+          if find build-artifacts/ -type f -empty | grep -q .; then
+            echo "❌ Error : Zero-byte files detected in build-artifacts!"
+            find build-artifacts/ -type f -empty
+            exit 1
+          fi
+          echo "✅ All release assets have valid file sizes and are ready for upload!"
 
-      - name: 🚀 Upload Latest packages to GitHub Release
+      - name: 🚀 Create and Upload Release Packages to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}-${{ github.run_number }}
           name: 🚀 DayPass v${{ env.VERSION }}
-          prerelease: false 
+          prerelease: false
           body: |
-            ## 🚀 DayPass Release
-            🔥 Stable and optimized build!
+            ## 🚀 DayPass Stable Release
+            🔥 Stable, optimized and production-ready build!
             📅 Date   : `${{ env.VERSION }}`
             ⚡ Build  : `${{ github.run_number }}`
           files: |
-            release-assets/DayPass_*.zip
-            release-assets/DayPass_*.sha256
-            release-assets/manifest.json
+            build-artifacts/*.zip
+            build-artifacts/*.sha256
