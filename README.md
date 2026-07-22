@@ -12,11 +12,9 @@
 
 ---
 
-[**پارسی**](./README_FA.md)
-
 </div>
 
-> 💡 **Note:** The main documentation is in English. For the full Persian guide, please visit [README_FA.md](./README_FA.md).
+> 💡 **Note:** The main documentation is in English. For the full Persian guide, please visit [**راهنمای پارسی**](./README_Fa.md).
 
 ---
 
