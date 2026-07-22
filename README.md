@@ -14,7 +14,7 @@
 
 </div>
 
-> 💡 **Note:** The main documentation is in English. For the full Persian guide, please visit [**راهنمای پارسی**](./README_Fa.md).
+> 💡 **Note:** The main documentation is in English. For the full Persian guide, please visit [**🦁☀️ راهنمای پارسی**](./README_Fa.md).
 
 ---
 
