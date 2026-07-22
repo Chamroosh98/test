@@ -1,0 +1,71 @@
+<div align="center" dir="rtl">
+
+# DayPass
+
+**ابزار مدیریت و عیب‌یابی شبکه و سیستم برای OpenWrt با کارایی بالا و مینیمال**
+
+*سریع · سبک · بدون نیاز به وابستگی · ساخته شده با POSIX Shell خالص برای دستگاه‌های OpenWrt.*
+
+[![ci](https://img.shields.io/badge/ci-passing-brightgreen?style=flat-square&logo=github-actions)](https://github.com/Chamroosh98/DayPass/actions)
+[![release](https://img.shields.io/badge/release-latest-purple?style=flat-square)](https://github.com/Chamroosh98/DayPass/releases)
+[![shell](https://img.shields.io/badge/shell-POSIX%20ash-blue?style=flat-square&logo=gnu-bash)](https://www.openwrt.org)
+[![platform](https://img.shields.io/badge/platform-OpenWrt-darkgreen?style=flat-square&logo=openwrt)](https://openwrt.org)
+
+---
+
+</div>
+
+<div dir="rtl">
+
+> 
+
+- [DayPass](#daypass)
+  - [🚀 این چیست؟](#-این-چیست)
+  - [✨ قابلیت‌های کلیدی](#-قابلیتهای-کلیدی)
+  - [⚡ شروع سریع](#-شروع-سریع)
+    - [🟢 ورژن پایدار](#-ورژن-پایدار)
+    - [🟠 ورژن آزمایشی](#-ورژن-آزمایشی)
+---
+
+## 🚀 این چیست؟
+
+**DayPass** یک رابط ترمینال سبک و پاسخ‌گو است که اختصاصاً برای روترهای OpenWrt و سیستم‌های لینوکس تعبیه‌شده طراحی شده است. این ابزار عیب‌یابی زمان‌واقعی سیستم، جزئیات شبکه ISP، بررسی سلامت DNS/تأخیر و مانیتورینگ زنده سرعت را ارائه می‌دهد—همه در یک رابط ترمینالی تمیز و هم‌تراز شده با ANSI، بدون وابستگی‌های سنگین خارجی.
+
+---
+
+## ✨ قابلیت‌های کلیدی
+
+* **🖥 بررسی اجمالی سیستم:** مشاهده آنی معماری، نسخه OpenWrt، میزان مصرف RAM و حافظه overlay همراه با پروگرس‌بارهای بصری.
+* **🌐 عیب‌یابی شبکه:** کشف دقیق IP عمومی، موقعیت مکانی، نام ISP و شناسه ASN با استفاده از APIهای سریع با قابلیت پشتیبان.
+* **🔎 بررسی‌کننده سلامت:** حل هم‌زمان DNS، ارزیابی افت پکت‌های Ping و تست تأخیر HTTPS روی نودهای اصلی شبکه (`google.com`, `cloudflare.com` و...).
+* **📊 مانیتورینگ زنده سرعت:** مانیتورینگ زمان‌واقعی پهنای باند اینترفیس WAN (`KB/s` / `MB/s`) بدون هیچ‌گونه لرزش در ترمینال.
+* **🧰 یکپارچگی با مدیر پکیج:** منوی CLI تعاملی برای ساده‌سازی نصب پکیج‌های دلخواه.
+
+---
+
+## ⚡ شروع سریع
+
+> 📌 **نکته:** اگه `curl` از پیش، روی روترت نصب شده، استفاده از دستور `curl` پیشنهاد میشه! وگرنه، از `wget` رو بزن تو کار!
+
+### 🟢 ورژن پایدار 
+
+**curl :**
+```bash
+curl -sSL https://chamroosh98.github.io/DayPass/install.sh | sh
+```
+
+**wget :**
+```bash
+wget -qO- https://chamroosh98.github.io/DayPass/install.sh | sh
+```
+
+### 🟠 ورژن آزمایشی
+**curl :**
+```bash
+curl -sSL https://chamroosh98.github.io/DayPass/dev/install.sh | sh
+```
+
+**wget :**
+```bash
+wget -qO- https://chamroosh98.github.io/DayPass/dev/install.sh | sh
+```
