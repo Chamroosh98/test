@@ -72,7 +72,7 @@ func generateInstallScript(outputFile string) error {
 	for _, file := range installerFiles {
 		data, err := os.ReadFile(file)
 		if err != nil {
-			fmt.Printf("⚠️ Warning: File [%s] not found, skipping ...\n", file)
+			fmt.Printf("⚠️ Warning : File [%s] not found, skipping ...\n", file)
 			continue
 		}
 		
@@ -93,8 +93,13 @@ func generateInstallScript(outputFile string) error {
 ###############################################################################
 DEPLOYMENT_FAILED=0
 
-network_check || exit 1
+# 1. Installing requirements
 deploy_system_dependencies
+
+# 2. checking network connection
+network_check || exit 1
+
+# continue
 check_version
 detect_arch
 initialize_installer
