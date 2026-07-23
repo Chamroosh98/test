@@ -27,12 +27,14 @@ show_banner()
     L5="   |____/ \__,_|\__, |_|   \__,_|___/___/"
     L6="                |___/"
 
-    printf " ${CYAN}%-42s${RESET}   ${GRAY}🐱 github.com/Chamroosh98${RESET}\n" "$L1"
-    printf " ${CYAN}%-42s${RESET}   ${CYAN}🩻 Architecture :${RESET} %s\n" "$L2" "$ARCH"
-    printf " ${CYAN}%-42s${RESET}   ${CYAN}💡 OpenWrt      :${RESET} %s\n" "$L3" "$OW_VER"
-    printf " ${CYAN}%-42s${RESET}   ${CYAN}🧠 Memory       :${RESET} %s/%s MB\n" "$L4" "$USED_RAM_MB" "$TOTAL_RAM_MB"
-    printf " ${CYAN}%-42s${RESET}   ${CYAN}💾 Storage      :${RESET} %s/%s MB\n" "$L5" "$USED_STO_MB" "$TOTAL_STO_MB"
-    printf " ${YELLOW}%-42s${RESET}\n" " ${VERSION:-v2.1.0}"
+    printf " ${CYAN}%-43s${RESET}  ${CYAN}🩻 Architecture :${RESET} %s\n" "$L1" "$ARCH"
+    printf " ${CYAN}%-43s${RESET}  ${CYAN}💡 OpenWrt      :${RESET} %s\n" "$L2" "$OW_VER"
+    printf " ${CYAN}%-43s${RESET}  ${CYAN}🧠 Memory       :${RESET} %s/%s MB\n" "$L3" "$USED_RAM_MB" "$TOTAL_RAM_MB"
+    printf " ${CYAN}%-43s${RESET}  ${CYAN}💾 Storage      :${RESET} %s/%s MB\n" "$L4" "$USED_STO_MB" "$TOTAL_STO_MB"
+
+
+    printf " ${CYAN}%s${RESET}\n" "$L5"
+    printf " ${CYAN}%-20s${RESET} ${GRAY}🐱 github.com/Chamroosh98${RESET}  ${YELLOW}%s${RESET}\n" "$L6" "${VERSION:-v2.1.0}"
 
     echo
     printf "${GRAY}─────────────── 🕊️  Remembering the IRAN Massacre on Jan 8-9, 2026 ───────────────${RESET}\n"
