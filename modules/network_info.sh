@@ -68,7 +68,7 @@ show_full_network_info()
         return 0
     fi
 
-    printf "   ${GRAY}Fetching network details...${RESET}\r"
+    printf "   ${GRAY}Fetching network details ...${RESET}\r"
     PARSED_DATA="$(fetch_ip_data 2>/dev/null || echo "false|||||||")"
 
     IFS='|' read -r SUCCESS PUBLIC_IP COUNTRY COUNTRY_CODE FLAG CITY ISP ASN <<EOF
@@ -88,10 +88,10 @@ EOF
         CITY_STR=""
         [ -n "$CITY" ] && CITY_STR=" ${GRAY}($CITY)${RESET}"
 
-        printf "   ${GRAY}Public IP   :${RESET} ${CYAN}$PUBLIC_IP${RESET}\n"
-        printf "   ${GRAY}Country     :${RESET} $FLAG ${WHITE}$COUNTRY${RESET}$CITY_STR\n"
-        [ -n "$ISP" ] && printf "   ${GRAY}ISP         :${RESET} ${WHITE}$ISP${RESET}\n"
-        [ -n "$ASN" ] && printf "   ${GRAY}ASN         :${RESET} ${GRAY}AS$ASN${RESET}\n"
+        printf "   Public IP   : $PUBLIC_IP\n"
+        printf "   Country     : $FLAG $COUNTRY ${GRAY}$CITY_STR${RESET}\n"
+        [ -n "$ISP" ] && printf "   ISP         : $ISP\n"
+        [ -n "$ASN" ] && printf "   ASN         : AS${GRAY}$ASN${RESET}\n"
     fi
 
     printf "   ${GRAY}─────────────────────────────────────────${RESET}\n\n"
@@ -157,7 +157,7 @@ show_live_speed() {
             TX_FMT="${TX_SPEED} KB/s"
         fi
 
-        printf "\r  📥 ${GRAY}Down:${RESET} %s%-10s%s ${GRAY}|${RESET} 📤 ${GRAY}Up:${RESET} %s%-10s%s\033[K" \
+        printf "\r   📥 ${GREEN}Down:${RESET} %s%-10s%s ${GRAY}|${RESET}    📤 ${YELLOW}Up:${RESET} %s%-10s%s\033[K" \
             "$GREEN" "$RX_FMT" "$RESET" \
             "$YELLOW" "$TX_FMT" "$RESET"
 

@@ -153,9 +153,9 @@ network_check()
     process_host "openwrt.org"
     process_host "cloudflare.com"
 
-    printf "  ${GRAY}──────────────────────────────────────────${RESET}\n"
-    printf "  ${BOLD}Status Legend :${RESET}\n"
-    printf "    🟢 ${GREEN}Passed / Fast${RESET}  |  🟡 ${YELLOW}Degraded / Slow${RESET}  |  🔴 ${RED}Failed / Blocked${RESET}\n"
+    # printf "  ${GRAY}──────────────────────────────────────────${RESET}\n"
+    # printf "  ${BOLD}Status Legend :${RESET}\n"
+    # printf "    🟢 ${GREEN}Passed / Fast${RESET}  |  🟡 ${YELLOW}Degraded / Slow${RESET}  |  🔴 ${RED}Failed / Blocked${RESET}\n"
     
     printf "  ${GRAY}──────────────────────────────────────────${RESET}\n\n"
 
