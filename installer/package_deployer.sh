@@ -80,23 +80,32 @@ download_package()
         return 1
     fi
 
+    # download_base from manifest
+    base_url=$(jq -r '.download_base // empty' "$MANIFEST_FILE" 2>/dev/null)
+    
+    if [ -n "$base_url" ]; then
+        target_url="${base_url}/${ARCH}/${file}"
+    else
+        target_url="${REPO_URL}/${ARCH}/${file}"
+    fi
+
     target="$TMP_DIR/$file"
     tmp="$target.part"
 
     mkdir -p "$(dirname "$target")"
 
     log_info "Processing Package : $(manifest_info "$package")"
-    log_info "Target URL        : $REPO_URL/$ARCH/$file"
+    log_info "Target URL        : $target_url"
     log_info "Downloading [$package] ..."
 
     # Resilient download logic with fallback
     DOWNLOAD_SUCCESS=0
     if command -v curl >/dev/null 2>&1; then
-        curl -fsSL "$REPO_URL/$ARCH/$file" -o "$tmp" && DOWNLOAD_SUCCESS=1
+        curl -fsSL "$target_url" -o "$tmp" && DOWNLOAD_SUCCESS=1
     elif command -v wget >/dev/null 2>&1; then
-        wget -qO "$tmp" "$REPO_URL/$ARCH/$file" && DOWNLOAD_SUCCESS=1
+        wget -qO "$tmp" "$target_url" && DOWNLOAD_SUCCESS=1
     elif command -v uclient-fetch >/dev/null 2>&1; then
-        uclient-fetch -q -O "$tmp" "$REPO_URL/$ARCH/$file" && DOWNLOAD_SUCCESS=1
+        uclient-fetch -q -O "$tmp" "$target_url" && DOWNLOAD_SUCCESS=1
     fi
 
     if [ "$DOWNLOAD_SUCCESS" -ne 1 ] || [ ! -s "$tmp" ]; then
