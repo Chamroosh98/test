@@ -10,27 +10,29 @@ show_banner()
         OW_VER="${DISTRIB_RELEASE:-Unknown}"
     fi
 
-    TOTAL_RAM_MB=$(get_total_ram_mb)
-    FREE_RAM_MB=$(get_free_ram_mb)
+    TOTAL_RAM_MB=$(get_total_ram_mb 2>/dev/null || echo 0)
+    FREE_RAM_MB=$(get_free_ram_mb 2>/dev/null || echo 0)
     USED_RAM_MB=$((TOTAL_RAM_MB - FREE_RAM_MB))
 
-    TOTAL_STO_MB=$(get_total_storage_mb)
-    FREE_STO_MB=$(get_free_storage_mb)
+    TOTAL_STO_MB=$(get_total_storage_mb 2>/dev/null || echo 0)
+    FREE_STO_MB=$(get_free_storage_mb 2>/dev/null || echo 0)
     USED_STO_MB=$((TOTAL_STO_MB - FREE_STO_MB))
 
     echo
 
     L1="    ____              ____"
     L2="   |  _ \  __ _ _   _|  _ \  __ _ ___ ___"
-    L3="   | |_| | (_| | |_| |  __/ (_| \__ \__ \\"
-    L4="   |____/ \__,_|\__, |_|   \__,_|___/___/"
-    L5="                |___/"
+    L3="   | | | |/ _\` | | | | |_) / _\` / __/ __|"
+    L4="   | |_| | (_| | |_| |  __/ (_| \__ \__ \\\\"
+    L5="   |____/ \__,_|\__, |_|   \__,_|___/___/"
+    L6="                |___/"
 
-    printf " ${CYAN}%-42s${RESET}  ${GRAY}🐱 github.com/Chamroosh98${RESET}\n" "$L1"
-    printf " ${CYAN}%-42s${RESET}  ${CYAN}🩻 Architecture :${RESET} %s\n" "$L2" "$ARCH"
-    printf " ${CYAN}%-42s${RESET}  ${CYAN}💡 OpenWrt      :${RESET} %s\n" "$L3" "$OW_VER"
-    printf " ${CYAN}%-42s${RESET}  ${CYAN}🧠 Memory       :${RESET} %s/%s MB\n" "$L4" "$USED_RAM_MB" "$TOTAL_RAM_MB"
-    printf " ${CYAN}%-42s${RESET}${YELLOW}%-8s${RESET} ${CYAN}💾 Storage      :${RESET} %s/%s MB\n" "$L5" "${VERSION:-v2.1.0}" "$USED_STO_MB" "$TOTAL_STO_MB"
+    printf " ${CYAN}%-42s${RESET}   ${GRAY}🐱 github.com/Chamroosh98${RESET}\n" "$L1"
+    printf " ${CYAN}%-42s${RESET}   ${CYAN}🩻 Architecture :${RESET} %s\n" "$L2" "$ARCH"
+    printf " ${CYAN}%-42s${RESET}   ${CYAN}💡 OpenWrt      :${RESET} %s\n" "$L3" "$OW_VER"
+    printf " ${CYAN}%-42s${RESET}   ${CYAN}🧠 Memory       :${RESET} %s/%s MB\n" "$L4" "$USED_RAM_MB" "$TOTAL_RAM_MB"
+    printf " ${CYAN}%-42s${RESET}   ${CYAN}💾 Storage      :${RESET} %s/%s MB\n" "$L5" "$USED_STO_MB" "$TOTAL_STO_MB"
+    printf " ${YELLOW}%-42s${RESET}\n" " ${VERSION:-v2.1.0}"
 
     echo
     printf "${GRAY}─────────────── 🕊️  Remembering the IRAN Massacre on Jan 8-9, 2026 ───────────────${RESET}\n"

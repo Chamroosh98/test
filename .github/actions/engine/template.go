@@ -107,10 +107,6 @@ detect_arch
 initialize_installer
 
 # ============= Pre-TUI Smooth Transition =============
-echo
-log_success "Pre-flight system checks finished with zero errors!"
-echo -n "🚀 Launching DayPass Interactive UI in 3 seconds... (Press [Enter] to skip) "
-
 for i in 3 2 1; do
     printf "\r🚀 Launching DayPass Interactive UI in \033[1;33m%d\033[0m seconds... (Press \033[1;36m[Enter]\033[0m to skip) " "$i"
     if read -t 1 -r; then
