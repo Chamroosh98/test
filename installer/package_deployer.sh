@@ -1,8 +1,17 @@
 #!/bin/sh
 
+# ==============================================================================
+# Package Deployment & Transaction Engine
+# Handles package resolution, secure downloading, hash verification,
+# atomic installation, and transactional rollback on failure.
+# ==============================================================================
+
 INSTALL_LOG="/tmp/daypass/install.log"
 TRANSACTION_LOG="/tmp/daypass/transaction.log"
 
+# ------------------------------------------------------------------------------
+# Queries manifest metadata for a given package and field
+# ------------------------------------------------------------------------------
 manifest_lookup()
 {
     field="$1"
@@ -13,36 +22,58 @@ manifest_lookup()
         --arg arch "$ARCH" \
         --arg field "$field" \
 '
-.architectures[]
-| select(.name==$arch)
-| .packages[]
+.architectures[]?
+| select(.name == $arch)
+| .packages[]?
 | select(
     (.package == $pkg)
     or
     (.package | startswith($pkg + "-"))
 )
-| .[$field]
+| .[$field] // empty
 ' \
-"$MANIFEST_FILE" | head -n1
+"$MANIFEST_FILE" 2>/dev/null | head -n1
 }
 
+# ------------------------------------------------------------------------------
+# Formats package size into human-readable units (KB / MB)
+# ------------------------------------------------------------------------------
+format_size()
+{
+    bytes="$1"
+    if [ -z "$bytes" ] || [ "$bytes" = "null" ]; then
+        echo "0 B"
+        return
+    fi
+
+    if [ "$bytes" -ge 1048576 ]; then
+        mb=$(awk "BEGIN {printf \"%.2f\", $bytes/1048576}")
+        echo "${mb} MB"
+    elif [ "$bytes" -ge 1024 ]; then
+        kb=$(awk "BEGIN {printf \"%.1f\", $bytes/1024}")
+        echo "${kb} KB"
+    else
+        echo "${bytes} Bytes"
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# Fetches package details for UI display
+# ------------------------------------------------------------------------------
 manifest_info()
 {
     package="$1"
 
-    jq -r \
-        --arg pkg "$package" \
-        --arg arch "$ARCH" \
-'
-.architectures[]
-| select(.name==$arch)
-| .packages[]
-| select(.package | startswith($pkg))
-| "\(.package) | \(.size) bytes"
-' \
-"$MANIFEST_FILE" | head -n1
+    raw_size=$(manifest_lookup "size" "$package")
+    formatted_size=$(format_size "$raw_size")
+    file_name=$(manifest_lookup "file" "$package")
+
+    echo "[$package] -> $file_name ($formatted_size)"
 }
 
+# ------------------------------------------------------------------------------
+# Downloads and verifies package integrity against SHA256 checksum
+# ------------------------------------------------------------------------------
 download_package()
 {
     package="$1"
@@ -51,7 +82,7 @@ download_package()
     sha256=$(manifest_lookup "sha256" "$package")
 
     if [ -z "$file" ] || [ "$file" = "null" ]; then
-        log_error "Package not found in manifest : [$package]"
+        log_error "Package [$package] not found in manifest for architecture [$ARCH]!"
         return 1
     fi
 
@@ -60,113 +91,158 @@ download_package()
 
     mkdir -p "$(dirname "$target")"
 
-    echo
-    log_info "Package : $(manifest_info "$package")"
-    log_info "File    : $file"
-    log_info "URL     : $REPO_URL/$ARCH/$file"
+    log_info "Processing Package : $(manifest_info "$package")"
+    log_info "Target URL        : $REPO_URL/$ARCH/$file"
     log_info "Downloading [$package] ..."
 
-    if ! curl -fsSL "$REPO_URL/$ARCH/$file" -o "$tmp"; then
-        log_error "Download failed for [$package]"
+    # Resilient download logic with fallback
+    DOWNLOAD_SUCCESS=0
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsSL "$REPO_URL/$ARCH/$file" -o "$tmp" && DOWNLOAD_SUCCESS=1
+    elif command -v wget >/dev/null 2>&1; then
+        wget -qO "$tmp" "$REPO_URL/$ARCH/$file" && DOWNLOAD_SUCCESS=1
+    elif command -v uclient-fetch >/dev/null 2>&1; then
+        uclient-fetch -q -O "$tmp" "$REPO_URL/$ARCH/$file" && DOWNLOAD_SUCCESS=1
+    fi
+
+    if [ "$DOWNLOAD_SUCCESS" -ne 1 ] || [ ! -s "$tmp" ]; then
+        log_error "Download failed or produced empty file for [$package]"
         rm -f "$tmp"
         return 1
     fi
 
-    if [ ! -s "$tmp" ]; then
-        log_error "Invalid package : empty file [$package]"
-        rm -f "$tmp"
-        return 1
-    fi
-
+    # SHA256 Checksum Verification
+    log_info "Verifying SHA256 checksum for [$file] ..."
     if ! echo "$sha256  $tmp" | sha256sum -c - >/dev/null 2>&1; then
-        log_error "Checksum verification failed : [$package]"
+        log_error "Checksum verification FAILED for [$package]!"
+        log_warn "Expected Hash : $sha256"
         rm -f "$tmp"
         return 1
     fi
 
     mv "$tmp" "$target"
-    log_success "Verified [$package]"
+    log_success "Package [$package] verified successfully."
 }
 
+# ------------------------------------------------------------------------------
+# Orchestrates download, dependency resolution, and batch installation
+# ------------------------------------------------------------------------------
 deploy_targeted_packages()
 {
     mkdir -p "$(dirname "$INSTALL_LOG")"
     touch "$INSTALL_LOG"
+    
+    # Initialize transaction log for rollback tracking
     rm -f "$TRANSACTION_LOG"
     touch "$TRANSACTION_LOG"
 
     echo
-    log_info "Starting installation ..."
+    log_info "=================================================="
+    log_info "Starting Package Deployment Pipeline"
+    log_info "=================================================="
     echo
 
-    resource_snapshot
-    estimate_install_size
+    # Resource check integration (if available)
+    if command -v resource_snapshot >/dev/null 2>&1; then
+        resource_snapshot
+    fi
+
+    if command -v estimate_install_size >/dev/null 2>&1; then
+        estimate_install_size
+    fi
 
     INSTALL_FILES=""
 
+    # 1. Download and verify all target packages
     for pkg in $FINAL_PACKAGES; do
         if ! download_package "$pkg"; then
-            log_error "Download failed : [$pkg]"
+            log_error "Failed during download phase : [$pkg]"
             rollback_failed_install
             return 1
         fi
 
         file=$(manifest_lookup "file" "$pkg")
         INSTALL_FILES="$INSTALL_FILES $TMP_DIR/$file"
+        
+        # Record package in transaction log BEFORE installation
+        echo "$pkg" >> "$TRANSACTION_LOG"
     done
 
     echo
-    log_info "Installing packages :"
-    echo "[$INSTALL_FILES]"
+    log_info "Batch installing resolved package files ..."
+    log_info "Package List : [$FINAL_PACKAGES]"
     echo
+
+    # 2. Perform installation via native package manager
+    INSTALL_SUCCESS=0
 
     case "$PKG_MANAGER" in
         apk)
+            log_info "Executing: apk add --allow-untrusted ..."
             if apk add --allow-untrusted $INSTALL_FILES; then
-                echo "$FINAL_PACKAGES" >> "$INSTALL_LOG"
-                resource_compare
-                return 0
+                INSTALL_SUCCESS=1
             fi
             ;;
         opkg)
+            log_info "Executing: opkg install ..."
             if opkg install $INSTALL_FILES; then
-                echo "$FINAL_PACKAGES" >> "$INSTALL_LOG"
-                resource_compare
-                return 0
+                INSTALL_SUCCESS=1
             fi
             ;;
     esac
 
-    log_error "Installation failed!"
+    # 3. Post-installation check and state commit
+    if [ "$INSTALL_SUCCESS" -eq 1 ]; then
+        echo "$FINAL_PACKAGES" >> "$INSTALL_LOG"
+        
+        if command -v resource_compare >/dev/null 2>&1; then
+            resource_compare
+        fi
+
+        # Clear transaction log on successful deployment
+        rm -f "$TRANSACTION_LOG"
+        log_success "All targeted packages deployed successfully!"
+        return 0
+    fi
+
+    log_error "Batch installation failed during package manager execution!"
     rollback_failed_install
     return 1
 }
 
+# ------------------------------------------------------------------------------
+# Rolls back changes if installation fails mid-way
+# ------------------------------------------------------------------------------
 rollback_failed_install()
 {
     echo
-    log_warn "Rolling back installation ..."
+    log_warn "=================================================="
+    log_warn "Initiating Automatic Rollback Procedures..."
+    log_warn "=================================================="
     echo
 
-    [ -f "$TRANSACTION_LOG" ] || return
+    if [ ! -s "$TRANSACTION_LOG" ]; then
+        log_warn "Transaction log is empty. No installed packages to roll back."
+        return 0
+    fi
 
     case "$PKG_MANAGER" in
         opkg)
             while read -r pkg; do
                 [ -z "$pkg" ] && continue
-                log_info "Removing ($pkg) for rollback ..."
-                opkg remove "$pkg" || true
+                log_info "Rollback: Removing package [$pkg] ..."
+                opkg remove "$pkg" >/dev/null 2>&1 || log_warn "Could not remove [$pkg]"
             done < "$TRANSACTION_LOG"
             ;;
         apk)
             while read -r pkg; do
                 [ -z "$pkg" ] && continue
-                log_info "Removing ($pkg) for rollback ..."
-                apk del "$pkg" || true
+                log_info "Rollback: Removing package [$pkg] ..."
+                apk del "$pkg" >/dev/null 2>&1 || log_warn "Could not remove [$pkg]"
             done < "$TRANSACTION_LOG"
             ;;
     esac
 
     rm -f "$TRANSACTION_LOG"
-    log_success "Rollback completed!"
+    log_success "Rollback process completed."
 }

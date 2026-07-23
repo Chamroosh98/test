@@ -19,7 +19,7 @@ deploy_system_dependencies()
     done
 
     if ! command -v curl >/dev/null 2>&1; then
-        echo "  ⚠️ Warning: curl installation via $PKG_MANAGER failed. Falling back to wget..."
+        echo "  ⚠️ Warning : curl installation via [$PKG_MANAGER] failed. Falling back to wget ..."
     fi
 
     if [ -f /etc/openwrt_release ]; then
