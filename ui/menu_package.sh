@@ -10,7 +10,7 @@ package_menu()
     echo "  2) Passwall-2"
     echo
 
-    printf "  ⁉️ Choice : "
+    printf "  ⁉️ Select : "
     read -r choice </dev/tty
 
     case "$choice" in

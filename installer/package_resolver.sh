@@ -1,20 +1,11 @@
 #!/bin/sh
 
-# ==============================================================================
-# Package Resolver Module
-# Dynamically resolves dependencies, core engines, translation packages,
-# and geo-databases based on user choices from the TUI menus.
-# ==============================================================================
-
 resolve_packages()
 {
     log_info "Resolving targeted packages and dependencies..."
 
     FINAL_PACKAGES=""
 
-    # --------------------------------------------------------------------------
-    # Helper: Adds package to FINAL_PACKAGES while preventing duplicates
-    # --------------------------------------------------------------------------
     add_final()
     {
         pkg="$1"

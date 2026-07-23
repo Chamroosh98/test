@@ -5,14 +5,14 @@ main_menu()
     while true; 
         do
             show_banner
-            show_system_info
+            # show_system_info
             echo
 
             printf "   📦 1) Install Package\n"
             printf "   🖥️ 2) Network Info & Speed Monitor\n"
             printf "   🚪 0) Exit\n\n"
 
-            printf "   ❯  Select : "
+            printf "   ⁉️  Select : "
             read -r choice </dev/tty
 
             case "$choice" in
