@@ -5,17 +5,17 @@ BACKUP_DNS_FILE="/etc/resolv.conf.daypass.bak"
 apply_dns()
 {
     NEW_DNS="${1:-1.1.1.1}"
-    log_info "Setting temporary DNS to => $NEW_DNS"
+    log_info "Setting temporary DNS to : [$NEW_DNS]"
 
     if [ -f /etc/resolv.conf ]; then
 
         if [ ! -f "$BACKUP_DNS_FILE" ]; then
             cp /etc/resolv.conf "$BACKUP_DNS_FILE" 2>/dev/null
-            log_success "Original DNS backed up to => $BACKUP_DNS_FILE"
+            log_success "Original DNS backed up to : [$BACKUP_DNS_FILE]"
         fi
 
         echo "nameserver $NEW_DNS" > /etc/resolv.conf
-        log_success "DNS changed to => $NEW_DNS"
+        log_success "DNS changed to : [$NEW_DNS]"
     fi
 }
 

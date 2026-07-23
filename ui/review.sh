@@ -14,7 +14,7 @@ review_install()
     echo "-------------------"
 
     for pkg in $FINAL_PACKAGES; do
-        echo "  [+] $pkg"
+        echo "  📦 $pkg"
     done
 
     echo
@@ -28,11 +28,11 @@ review_install()
                 return 0
                 ;;
             n|N|"")
-                log_warn "Installation cancelled!"
+                log_warn "Installation cancelled :("
                 return 1
                 ;;
             *)
-                log_error "Invalid input! Please enter Y or N."
+                log_error "Invalid input! Please enter Y or N!"
                 ;;
         esac
     done

@@ -73,13 +73,14 @@ jobs:
       - name: 🛠️ Install Core Utilities
         run: |
           sudo apt-get update
-          sudo apt-get install -y bash jq coreutils findutils zip
+          sudo apt-get install -y bash jq coreutils findutils zip unzip
 
       - name: 📁 Prepare Workspace Tree
         run: |
           mkdir -p merged-beta
           mkdir -p manifest-workspace
           mkdir -p build-artifacts
+          mkdir -p packages-branch-content
 
       - name: 📥 Download All Zip Artifacts
         uses: actions/download-artifact@v4
@@ -103,21 +104,36 @@ jobs:
           cd .github/actions/engine/
           go run .
 
-      - name: 🕵️‍♀️ Prepare GitHub Pages Assets for ignoring heavy zip files
+      - name: 🕵️‍♀️ Prepare GitHub Pages Assets
         run: |
           mkdir -p github-pages-content
           cp build-artifacts/install.sh github-pages-content/
           cp build-artifacts/manifest.json github-pages-content/
           echo "✅ Isolated install.sh and manifest.json for Pages deployment!"
 
-          
       - name: 🌐 Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: github-pages-content  
           target-folder: beta             
           branch: gh-pages
-        
+
+      - name: 📦 Prepare Extracted Binaries for 'packages' Branch
+        run: |
+          cd build-artifacts
+          for zipfile in *.zip; do
+            [ -f "$zipfile" ] || continue
+            unzip -q -o "$zipfile" -d "../packages-branch-content/"
+          done
+          echo "✅ Successfully extracted all package binaries for raw branch CDN deployment!"
+
+      - name: 🚀 Deploy Binary Packages to 'packages' Branch (Overwriting)
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: packages-branch-content
+          branch: packages
+          force: true
+
       - name: 📊 Verify Release Assets Size & Guardrail
         run: |
           echo "📁 Listing all files in build-artifacts with their sizes :"

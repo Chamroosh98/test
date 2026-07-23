@@ -1,17 +1,11 @@
 #!/bin/sh
 
-# ==============================================================================
-# Package Deployment & Transaction Engine
-# Handles package resolution, secure downloading, hash verification,
-# atomic installation, and transactional rollback on failure.
-# ==============================================================================
 
 INSTALL_LOG="/tmp/daypass/install.log"
 TRANSACTION_LOG="/tmp/daypass/transaction.log"
 
-# ------------------------------------------------------------------------------
 # Queries manifest metadata for a given package and field
-# ------------------------------------------------------------------------------
+
 manifest_lookup()
 {
     field="$1"
@@ -35,9 +29,9 @@ manifest_lookup()
 "$MANIFEST_FILE" 2>/dev/null | head -n1
 }
 
-# ------------------------------------------------------------------------------
+
 # Formats package size into human-readable units (KB / MB)
-# ------------------------------------------------------------------------------
+
 format_size()
 {
     bytes="$1"
@@ -57,9 +51,9 @@ format_size()
     fi
 }
 
-# ------------------------------------------------------------------------------
+
 # Fetches package details for UI display
-# ------------------------------------------------------------------------------
+
 manifest_info()
 {
     package="$1"
@@ -71,9 +65,9 @@ manifest_info()
     echo "[$package] -> $file_name ($formatted_size)"
 }
 
-# ------------------------------------------------------------------------------
+
 # Downloads and verifies package integrity against SHA256 checksum
-# ------------------------------------------------------------------------------
+
 download_package()
 {
     package="$1"
@@ -106,27 +100,26 @@ download_package()
     fi
 
     if [ "$DOWNLOAD_SUCCESS" -ne 1 ] || [ ! -s "$tmp" ]; then
-        log_error "Download failed or produced empty file for [$package]"
+        log_error "Download failed or produced empty file for : [$package]!"
         rm -f "$tmp"
         return 1
     fi
 
     # SHA256 Checksum Verification
-    log_info "Verifying SHA256 checksum for [$file] ..."
+    log_info "Verifying SHA256 checksum for : [$file]!"
     if ! echo "$sha256  $tmp" | sha256sum -c - >/dev/null 2>&1; then
-        log_error "Checksum verification FAILED for [$package]!"
-        log_warn "Expected Hash : $sha256"
+        log_error "Checksum verification FAILED for : [$package]!"
+        log_warn "Expected Hash : [$sha256]"
         rm -f "$tmp"
         return 1
     fi
 
     mv "$tmp" "$target"
-    log_success "Package [$package] verified successfully."
+    log_success "Package [$package] verified successfully!"
 }
 
-# ------------------------------------------------------------------------------
 # Orchestrates download, dependency resolution, and batch installation
-# ------------------------------------------------------------------------------
+
 deploy_targeted_packages()
 {
     mkdir -p "$(dirname "$INSTALL_LOG")"
@@ -178,7 +171,7 @@ deploy_targeted_packages()
 
     case "$PKG_MANAGER" in
         apk)
-            log_info "Executing: apk add --allow-untrusted ..."
+            log_info "Executing : apk add --allow-untrusted ..."
             if apk add --allow-untrusted $INSTALL_FILES; then
                 INSTALL_SUCCESS=1
             fi
@@ -210,19 +203,19 @@ deploy_targeted_packages()
     return 1
 }
 
-# ------------------------------------------------------------------------------
+
 # Rolls back changes if installation fails mid-way
-# ------------------------------------------------------------------------------
+
 rollback_failed_install()
 {
     echo
     log_warn "=================================================="
-    log_warn "Initiating Automatic Rollback Procedures..."
+    log_warn "Initiating Automatic Rollback Procedures ..."
     log_warn "=================================================="
     echo
 
     if [ ! -s "$TRANSACTION_LOG" ]; then
-        log_warn "Transaction log is empty. No installed packages to roll back."
+        log_warn "Transaction log is empty! No installed packages to Rollback!"
         return 0
     fi
 
@@ -230,19 +223,19 @@ rollback_failed_install()
         opkg)
             while read -r pkg; do
                 [ -z "$pkg" ] && continue
-                log_info "Rollback: Removing package [$pkg] ..."
-                opkg remove "$pkg" >/dev/null 2>&1 || log_warn "Could not remove [$pkg]"
+                log_info "Rollback : Removing package [$pkg] ..."
+                opkg remove "$pkg" >/dev/null 2>&1 || log_warn "Could not remove : [$pkg]"
             done < "$TRANSACTION_LOG"
             ;;
         apk)
             while read -r pkg; do
                 [ -z "$pkg" ] && continue
-                log_info "Rollback: Removing package [$pkg] ..."
-                apk del "$pkg" >/dev/null 2>&1 || log_warn "Could not remove [$pkg]"
+                log_info "Rollback : Removing package [$pkg] ..."
+                apk del "$pkg" >/dev/null 2>&1 || log_warn "Could not remove : [$pkg]"
             done < "$TRANSACTION_LOG"
             ;;
     esac
 
     rm -f "$TRANSACTION_LOG"
-    log_success "Rollback process completed."
+    log_success "Rollback process completed!"
 }

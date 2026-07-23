@@ -14,7 +14,7 @@ deploy_system_dependencies()
         if pkg_installed "$pkg"; then
             continue
         fi
-        echo "  📍 Installing $pkg ..."
+        echo "  📦 Installing [$pkg] ..."
         pkg_install "$pkg"
     done
 
@@ -27,7 +27,7 @@ deploy_system_dependencies()
         echo "  🔎 Checking dnsmasq ..."
 
         if ! pkg_installed "dnsmasq-full"; then
-            echo "  📍 Upgrading dnsmasq to dnsmasq-full ..."
+            echo "  🔼 Upgrading dnsmasq to dnsmasq-full ..."
             case "$PKG_MANAGER" in
                 opkg)
                     opkg install dnsmasq-full --replace-files >/dev/null 2>&1 || true
