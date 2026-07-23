@@ -148,10 +148,10 @@ network_check()
     printf "  ${BOLD}%-16s %-6s %-7s %-6s${RESET}\n" "Host" "DNS" "Ping" "HTTPS"
     printf "  ${GRAY}──────────────────────────────────────────${RESET}\n"
 
-    process_host "google.com"
-    process_host "github.com"
-    process_host "openwrt.org"
-    process_host "cloudflare.com"
+    process_host "Google"
+    process_host "Github"
+    process_host "Openwrt"
+    process_host "Cloudflare"
 
     # printf "  ${GRAY}──────────────────────────────────────────${RESET}\n"
     # printf "  ${BOLD}Status Legend :${RESET}\n"

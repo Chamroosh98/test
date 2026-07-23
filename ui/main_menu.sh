@@ -12,7 +12,7 @@ main_menu()
             printf "   🖥️ 2) Network Info & Speed Monitor\n"
             printf "   🚪 0) Exit\n\n"
 
-            printf "   ⁉️  Select : "
+            printf "   ⁉️ Select : "
             read -r choice </dev/tty
 
             case "$choice" in
@@ -32,7 +32,8 @@ main_menu()
                     ;;
                 *)
                     log_warn "Invalid choice!"
-                    sleep 1
+                    sleep 3
+                    clear
                     ;;
             esac
         done
