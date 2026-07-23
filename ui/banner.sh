@@ -32,7 +32,7 @@ show_banner()
     printf " ${CYAN}%-43s${RESET}  🩻 ${WHITE}Architecture : %s${RESET}\n" "$L3" "$ARCH"
     printf " ${CYAN}%-43s${RESET}  💡 ${WHITE}OpenWrt      : %s${RESET}\n" "$L4" "$OW_VER"
     printf " ${CYAN}%-43s${RESET}  🧠 ${WHITE}Memory       : %s/%s MB${RESET}\n" "$L5" "$USED_RAM_MB" "$TOTAL_RAM_MB"
-    printf " ${CYAN}%-43s${RESET}  💾 ${WHITE}Storage      : %s/%s MB${RESET}\n" "$L6" "$USED_STO_MB" "$TOTAL_STO_MB"
+    printf " ${GRAY}%s${RESET}" "${VERSION:-v2.1.0}${RESET} ${CYAN}%-43s${RESET}  💾 ${WHITE}Storage      : %s/%s MB${RESET}\n" "$L6" "$USED_STO_MB" "$TOTAL_STO_MB"
     
     printf "                ${GRAY}%s${RESET}\n" "${VERSION:-v2.1.0}"
 
