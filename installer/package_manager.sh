@@ -44,7 +44,7 @@ pkg_install()
     PACKAGE_NAME="$1"
 
     if [ "$PKG_MANAGER" = "apk" ]; then
-        apk add --force-ipv4 "$PACKAGE_NAME" >/dev/null 2>&1
+        apk add --force-ipv4 --no-cache "$PACKAGE_NAME" >/dev/null 2>&1 || apk add "$PACKAGE_NAME"
     elif [ "$PKG_MANAGER" = "opkg" ]; then
         opkg install "$PACKAGE_NAME" >/dev/null 2>&1
     fi
