@@ -173,7 +173,7 @@ network_check()
         if command -v log_error >/dev/null 2>&1; then
             log_error "DNS resolution is failing! Router cannot translate domain names."
         else
-            printf " ❌${RED}DNS resolution failed! Domain name lookup is broken.${RESET}\n"
+            printf "❌${RED}DNS resolution failed! Domain name lookup is broken.${RESET}\n"
         fi
         if ping -c 1 -W 2 1.1.1.1 >/dev/null 2>&1; then
             if command -v dns_fix_menu >/dev/null 2>&1; then
@@ -184,19 +184,19 @@ network_check()
         if command -v log_warn >/dev/null 2>&1; then
             log_warn "HTTPS connections are blocked or filtered (Possible Censorship/DPI)."
         else
-            printf " ⚠️${YELLOW}HTTPS traffic is blocked or severely interfered with.${RESET}\n"
+            printf "⚠️${YELLOW}HTTPS traffic is blocked or severely interfered with.${RESET}\n"
         fi
     elif [ "$YELLOW_COUNT" -gt 0 ]; then
         if command -v log_warn >/dev/null 2>&1; then
             log_warn "Network is active but experiencing high packet loss/latency (>2s)."
         else
-            printf " ⚠️${YELLOW}High latency or degraded response time detected.${RESET}\n"
+            printf "⚠️${YELLOW}High latency or degraded response time detected.${RESET}\n"
         fi
     else
         if command -v log_success >/dev/null 2>&1; then
             log_success "Network is fully functional with clean connectivity!"
         else
-            printf " ✅${GREEN}Network is fully functional!${RESET}\n"
+            printf "✅${GREEN}Network is fully functional!${RESET}\n"
         fi
     fi
 

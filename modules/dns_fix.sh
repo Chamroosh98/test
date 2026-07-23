@@ -45,7 +45,7 @@ dns_fix_menu()
         echo "  4) Skip"
     fi
 
-    printf "  ❯ Select : "
+    printf "  ⁉️ Select : "
     read -r dns_choice </dev/tty
 
     case "$dns_choice" in
