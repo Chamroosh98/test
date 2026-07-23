@@ -1,36 +1,32 @@
 #!/bin/sh
 
-# Assume VERSION="v2.1.0" is sourced from main config file
-
 show_banner()
 {
-    # Use a specific, wider character for tree structure to keep alignment
-    _t="${GRAY}│${RESET}"
+    echo
 
-    # Line 1: DAYPASS (with Version on Right)
-    printf "${CYAN}%-22s${RESET} ${_t} ${BOLD}DayPass Package Deployer${RESET} ( ${YELLOW}%s${RESET} )\n" \
-        "    ____              " "${VERSION:-v?.?.?}"
+    L1="    ____              ____"
+    L2="   |  _ \  __ _ _   _|  _ \  __ _ ___ ___"
+    L3="   | |_| | (_| | |_| |  __/ (_| \__ \__ \\"
+    L4="   |____/ \__,_|\__, |_|   \__,_|___/___/"
+    L5="                |___/"
 
-    # Line 2: DAYPASS (with Memorial on Right)
-    printf "${CYAN}%-22s${RESET} ${_t} ${RED}🕊️  Remembering IRAN massacre (Jan 8-9)$RESET\n" \
-        "   |  _ \  __ _ _   _"
+    printf " ${CYAN}%-43s${RESET}  ${GRAY}│${RESET}  ${BOLD}DayPass Package Deployer${RESET} (${YELLOW}%s${RESET})\n" \
+        "$L1" "${VERSION:-v2.1.0}"
 
-    # Line 3: DAYPASS (with Github on Right)
-    printf "${CYAN}%-22s${RESET} ${_t} ${GRAY}🐱 github.com/Chamroosh98${RESET}\n" \
-        "   | | | |/ _\` | | |"
+    printf " ${CYAN}%-43s${RESET}  ${GRAY}│${RESET}  ${GRAY}OpenWrt Deployment Engine${RESET}\n" \
+        "$L2"
 
-    # Line 4: DAYPASS
-    printf "${CYAN}%-22s${RESET} ${_t}\n" \
-        "   | |_| | (_| | |_| |"
+    printf " ${CYAN}%-43s${RESET}  ${GRAY}│${RESET}  ${GRAY}🐱 github.com/Chamroosh98${RESET}\n" \
+        "$L3"
 
-    # Line 5: DAYPASS
-    printf "${CYAN}%-22s${RESET} ${_t}\n" \
-        "   |____/ \__,_|\__, |"
+    printf " ${CYAN}%-43s${RESET}  ${GRAY}│${RESET}\n" \
+        "$L4"
 
-    # Line 6: DAYPASS
-    printf "${CYAN}%-22s${RESET} ${_t}\n" \
-        "                |___/"
-    
-    # Optional: A clean divider after the whole banner
+    printf " ${CYAN}%-43s${RESET}  ${GRAY}│${RESET}\n" \
+        "$L5"
+
     printf "${GRAY} ────────────────────────────────────────────────────────────────────────── ${RESET}\n"
+    printf "   ${RED}🕊️  Remembering IRAN massacre (Jan 8-9)${RESET}\n"
+    printf "${GRAY} ────────────────────────────────────────────────────────────────────────── ${RESET}\n"
+    echo
 }
