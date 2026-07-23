@@ -41,8 +41,8 @@ initialize_installer()
         exit 1
     fi
 
-    if ! jq -e --arg arch "$ARCH" '.architectures[] | select(.name == $arch)' "$MANIFEST_FILE" >/dev/null 2>&1; then
-        log_error "Architecture not supported in manifest: $ARCH"
+    if [ "$(jq -r --arg arch "$ARCH" '.architectures[] | select(.name == $arch) | .name' "$MANIFEST_FILE" 2>/dev/null)" != "$ARCH" ]; then
+        log_error "Architecture not supported in manifest : $ARCH"
         exit 1
     fi
 
