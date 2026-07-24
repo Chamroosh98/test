@@ -84,18 +84,19 @@ download_package()
     base_url=$(jq -r '.download_base // empty' "$MANIFEST_FILE" 2>/dev/null)
     
     if [ -n "$base_url" ]; then
-        target_url="${base_url}/${ARCH}/${file}"
+        target_url="${base_url}/${file}"
     else
-        target_url="${REPO_URL}/${ARCH}/${file}"
+        target_url="${REPO_URL}/${file}"
     fi
 
-    target="$TMP_DIR/$file"
+    file_basename=$(basename "$file")
+    target="$TMP_DIR/$file_basename"
     tmp="$target.part"
 
     mkdir -p "$(dirname "$target")"
 
     log_info "Processing Package : $(manifest_info "$package")"
-    log_info "Target URL        : $target_url"
+    log_info "Target URL         : $target_url"
     log_info "Downloading [$package] ..."
 
     # Resilient download logic with fallback
@@ -115,7 +116,7 @@ download_package()
     fi
 
     # SHA256 Checksum Verification
-    log_info "Verifying SHA256 checksum for : [$file]!"
+    log_info "Verifying SHA256 checksum for : [$file_basename]!"
     if ! echo "$sha256  $tmp" | sha256sum -c - >/dev/null 2>&1; then
         log_error "Checksum verification FAILED for : [$package]!"
         log_warn "Expected Hash : [$sha256]"
@@ -126,6 +127,7 @@ download_package()
     mv "$tmp" "$target"
     log_success "Package [$package] verified successfully!"
 }
+
 
 # Orchestrates download, dependency resolution, and batch installation
 
@@ -164,7 +166,8 @@ deploy_targeted_packages()
         fi
 
         file=$(manifest_lookup "file" "$pkg")
-        INSTALL_FILES="$INSTALL_FILES $TMP_DIR/$file"
+        file_basename=$(basename "$file")
+        INSTALL_FILES="$INSTALL_FILES $TMP_DIR/$file_basename"
         
         # Record package in transaction log BEFORE installation
         echo "$pkg" >> "$TRANSACTION_LOG"
