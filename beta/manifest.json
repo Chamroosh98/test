@@ -1,11 +1,53 @@
 {
   "release": "25.12",
-  "generated_at": "2026-07-24T16:04:30Z",
+  "generated_at": "2026-07-24T17:10:41Z",
   "download_base": "https://cdn.jsdelivr.net/gh/Chamroosh98/DayPass@packages",
   "architectures": [
     {
       "name": "x86_64",
       "packages": [
+        {
+          "package": "luci-app-passwall2-26.7.16-r1",
+          "file": "x86_64/luci-app-passwall2-26.7.16-r1.apk",
+          "sha256": "909ee04700d8c2dbc3a351e7f14b9dba7a79c492c492abda2ded35ad08e1723f",
+          "size": 341331
+        },
+        {
+          "package": "luci-i18n-passwall2-fa-26.7.16",
+          "file": "x86_64/luci-i18n-passwall2-fa-26.7.16.apk",
+          "sha256": "20da268936e733e201a0c09d8e006af9c5929d196db5dba1d0c82a769ea3e9eb",
+          "size": 22280
+        },
+        {
+          "package": "luci-i18n-passwall2-ru-26.7.16",
+          "file": "x86_64/luci-i18n-passwall2-ru-26.7.16.apk",
+          "sha256": "c81d63aadf147497300c02f21b108dce1ed61b90bd49284176f8aa0be31445c6",
+          "size": 23299
+        },
+        {
+          "package": "luci-i18n-passwall2-zh-cn-26.7.16",
+          "file": "x86_64/luci-i18n-passwall2-zh-cn-26.7.16.apk",
+          "sha256": "a5b6ec71e431bfe86dfb21ed9491b37e76905d8a947eda438675924e615cc38d",
+          "size": 19867
+        },
+        {
+          "package": "luci-i18n-passwall2-zh-tw-26.7.16",
+          "file": "x86_64/luci-i18n-passwall2-zh-tw-26.7.16.apk",
+          "sha256": "b59b9d15225af31059f0581b9773d868cea2fe2bd6b8f57887ebecab2eee8a66",
+          "size": 20029
+        },
+        {
+          "package": "luci-app-passwall-26.7.16-r1",
+          "file": "x86_64/luci-app-passwall-26.7.16-r1.apk",
+          "sha256": "1be89abee0194927e2497612d190dc24233c74c387563fe50eff5559dcea6dd4",
+          "size": 833239
+        },
+        {
+          "package": "luci-i18n-passwall-zh-cn-26.7.16",
+          "file": "x86_64/luci-i18n-passwall-zh-cn-26.7.16.apk",
+          "sha256": "5f2170d3c34802a21d1d2b71453a128f186a4b4ee53d1821d3779d559b1d80ee",
+          "size": 18025
+        },
         {
           "package": "chinadns-ng-2025.08.09-r1",
           "file": "x86_64/chinadns-ng-2025.08.09-r1.apk",
@@ -35,48 +77,6 @@
           "file": "x86_64/ipt2socks-1.1.4-r3.apk",
           "sha256": "4b4f13fb80b3eed7eac469b6b81da5317479c8fcaf8644677440fade42613eee",
           "size": 26603
-        },
-        {
-          "package": "luci-app-passwall-26.7.16-r1",
-          "file": "x86_64/luci-app-passwall-26.7.16-r1.apk",
-          "sha256": "1be89abee0194927e2497612d190dc24233c74c387563fe50eff5559dcea6dd4",
-          "size": 833239
-        },
-        {
-          "package": "luci-app-passwall2-26.7.16-r1",
-          "file": "x86_64/luci-app-passwall2-26.7.16-r1.apk",
-          "sha256": "909ee04700d8c2dbc3a351e7f14b9dba7a79c492c492abda2ded35ad08e1723f",
-          "size": 341331
-        },
-        {
-          "package": "luci-i18n-passwall-zh-cn-26.7.16",
-          "file": "x86_64/luci-i18n-passwall-zh-cn-26.7.16.apk",
-          "sha256": "5f2170d3c34802a21d1d2b71453a128f186a4b4ee53d1821d3779d559b1d80ee",
-          "size": 18025
-        },
-        {
-          "package": "luci-i18n-passwall2-fa-26.7.16",
-          "file": "x86_64/luci-i18n-passwall2-fa-26.7.16.apk",
-          "sha256": "20da268936e733e201a0c09d8e006af9c5929d196db5dba1d0c82a769ea3e9eb",
-          "size": 22280
-        },
-        {
-          "package": "luci-i18n-passwall2-ru-26.7.16",
-          "file": "x86_64/luci-i18n-passwall2-ru-26.7.16.apk",
-          "sha256": "c81d63aadf147497300c02f21b108dce1ed61b90bd49284176f8aa0be31445c6",
-          "size": 23299
-        },
-        {
-          "package": "luci-i18n-passwall2-zh-cn-26.7.16",
-          "file": "x86_64/luci-i18n-passwall2-zh-cn-26.7.16.apk",
-          "sha256": "a5b6ec71e431bfe86dfb21ed9491b37e76905d8a947eda438675924e615cc38d",
-          "size": 19867
-        },
-        {
-          "package": "luci-i18n-passwall2-zh-tw-26.7.16",
-          "file": "x86_64/luci-i18n-passwall2-zh-tw-26.7.16.apk",
-          "sha256": "b59b9d15225af31059f0581b9773d868cea2fe2bd6b8f57887ebecab2eee8a66",
-          "size": 20029
         },
         {
           "package": "microsocks-1.0.5-r2",
@@ -216,6 +216,48 @@
       "name": "mipsel_24kc",
       "packages": [
         {
+          "package": "luci-app-passwall2-26.7.16-r1",
+          "file": "mipsel_24kc/luci-app-passwall2-26.7.16-r1.apk",
+          "sha256": "fd6c2b9e759f3350f28766b10c2cd4a4f7cab6d54213844c021d2ff7c01ef121",
+          "size": 341332
+        },
+        {
+          "package": "luci-i18n-passwall2-fa-26.7.16",
+          "file": "mipsel_24kc/luci-i18n-passwall2-fa-26.7.16.apk",
+          "sha256": "637a5828327664396d12095db9d2aad615e82f7a600bae5bd5bcdf6ec6596d45",
+          "size": 22279
+        },
+        {
+          "package": "luci-i18n-passwall2-ru-26.7.16",
+          "file": "mipsel_24kc/luci-i18n-passwall2-ru-26.7.16.apk",
+          "sha256": "3915530c39716144a4a3b09558b0e5c3f78f7525dce8e77d23dc4b3dc5c0d17c",
+          "size": 23298
+        },
+        {
+          "package": "luci-i18n-passwall2-zh-cn-26.7.16",
+          "file": "mipsel_24kc/luci-i18n-passwall2-zh-cn-26.7.16.apk",
+          "sha256": "495805aa3e588c915cc080c568b33a3dd3a5618baf7d73a6345390630b922882",
+          "size": 19868
+        },
+        {
+          "package": "luci-i18n-passwall2-zh-tw-26.7.16",
+          "file": "mipsel_24kc/luci-i18n-passwall2-zh-tw-26.7.16.apk",
+          "sha256": "3a02442ebb62477373403eaf2a99611d9fb9f5cffafbb594e7cd37d8a37a45ef",
+          "size": 20032
+        },
+        {
+          "package": "luci-app-passwall-26.7.16-r1",
+          "file": "mipsel_24kc/luci-app-passwall-26.7.16-r1.apk",
+          "sha256": "488dca2bfe95e1409bc79e85970f7af8347eb4398961f42b7985d35aaf72b078",
+          "size": 833237
+        },
+        {
+          "package": "luci-i18n-passwall-zh-cn-26.7.16",
+          "file": "mipsel_24kc/luci-i18n-passwall-zh-cn-26.7.16.apk",
+          "sha256": "827002ef91b58beb6ae8f1daa63f129f3715c36a8f259e2a7373d35cbd51432a",
+          "size": 18024
+        },
+        {
           "package": "chinadns-ng-2025.08.09-r1",
           "file": "mipsel_24kc/chinadns-ng-2025.08.09-r1.apk",
           "sha256": "0d03e71503e47cf2798e7807b1471b7403120a3ac50c335ef23a4e293b79784c",
@@ -244,48 +286,6 @@
           "file": "mipsel_24kc/ipt2socks-1.1.4-r3.apk",
           "sha256": "84551f73323787b013a9139fdde78067c024619d8b52b9e01e0aad6a5e58a3c2",
           "size": 25134
-        },
-        {
-          "package": "luci-app-passwall-26.7.16-r1",
-          "file": "mipsel_24kc/luci-app-passwall-26.7.16-r1.apk",
-          "sha256": "488dca2bfe95e1409bc79e85970f7af8347eb4398961f42b7985d35aaf72b078",
-          "size": 833237
-        },
-        {
-          "package": "luci-app-passwall2-26.7.16-r1",
-          "file": "mipsel_24kc/luci-app-passwall2-26.7.16-r1.apk",
-          "sha256": "fd6c2b9e759f3350f28766b10c2cd4a4f7cab6d54213844c021d2ff7c01ef121",
-          "size": 341332
-        },
-        {
-          "package": "luci-i18n-passwall-zh-cn-26.7.16",
-          "file": "mipsel_24kc/luci-i18n-passwall-zh-cn-26.7.16.apk",
-          "sha256": "827002ef91b58beb6ae8f1daa63f129f3715c36a8f259e2a7373d35cbd51432a",
-          "size": 18024
-        },
-        {
-          "package": "luci-i18n-passwall2-fa-26.7.16",
-          "file": "mipsel_24kc/luci-i18n-passwall2-fa-26.7.16.apk",
-          "sha256": "637a5828327664396d12095db9d2aad615e82f7a600bae5bd5bcdf6ec6596d45",
-          "size": 22279
-        },
-        {
-          "package": "luci-i18n-passwall2-ru-26.7.16",
-          "file": "mipsel_24kc/luci-i18n-passwall2-ru-26.7.16.apk",
-          "sha256": "3915530c39716144a4a3b09558b0e5c3f78f7525dce8e77d23dc4b3dc5c0d17c",
-          "size": 23298
-        },
-        {
-          "package": "luci-i18n-passwall2-zh-cn-26.7.16",
-          "file": "mipsel_24kc/luci-i18n-passwall2-zh-cn-26.7.16.apk",
-          "sha256": "495805aa3e588c915cc080c568b33a3dd3a5618baf7d73a6345390630b922882",
-          "size": 19868
-        },
-        {
-          "package": "luci-i18n-passwall2-zh-tw-26.7.16",
-          "file": "mipsel_24kc/luci-i18n-passwall2-zh-tw-26.7.16.apk",
-          "sha256": "3a02442ebb62477373403eaf2a99611d9fb9f5cffafbb594e7cd37d8a37a45ef",
-          "size": 20032
         },
         {
           "package": "microsocks-1.0.5-r2",
@@ -419,6 +419,48 @@
       "name": "i386_pentium4",
       "packages": [
         {
+          "package": "luci-app-passwall2-26.7.16-r1",
+          "file": "i386_pentium4/luci-app-passwall2-26.7.16-r1.apk",
+          "sha256": "605e08ca2b7bdbcddedb68d1251751568b711f64751341bb4ed24bffc9c20a42",
+          "size": 341333
+        },
+        {
+          "package": "luci-i18n-passwall2-fa-26.7.16",
+          "file": "i386_pentium4/luci-i18n-passwall2-fa-26.7.16.apk",
+          "sha256": "ed9a77ef9cce34566cdcefdb8ec700b824960e3a016c4c2e5bb243ad33ef2af0",
+          "size": 22280
+        },
+        {
+          "package": "luci-i18n-passwall2-ru-26.7.16",
+          "file": "i386_pentium4/luci-i18n-passwall2-ru-26.7.16.apk",
+          "sha256": "a00b4af37f6671c604127c9fa6273d13053764f706d98c129acd07cb291aaf59",
+          "size": 23298
+        },
+        {
+          "package": "luci-i18n-passwall2-zh-cn-26.7.16",
+          "file": "i386_pentium4/luci-i18n-passwall2-zh-cn-26.7.16.apk",
+          "sha256": "774c37b23080fee449d2bccab80c68640919bd0fbf672ed4c070dc8d71518aeb",
+          "size": 19867
+        },
+        {
+          "package": "luci-i18n-passwall2-zh-tw-26.7.16",
+          "file": "i386_pentium4/luci-i18n-passwall2-zh-tw-26.7.16.apk",
+          "sha256": "0a6a1cdeac47e392a5088c89bce69f623cb526edfaee0bcd912b58f264bf459c",
+          "size": 20030
+        },
+        {
+          "package": "luci-app-passwall-26.7.16-r1",
+          "file": "i386_pentium4/luci-app-passwall-26.7.16-r1.apk",
+          "sha256": "af8b8cadedd75ca8abc690533cb6e678e6bda76cc19d91fdeb4fa7b219a17a8e",
+          "size": 833239
+        },
+        {
+          "package": "luci-i18n-passwall-zh-cn-26.7.16",
+          "file": "i386_pentium4/luci-i18n-passwall-zh-cn-26.7.16.apk",
+          "sha256": "69620a53168f43e80e79f2435da5f96e38af648c52e30a5a585dec6c09eb7efb",
+          "size": 18024
+        },
+        {
           "package": "chinadns-ng-2025.08.09-r1",
           "file": "i386_pentium4/chinadns-ng-2025.08.09-r1.apk",
           "sha256": "16d1fffed978fa5276a8ff2c134f29f1c1dc911997b987e6cbc4cf6e96a9cdd9",
@@ -447,48 +489,6 @@
           "file": "i386_pentium4/ipt2socks-1.1.4-r3.apk",
           "sha256": "9410c5fe03557130ab98a61ae3dd056c2440e77a164d614c9950950793c7749a",
           "size": 23268
-        },
-        {
-          "package": "luci-app-passwall-26.7.16-r1",
-          "file": "i386_pentium4/luci-app-passwall-26.7.16-r1.apk",
-          "sha256": "af8b8cadedd75ca8abc690533cb6e678e6bda76cc19d91fdeb4fa7b219a17a8e",
-          "size": 833239
-        },
-        {
-          "package": "luci-app-passwall2-26.7.16-r1",
-          "file": "i386_pentium4/luci-app-passwall2-26.7.16-r1.apk",
-          "sha256": "605e08ca2b7bdbcddedb68d1251751568b711f64751341bb4ed24bffc9c20a42",
-          "size": 341333
-        },
-        {
-          "package": "luci-i18n-passwall-zh-cn-26.7.16",
-          "file": "i386_pentium4/luci-i18n-passwall-zh-cn-26.7.16.apk",
-          "sha256": "69620a53168f43e80e79f2435da5f96e38af648c52e30a5a585dec6c09eb7efb",
-          "size": 18024
-        },
-        {
-          "package": "luci-i18n-passwall2-fa-26.7.16",
-          "file": "i386_pentium4/luci-i18n-passwall2-fa-26.7.16.apk",
-          "sha256": "ed9a77ef9cce34566cdcefdb8ec700b824960e3a016c4c2e5bb243ad33ef2af0",
-          "size": 22280
-        },
-        {
-          "package": "luci-i18n-passwall2-ru-26.7.16",
-          "file": "i386_pentium4/luci-i18n-passwall2-ru-26.7.16.apk",
-          "sha256": "a00b4af37f6671c604127c9fa6273d13053764f706d98c129acd07cb291aaf59",
-          "size": 23298
-        },
-        {
-          "package": "luci-i18n-passwall2-zh-cn-26.7.16",
-          "file": "i386_pentium4/luci-i18n-passwall2-zh-cn-26.7.16.apk",
-          "sha256": "774c37b23080fee449d2bccab80c68640919bd0fbf672ed4c070dc8d71518aeb",
-          "size": 19867
-        },
-        {
-          "package": "luci-i18n-passwall2-zh-tw-26.7.16",
-          "file": "i386_pentium4/luci-i18n-passwall2-zh-tw-26.7.16.apk",
-          "sha256": "0a6a1cdeac47e392a5088c89bce69f623cb526edfaee0bcd912b58f264bf459c",
-          "size": 20030
         },
         {
           "package": "microsocks-1.0.5-r2",
@@ -592,6 +592,48 @@
       "name": "aarch64_cortex-a53",
       "packages": [
         {
+          "package": "luci-app-passwall2-26.7.16-r1",
+          "file": "aarch64_cortex-a53/luci-app-passwall2-26.7.16-r1.apk",
+          "sha256": "e7b895598c699b0b21870db3eaa429e7ff97d10df23c59ae604e759a7634cb0a",
+          "size": 341331
+        },
+        {
+          "package": "luci-i18n-passwall2-fa-26.7.16",
+          "file": "aarch64_cortex-a53/luci-i18n-passwall2-fa-26.7.16.apk",
+          "sha256": "df8803c69769729e2fc0ac1ac991959fda11707d787f8ffdfe9d3ce37c1b406b",
+          "size": 22281
+        },
+        {
+          "package": "luci-i18n-passwall2-ru-26.7.16",
+          "file": "aarch64_cortex-a53/luci-i18n-passwall2-ru-26.7.16.apk",
+          "sha256": "9a58cb3913e02e9f7ba573a6dae07c04ed045cd59660b09cb05182add49387bb",
+          "size": 23297
+        },
+        {
+          "package": "luci-i18n-passwall2-zh-cn-26.7.16",
+          "file": "aarch64_cortex-a53/luci-i18n-passwall2-zh-cn-26.7.16.apk",
+          "sha256": "b3cc23acd0b457202ed4284946d82a0fe46207bc113f2ddb337f6a85c3d8f558",
+          "size": 19867
+        },
+        {
+          "package": "luci-i18n-passwall2-zh-tw-26.7.16",
+          "file": "aarch64_cortex-a53/luci-i18n-passwall2-zh-tw-26.7.16.apk",
+          "sha256": "1f63d14c6943fb646b00c9dd96d68df8a3e463c3faea81c3476e3e0647aaa516",
+          "size": 20029
+        },
+        {
+          "package": "luci-app-passwall-26.7.16-r1",
+          "file": "aarch64_cortex-a53/luci-app-passwall-26.7.16-r1.apk",
+          "sha256": "e59367e11850ae4edc2313be09d387f53596328b065377ca97c59ec18571147f",
+          "size": 833239
+        },
+        {
+          "package": "luci-i18n-passwall-zh-cn-26.7.16",
+          "file": "aarch64_cortex-a53/luci-i18n-passwall-zh-cn-26.7.16.apk",
+          "sha256": "9d09e99b538a976159601b70415d5ce00f3d5e18a22b8834447de99fb4c160db",
+          "size": 18029
+        },
+        {
           "package": "chinadns-ng-2025.08.09-r1",
           "file": "aarch64_cortex-a53/chinadns-ng-2025.08.09-r1.apk",
           "sha256": "cfc24d577c7e9e8a6e73b456b6d7ca18972be1ddbf1e99d49cafe252248c7783",
@@ -620,48 +662,6 @@
           "file": "aarch64_cortex-a53/ipt2socks-1.1.4-r3.apk",
           "sha256": "8050ba6c368b6d6c8f4677429d8280c5f019e4165abd7b7e51e2ae3663e96442",
           "size": 26250
-        },
-        {
-          "package": "luci-app-passwall-26.7.16-r1",
-          "file": "aarch64_cortex-a53/luci-app-passwall-26.7.16-r1.apk",
-          "sha256": "e59367e11850ae4edc2313be09d387f53596328b065377ca97c59ec18571147f",
-          "size": 833239
-        },
-        {
-          "package": "luci-app-passwall2-26.7.16-r1",
-          "file": "aarch64_cortex-a53/luci-app-passwall2-26.7.16-r1.apk",
-          "sha256": "e7b895598c699b0b21870db3eaa429e7ff97d10df23c59ae604e759a7634cb0a",
-          "size": 341331
-        },
-        {
-          "package": "luci-i18n-passwall-zh-cn-26.7.16",
-          "file": "aarch64_cortex-a53/luci-i18n-passwall-zh-cn-26.7.16.apk",
-          "sha256": "9d09e99b538a976159601b70415d5ce00f3d5e18a22b8834447de99fb4c160db",
-          "size": 18029
-        },
-        {
-          "package": "luci-i18n-passwall2-fa-26.7.16",
-          "file": "aarch64_cortex-a53/luci-i18n-passwall2-fa-26.7.16.apk",
-          "sha256": "df8803c69769729e2fc0ac1ac991959fda11707d787f8ffdfe9d3ce37c1b406b",
-          "size": 22281
-        },
-        {
-          "package": "luci-i18n-passwall2-ru-26.7.16",
-          "file": "aarch64_cortex-a53/luci-i18n-passwall2-ru-26.7.16.apk",
-          "sha256": "9a58cb3913e02e9f7ba573a6dae07c04ed045cd59660b09cb05182add49387bb",
-          "size": 23297
-        },
-        {
-          "package": "luci-i18n-passwall2-zh-cn-26.7.16",
-          "file": "aarch64_cortex-a53/luci-i18n-passwall2-zh-cn-26.7.16.apk",
-          "sha256": "b3cc23acd0b457202ed4284946d82a0fe46207bc113f2ddb337f6a85c3d8f558",
-          "size": 19867
-        },
-        {
-          "package": "luci-i18n-passwall2-zh-tw-26.7.16",
-          "file": "aarch64_cortex-a53/luci-i18n-passwall2-zh-tw-26.7.16.apk",
-          "sha256": "1f63d14c6943fb646b00c9dd96d68df8a3e463c3faea81c3476e3e0647aaa516",
-          "size": 20029
         },
         {
           "package": "microsocks-1.0.5-r2",
@@ -801,6 +801,48 @@
       "name": "aarch64_cortex-a72",
       "packages": [
         {
+          "package": "luci-app-passwall2-26.7.16-r1",
+          "file": "aarch64_cortex-a72/luci-app-passwall2-26.7.16-r1.apk",
+          "sha256": "84b6183af744543dbea7b2f5043a382d875e9f3f893b297ec099d1c998d548a1",
+          "size": 341329
+        },
+        {
+          "package": "luci-i18n-passwall2-fa-26.7.16",
+          "file": "aarch64_cortex-a72/luci-i18n-passwall2-fa-26.7.16.apk",
+          "sha256": "cedabf3bfed98a3f9e6741cbb692dc7fe1eefc7a0bcc7f0e12d6bab67f240f59",
+          "size": 22281
+        },
+        {
+          "package": "luci-i18n-passwall2-ru-26.7.16",
+          "file": "aarch64_cortex-a72/luci-i18n-passwall2-ru-26.7.16.apk",
+          "sha256": "1af30ca6593df73da6087e8ecba790c3f488308118322e5648440697aacd5ceb",
+          "size": 23298
+        },
+        {
+          "package": "luci-i18n-passwall2-zh-cn-26.7.16",
+          "file": "aarch64_cortex-a72/luci-i18n-passwall2-zh-cn-26.7.16.apk",
+          "sha256": "3ecbdf22c7a85f7a0fa05bf8ae8c145f6e664297ad8c1e12ec44175ead3ab996",
+          "size": 19869
+        },
+        {
+          "package": "luci-i18n-passwall2-zh-tw-26.7.16",
+          "file": "aarch64_cortex-a72/luci-i18n-passwall2-zh-tw-26.7.16.apk",
+          "sha256": "d553ebe650b84cc9f16ecbe7df0d451cb699653933d5ebe4465ddc5571d28991",
+          "size": 20029
+        },
+        {
+          "package": "luci-app-passwall-26.7.16-r1",
+          "file": "aarch64_cortex-a72/luci-app-passwall-26.7.16-r1.apk",
+          "sha256": "71684f82c2303969bbd301784aa2c2adc59f3557a830d6bb0eabc785997dc863",
+          "size": 833237
+        },
+        {
+          "package": "luci-i18n-passwall-zh-cn-26.7.16",
+          "file": "aarch64_cortex-a72/luci-i18n-passwall-zh-cn-26.7.16.apk",
+          "sha256": "bb71a552b3d75758594c7f968eb6675a477b50db3858b87c92f4b00d71b359b9",
+          "size": 18026
+        },
+        {
           "package": "chinadns-ng-2025.08.09-r1",
           "file": "aarch64_cortex-a72/chinadns-ng-2025.08.09-r1.apk",
           "sha256": "01d4ef71b675978c46a9fdef3099ae5f54cb6de0691023098d4be7ee72f4f085",
@@ -829,48 +871,6 @@
           "file": "aarch64_cortex-a72/ipt2socks-1.1.4-r3.apk",
           "sha256": "874048d51a08f88695c53fbf73e8b60995011906b71f070aa03bb509ef326a22",
           "size": 26269
-        },
-        {
-          "package": "luci-app-passwall-26.7.16-r1",
-          "file": "aarch64_cortex-a72/luci-app-passwall-26.7.16-r1.apk",
-          "sha256": "71684f82c2303969bbd301784aa2c2adc59f3557a830d6bb0eabc785997dc863",
-          "size": 833237
-        },
-        {
-          "package": "luci-app-passwall2-26.7.16-r1",
-          "file": "aarch64_cortex-a72/luci-app-passwall2-26.7.16-r1.apk",
-          "sha256": "84b6183af744543dbea7b2f5043a382d875e9f3f893b297ec099d1c998d548a1",
-          "size": 341329
-        },
-        {
-          "package": "luci-i18n-passwall-zh-cn-26.7.16",
-          "file": "aarch64_cortex-a72/luci-i18n-passwall-zh-cn-26.7.16.apk",
-          "sha256": "bb71a552b3d75758594c7f968eb6675a477b50db3858b87c92f4b00d71b359b9",
-          "size": 18026
-        },
-        {
-          "package": "luci-i18n-passwall2-fa-26.7.16",
-          "file": "aarch64_cortex-a72/luci-i18n-passwall2-fa-26.7.16.apk",
-          "sha256": "cedabf3bfed98a3f9e6741cbb692dc7fe1eefc7a0bcc7f0e12d6bab67f240f59",
-          "size": 22281
-        },
-        {
-          "package": "luci-i18n-passwall2-ru-26.7.16",
-          "file": "aarch64_cortex-a72/luci-i18n-passwall2-ru-26.7.16.apk",
-          "sha256": "1af30ca6593df73da6087e8ecba790c3f488308118322e5648440697aacd5ceb",
-          "size": 23298
-        },
-        {
-          "package": "luci-i18n-passwall2-zh-cn-26.7.16",
-          "file": "aarch64_cortex-a72/luci-i18n-passwall2-zh-cn-26.7.16.apk",
-          "sha256": "3ecbdf22c7a85f7a0fa05bf8ae8c145f6e664297ad8c1e12ec44175ead3ab996",
-          "size": 19869
-        },
-        {
-          "package": "luci-i18n-passwall2-zh-tw-26.7.16",
-          "file": "aarch64_cortex-a72/luci-i18n-passwall2-zh-tw-26.7.16.apk",
-          "sha256": "d553ebe650b84cc9f16ecbe7df0d451cb699653933d5ebe4465ddc5571d28991",
-          "size": 20029
         },
         {
           "package": "microsocks-1.0.5-r2",
@@ -1010,6 +1010,48 @@
       "name": "aarch64_cortex-a76",
       "packages": [
         {
+          "package": "luci-app-passwall2-26.7.16-r1",
+          "file": "aarch64_cortex-a76/luci-app-passwall2-26.7.16-r1.apk",
+          "sha256": "05538e615961e0588a981b03f1735cc18701f6220f8551adedbb697af6a27ca1",
+          "size": 341333
+        },
+        {
+          "package": "luci-i18n-passwall2-fa-26.7.16",
+          "file": "aarch64_cortex-a76/luci-i18n-passwall2-fa-26.7.16.apk",
+          "sha256": "7bbe35c0acec3c7dafcefe8381513aceae85525760c4be183c2c506eebe8367e",
+          "size": 22278
+        },
+        {
+          "package": "luci-i18n-passwall2-ru-26.7.16",
+          "file": "aarch64_cortex-a76/luci-i18n-passwall2-ru-26.7.16.apk",
+          "sha256": "5cf801615e532ecd61a4105f52d2c45f12b6fcd30f1f39b49e5f0f8ca21fa391",
+          "size": 23297
+        },
+        {
+          "package": "luci-i18n-passwall2-zh-cn-26.7.16",
+          "file": "aarch64_cortex-a76/luci-i18n-passwall2-zh-cn-26.7.16.apk",
+          "sha256": "6298172d59bddafb421073d5f836515ad5a2d39a07fd6ce81ad87270940987e4",
+          "size": 19869
+        },
+        {
+          "package": "luci-i18n-passwall2-zh-tw-26.7.16",
+          "file": "aarch64_cortex-a76/luci-i18n-passwall2-zh-tw-26.7.16.apk",
+          "sha256": "095a20bfadedb2886bf612c73a9f0c231789cca98fc7ab892e6dc2ec46fae99b",
+          "size": 20029
+        },
+        {
+          "package": "luci-app-passwall-26.7.16-r1",
+          "file": "aarch64_cortex-a76/luci-app-passwall-26.7.16-r1.apk",
+          "sha256": "540087801d52a8fc4a8e10873b5a81d43c61ddeceb125f7dcf5b2ed3b7685214",
+          "size": 833239
+        },
+        {
+          "package": "luci-i18n-passwall-zh-cn-26.7.16",
+          "file": "aarch64_cortex-a76/luci-i18n-passwall-zh-cn-26.7.16.apk",
+          "sha256": "5bdb9e8a7534e4f8ee4e1430db3b6c6d70629c0a0f0fdffb9942e5de12e06565",
+          "size": 18026
+        },
+        {
           "package": "chinadns-ng-2025.08.09-r1",
           "file": "aarch64_cortex-a76/chinadns-ng-2025.08.09-r1.apk",
           "sha256": "f66c1060422eaeaf4f7209603f809a59cdb612c289981a3081e0f987da507d1c",
@@ -1038,48 +1080,6 @@
           "file": "aarch64_cortex-a76/ipt2socks-1.1.4-r3.apk",
           "sha256": "9e440ac9e2fd8e2e366052b531ac3a28a966ae2a604945e13ec2f05ee0e5f3f6",
           "size": 26271
-        },
-        {
-          "package": "luci-app-passwall-26.7.16-r1",
-          "file": "aarch64_cortex-a76/luci-app-passwall-26.7.16-r1.apk",
-          "sha256": "540087801d52a8fc4a8e10873b5a81d43c61ddeceb125f7dcf5b2ed3b7685214",
-          "size": 833239
-        },
-        {
-          "package": "luci-app-passwall2-26.7.16-r1",
-          "file": "aarch64_cortex-a76/luci-app-passwall2-26.7.16-r1.apk",
-          "sha256": "05538e615961e0588a981b03f1735cc18701f6220f8551adedbb697af6a27ca1",
-          "size": 341333
-        },
-        {
-          "package": "luci-i18n-passwall-zh-cn-26.7.16",
-          "file": "aarch64_cortex-a76/luci-i18n-passwall-zh-cn-26.7.16.apk",
-          "sha256": "5bdb9e8a7534e4f8ee4e1430db3b6c6d70629c0a0f0fdffb9942e5de12e06565",
-          "size": 18026
-        },
-        {
-          "package": "luci-i18n-passwall2-fa-26.7.16",
-          "file": "aarch64_cortex-a76/luci-i18n-passwall2-fa-26.7.16.apk",
-          "sha256": "7bbe35c0acec3c7dafcefe8381513aceae85525760c4be183c2c506eebe8367e",
-          "size": 22278
-        },
-        {
-          "package": "luci-i18n-passwall2-ru-26.7.16",
-          "file": "aarch64_cortex-a76/luci-i18n-passwall2-ru-26.7.16.apk",
-          "sha256": "5cf801615e532ecd61a4105f52d2c45f12b6fcd30f1f39b49e5f0f8ca21fa391",
-          "size": 23297
-        },
-        {
-          "package": "luci-i18n-passwall2-zh-cn-26.7.16",
-          "file": "aarch64_cortex-a76/luci-i18n-passwall2-zh-cn-26.7.16.apk",
-          "sha256": "6298172d59bddafb421073d5f836515ad5a2d39a07fd6ce81ad87270940987e4",
-          "size": 19869
-        },
-        {
-          "package": "luci-i18n-passwall2-zh-tw-26.7.16",
-          "file": "aarch64_cortex-a76/luci-i18n-passwall2-zh-tw-26.7.16.apk",
-          "sha256": "095a20bfadedb2886bf612c73a9f0c231789cca98fc7ab892e6dc2ec46fae99b",
-          "size": 20029
         },
         {
           "package": "microsocks-1.0.5-r2",
@@ -1219,6 +1219,48 @@
       "name": "aarch64_generic",
       "packages": [
         {
+          "package": "luci-app-passwall2-26.7.16-r1",
+          "file": "aarch64_generic/luci-app-passwall2-26.7.16-r1.apk",
+          "sha256": "fe1edcce278ed19aa0d9b85fd32163f033957c33a3bd7cc1ad7ecc2cf28963f0",
+          "size": 341331
+        },
+        {
+          "package": "luci-i18n-passwall2-fa-26.7.16",
+          "file": "aarch64_generic/luci-i18n-passwall2-fa-26.7.16.apk",
+          "sha256": "9795e47ae1292b855a9c9abf3d760f846a0eceac3eaa414ba5c839c4855bda58",
+          "size": 22281
+        },
+        {
+          "package": "luci-i18n-passwall2-ru-26.7.16",
+          "file": "aarch64_generic/luci-i18n-passwall2-ru-26.7.16.apk",
+          "sha256": "e9fb3ac0b387c0e2a95e342b8b592e1fa8313c635217e6fe8f3fda279e35de03",
+          "size": 23298
+        },
+        {
+          "package": "luci-i18n-passwall2-zh-cn-26.7.16",
+          "file": "aarch64_generic/luci-i18n-passwall2-zh-cn-26.7.16.apk",
+          "sha256": "d9a05b112d983befb4a7d4ddcb5e2fe3df0ba07c0b6051838a191bdd007bc6ea",
+          "size": 19868
+        },
+        {
+          "package": "luci-i18n-passwall2-zh-tw-26.7.16",
+          "file": "aarch64_generic/luci-i18n-passwall2-zh-tw-26.7.16.apk",
+          "sha256": "c5390e501f07016855b3e5078d48799478283b7b30fd272adb46723a45fe6341",
+          "size": 20030
+        },
+        {
+          "package": "luci-app-passwall-26.7.16-r1",
+          "file": "aarch64_generic/luci-app-passwall-26.7.16-r1.apk",
+          "sha256": "22f25d2de5f9085e93303f75b553198ce9f81ab0d3d0f4a8479199671e55c907",
+          "size": 833238
+        },
+        {
+          "package": "luci-i18n-passwall-zh-cn-26.7.16",
+          "file": "aarch64_generic/luci-i18n-passwall-zh-cn-26.7.16.apk",
+          "sha256": "5c2ab4780a06ebe7d1af17cbee7b897a4e5d1c2f2e026e802c4fb419eeb7e7f3",
+          "size": 18026
+        },
+        {
           "package": "chinadns-ng-2025.08.09-r1",
           "file": "aarch64_generic/chinadns-ng-2025.08.09-r1.apk",
           "sha256": "022d8bd0f3f222cc26450570c1eb1553d61aeb7b889c5e0792061bc8f2dd0400",
@@ -1247,48 +1289,6 @@
           "file": "aarch64_generic/ipt2socks-1.1.4-r3.apk",
           "sha256": "8eecfdc68e9a5d56be126988d5607b18f03903e89f9a3c237341f86edd9074a2",
           "size": 26270
-        },
-        {
-          "package": "luci-app-passwall-26.7.16-r1",
-          "file": "aarch64_generic/luci-app-passwall-26.7.16-r1.apk",
-          "sha256": "22f25d2de5f9085e93303f75b553198ce9f81ab0d3d0f4a8479199671e55c907",
-          "size": 833238
-        },
-        {
-          "package": "luci-app-passwall2-26.7.16-r1",
-          "file": "aarch64_generic/luci-app-passwall2-26.7.16-r1.apk",
-          "sha256": "fe1edcce278ed19aa0d9b85fd32163f033957c33a3bd7cc1ad7ecc2cf28963f0",
-          "size": 341331
-        },
-        {
-          "package": "luci-i18n-passwall-zh-cn-26.7.16",
-          "file": "aarch64_generic/luci-i18n-passwall-zh-cn-26.7.16.apk",
-          "sha256": "5c2ab4780a06ebe7d1af17cbee7b897a4e5d1c2f2e026e802c4fb419eeb7e7f3",
-          "size": 18026
-        },
-        {
-          "package": "luci-i18n-passwall2-fa-26.7.16",
-          "file": "aarch64_generic/luci-i18n-passwall2-fa-26.7.16.apk",
-          "sha256": "9795e47ae1292b855a9c9abf3d760f846a0eceac3eaa414ba5c839c4855bda58",
-          "size": 22281
-        },
-        {
-          "package": "luci-i18n-passwall2-ru-26.7.16",
-          "file": "aarch64_generic/luci-i18n-passwall2-ru-26.7.16.apk",
-          "sha256": "e9fb3ac0b387c0e2a95e342b8b592e1fa8313c635217e6fe8f3fda279e35de03",
-          "size": 23298
-        },
-        {
-          "package": "luci-i18n-passwall2-zh-cn-26.7.16",
-          "file": "aarch64_generic/luci-i18n-passwall2-zh-cn-26.7.16.apk",
-          "sha256": "d9a05b112d983befb4a7d4ddcb5e2fe3df0ba07c0b6051838a191bdd007bc6ea",
-          "size": 19868
-        },
-        {
-          "package": "luci-i18n-passwall2-zh-tw-26.7.16",
-          "file": "aarch64_generic/luci-i18n-passwall2-zh-tw-26.7.16.apk",
-          "sha256": "c5390e501f07016855b3e5078d48799478283b7b30fd272adb46723a45fe6341",
-          "size": 20030
         },
         {
           "package": "microsocks-1.0.5-r2",
@@ -1428,6 +1428,48 @@
       "name": "arm_cortex-a7_neon-vfpv4",
       "packages": [
         {
+          "package": "luci-app-passwall2-26.7.16-r1",
+          "file": "arm_cortex-a7_neon-vfpv4/luci-app-passwall2-26.7.16-r1.apk",
+          "sha256": "dae49bb05e3e95b24b78345314a9b798aad9e84935d661bd87e21494f4ef6146",
+          "size": 341329
+        },
+        {
+          "package": "luci-i18n-passwall2-fa-26.7.16",
+          "file": "arm_cortex-a7_neon-vfpv4/luci-i18n-passwall2-fa-26.7.16.apk",
+          "sha256": "684b73f3cb3feac24295836fc8da4acebd3dfb141d9aa4d29e52402e34d43d30",
+          "size": 22278
+        },
+        {
+          "package": "luci-i18n-passwall2-ru-26.7.16",
+          "file": "arm_cortex-a7_neon-vfpv4/luci-i18n-passwall2-ru-26.7.16.apk",
+          "sha256": "ce5fcf5e05633975a3f79d77b07fd8d78cdb7af9fa1080eb7f1d0198f969e812",
+          "size": 23297
+        },
+        {
+          "package": "luci-i18n-passwall2-zh-cn-26.7.16",
+          "file": "arm_cortex-a7_neon-vfpv4/luci-i18n-passwall2-zh-cn-26.7.16.apk",
+          "sha256": "1b0a07c9f47bf093e2371d0a0cc556a9599539967b67a259ea480389264d1989",
+          "size": 19867
+        },
+        {
+          "package": "luci-i18n-passwall2-zh-tw-26.7.16",
+          "file": "arm_cortex-a7_neon-vfpv4/luci-i18n-passwall2-zh-tw-26.7.16.apk",
+          "sha256": "351cb7d3f1e14f2f5dae957d9a39a847230d47658b96156f22eafbdda2c4ac80",
+          "size": 20030
+        },
+        {
+          "package": "luci-app-passwall-26.7.16-r1",
+          "file": "arm_cortex-a7_neon-vfpv4/luci-app-passwall-26.7.16-r1.apk",
+          "sha256": "2c2797a766ea295219805cfbaee2de47893746ed1a71add89f0bd0a0730d22ae",
+          "size": 833239
+        },
+        {
+          "package": "luci-i18n-passwall-zh-cn-26.7.16",
+          "file": "arm_cortex-a7_neon-vfpv4/luci-i18n-passwall-zh-cn-26.7.16.apk",
+          "sha256": "072a21138093af0cad3fdc12420fbf17bc93bd4eda5c1ab9149dfd20f70e775f",
+          "size": 18026
+        },
+        {
           "package": "chinadns-ng-2025.08.09-r1",
           "file": "arm_cortex-a7_neon-vfpv4/chinadns-ng-2025.08.09-r1.apk",
           "sha256": "1b93a8ef6bf44f484618028da85813380497133a68ad66d73ac043471cab79d9",
@@ -1456,48 +1498,6 @@
           "file": "arm_cortex-a7_neon-vfpv4/ipt2socks-1.1.4-r3.apk",
           "sha256": "6aa55c5a3e7109c0d7a3ceb5dac9237e287554fc14428b4f06b5133ed0d8e0a7",
           "size": 26014
-        },
-        {
-          "package": "luci-app-passwall-26.7.16-r1",
-          "file": "arm_cortex-a7_neon-vfpv4/luci-app-passwall-26.7.16-r1.apk",
-          "sha256": "2c2797a766ea295219805cfbaee2de47893746ed1a71add89f0bd0a0730d22ae",
-          "size": 833239
-        },
-        {
-          "package": "luci-app-passwall2-26.7.16-r1",
-          "file": "arm_cortex-a7_neon-vfpv4/luci-app-passwall2-26.7.16-r1.apk",
-          "sha256": "dae49bb05e3e95b24b78345314a9b798aad9e84935d661bd87e21494f4ef6146",
-          "size": 341329
-        },
-        {
-          "package": "luci-i18n-passwall-zh-cn-26.7.16",
-          "file": "arm_cortex-a7_neon-vfpv4/luci-i18n-passwall-zh-cn-26.7.16.apk",
-          "sha256": "072a21138093af0cad3fdc12420fbf17bc93bd4eda5c1ab9149dfd20f70e775f",
-          "size": 18026
-        },
-        {
-          "package": "luci-i18n-passwall2-fa-26.7.16",
-          "file": "arm_cortex-a7_neon-vfpv4/luci-i18n-passwall2-fa-26.7.16.apk",
-          "sha256": "684b73f3cb3feac24295836fc8da4acebd3dfb141d9aa4d29e52402e34d43d30",
-          "size": 22278
-        },
-        {
-          "package": "luci-i18n-passwall2-ru-26.7.16",
-          "file": "arm_cortex-a7_neon-vfpv4/luci-i18n-passwall2-ru-26.7.16.apk",
-          "sha256": "ce5fcf5e05633975a3f79d77b07fd8d78cdb7af9fa1080eb7f1d0198f969e812",
-          "size": 23297
-        },
-        {
-          "package": "luci-i18n-passwall2-zh-cn-26.7.16",
-          "file": "arm_cortex-a7_neon-vfpv4/luci-i18n-passwall2-zh-cn-26.7.16.apk",
-          "sha256": "1b0a07c9f47bf093e2371d0a0cc556a9599539967b67a259ea480389264d1989",
-          "size": 19867
-        },
-        {
-          "package": "luci-i18n-passwall2-zh-tw-26.7.16",
-          "file": "arm_cortex-a7_neon-vfpv4/luci-i18n-passwall2-zh-tw-26.7.16.apk",
-          "sha256": "351cb7d3f1e14f2f5dae957d9a39a847230d47658b96156f22eafbdda2c4ac80",
-          "size": 20030
         },
         {
           "package": "microsocks-1.0.5-r2",
@@ -1637,6 +1637,48 @@
       "name": "arm_cortex-a9_vfpv3-d16",
       "packages": [
         {
+          "package": "luci-app-passwall2-26.7.16-r1",
+          "file": "arm_cortex-a9_vfpv3-d16/luci-app-passwall2-26.7.16-r1.apk",
+          "sha256": "1d0466409d9003ffb7990c9062b5b88847027c670e4dab3e217f8e20933f758e",
+          "size": 341332
+        },
+        {
+          "package": "luci-i18n-passwall2-fa-26.7.16",
+          "file": "arm_cortex-a9_vfpv3-d16/luci-i18n-passwall2-fa-26.7.16.apk",
+          "sha256": "3875004a4e7408edbc9762a302f50f73d18650e695f38231c14e3c721568914c",
+          "size": 22281
+        },
+        {
+          "package": "luci-i18n-passwall2-ru-26.7.16",
+          "file": "arm_cortex-a9_vfpv3-d16/luci-i18n-passwall2-ru-26.7.16.apk",
+          "sha256": "a1400e9ffb68caabe09d5b0e3784ffa8776c0f145e54f411f16ac9b4b4822ce2",
+          "size": 23297
+        },
+        {
+          "package": "luci-i18n-passwall2-zh-cn-26.7.16",
+          "file": "arm_cortex-a9_vfpv3-d16/luci-i18n-passwall2-zh-cn-26.7.16.apk",
+          "sha256": "81dc54f3a168041dd7ddc52e1655942b0db1140d31f13fe02050d2602b2fd56d",
+          "size": 19870
+        },
+        {
+          "package": "luci-i18n-passwall2-zh-tw-26.7.16",
+          "file": "arm_cortex-a9_vfpv3-d16/luci-i18n-passwall2-zh-tw-26.7.16.apk",
+          "sha256": "463f3a5c800035eee68e72c8440fe2451f4e71ee69fabea27a4b93825e722201",
+          "size": 20029
+        },
+        {
+          "package": "luci-app-passwall-26.7.16-r1",
+          "file": "arm_cortex-a9_vfpv3-d16/luci-app-passwall-26.7.16-r1.apk",
+          "sha256": "e5b5aece7f5008870d9c2ae28870a2a8f36999f41944e6949a0ff81b4c84f7bb",
+          "size": 833239
+        },
+        {
+          "package": "luci-i18n-passwall-zh-cn-26.7.16",
+          "file": "arm_cortex-a9_vfpv3-d16/luci-i18n-passwall-zh-cn-26.7.16.apk",
+          "sha256": "3c3696f5f6df2b1f5c14ac0dd78dda81dbee63cf73deb2725571ac7bccd4b047",
+          "size": 18024
+        },
+        {
           "package": "chinadns-ng-2025.08.09-r1",
           "file": "arm_cortex-a9_vfpv3-d16/chinadns-ng-2025.08.09-r1.apk",
           "sha256": "51aea9f5d0f2849fb9a2211f25224e643fd49c25d4d27c845f3b70fbca33f60a",
@@ -1665,48 +1707,6 @@
           "file": "arm_cortex-a9_vfpv3-d16/ipt2socks-1.1.4-r3.apk",
           "sha256": "869156c6f139947d7c557df6a00d4ceae7f73f8a7c7e461e69391d50c11332b2",
           "size": 26321
-        },
-        {
-          "package": "luci-app-passwall-26.7.16-r1",
-          "file": "arm_cortex-a9_vfpv3-d16/luci-app-passwall-26.7.16-r1.apk",
-          "sha256": "e5b5aece7f5008870d9c2ae28870a2a8f36999f41944e6949a0ff81b4c84f7bb",
-          "size": 833239
-        },
-        {
-          "package": "luci-app-passwall2-26.7.16-r1",
-          "file": "arm_cortex-a9_vfpv3-d16/luci-app-passwall2-26.7.16-r1.apk",
-          "sha256": "1d0466409d9003ffb7990c9062b5b88847027c670e4dab3e217f8e20933f758e",
-          "size": 341332
-        },
-        {
-          "package": "luci-i18n-passwall-zh-cn-26.7.16",
-          "file": "arm_cortex-a9_vfpv3-d16/luci-i18n-passwall-zh-cn-26.7.16.apk",
-          "sha256": "3c3696f5f6df2b1f5c14ac0dd78dda81dbee63cf73deb2725571ac7bccd4b047",
-          "size": 18024
-        },
-        {
-          "package": "luci-i18n-passwall2-fa-26.7.16",
-          "file": "arm_cortex-a9_vfpv3-d16/luci-i18n-passwall2-fa-26.7.16.apk",
-          "sha256": "3875004a4e7408edbc9762a302f50f73d18650e695f38231c14e3c721568914c",
-          "size": 22281
-        },
-        {
-          "package": "luci-i18n-passwall2-ru-26.7.16",
-          "file": "arm_cortex-a9_vfpv3-d16/luci-i18n-passwall2-ru-26.7.16.apk",
-          "sha256": "a1400e9ffb68caabe09d5b0e3784ffa8776c0f145e54f411f16ac9b4b4822ce2",
-          "size": 23297
-        },
-        {
-          "package": "luci-i18n-passwall2-zh-cn-26.7.16",
-          "file": "arm_cortex-a9_vfpv3-d16/luci-i18n-passwall2-zh-cn-26.7.16.apk",
-          "sha256": "81dc54f3a168041dd7ddc52e1655942b0db1140d31f13fe02050d2602b2fd56d",
-          "size": 19870
-        },
-        {
-          "package": "luci-i18n-passwall2-zh-tw-26.7.16",
-          "file": "arm_cortex-a9_vfpv3-d16/luci-i18n-passwall2-zh-tw-26.7.16.apk",
-          "sha256": "463f3a5c800035eee68e72c8440fe2451f4e71ee69fabea27a4b93825e722201",
-          "size": 20029
         },
         {
           "package": "microsocks-1.0.5-r2",
