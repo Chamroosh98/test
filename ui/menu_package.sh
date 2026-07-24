@@ -4,16 +4,18 @@ package_menu()
 {
     render_persistent_header
 
-    echo "  Package Type"
-    echo "  ────────────"
-    echo "  🔒 1) Passwall-1"
-    echo "  🔒 2) Passwall-2"
+    echo "  ┌───────────────────────────────────────────────────────────┐"
+    echo "  │  🕵️‍♀️ Select Package Type                                   │"
+    echo "  ├───────────────────────────────────────────────────────────┤"
+    echo "  │  🔒 1) Passwall-1  (Legacy Stable Release)                │"
+    echo "  │  🔒 2) Passwall-2  (Modern Release - Recommended)         │"
+    echo "  └───────────────────────────────────────────────────────────┘"
     echo
 
-    printf "  ⁉️ Select : "
+    printf "  ⁉️ Select option [1-2] : "
     read -r choice </dev/tty
 
-    # Reset the list of previous manual selections
+    # Reset manual selections to let resolver handle exact dependency hierarchy
     SELECTED_PACKAGES=""
 
     case "$choice" in
@@ -24,48 +26,48 @@ package_menu()
             SELECTED_PROFILE="passwall2"
             ;;
         *)
-            log_error "Invalid choice!"
+            log_error "Invalid choice! Returning to menu ..."
+            sleep 1
             return 1
             ;;
     esac
 
     export SELECTED_PROFILE
 
-    render_persistent_header
-    echo "  Installation Mode"
-    echo "  ──────────────────"
-    echo "  1) ⚡ Recommended  (Quick & Pre-configured for standard users)"
-    echo "  2) 🛠️ Custom       (Advanced package selection)"
-    echo
+    # 1. Select Mode (Recommended / Custom) via modular menu
+    menu_mode
 
-    printf "  ⁉️ Select : "
-    read -r mode_choice </dev/tty
-
-    if [ "$mode_choice" = "1" ] || [ -z "$mode_choice" ]; then
-        # RECOMMENDED MODE
-        handle_recommended_profile
-        
+    # 2. Select Engine, Language and Geo if Custom mode requires
+    if [ "${SELECTED_MODE:-}" = "custom" ]; then
+        engine_menu || return 1
+        language_menu || return 1
+        geo_menu || return 1
+    else
         SELECTED_ENGINE="xray"
         SELECTED_LANGUAGE="fa"
         SELECTED_GEO="official"
         export SELECTED_ENGINE SELECTED_LANGUAGE SELECTED_GEO
-
-    else
-        # CUSTOM MODE
-        handle_custom_profile
-        engine_menu
-        language_menu
-        geo_menu
     fi
 
+    # 3. Review Summary Screen
     review_install || return 1
 
+    # 4. Deployment Pipeline
+    render_persistent_header
     if deploy_targeted_packages; then
         echo
-        log_success "Installation completed :)"
+        log_success "All targeted components deployed successfully!"
+        echo
+        printf "  ${GRAY}Press [ENTER] to return to main menu ...${NC}"
+        read -r _ </dev/tty
+        render_persistent_header
     else
         echo
-        log_error "Installation failed!"
+        log_error "Installation process failed!"
+        echo
+        printf "  ${GRAY}Press [ENTER] to return to main menu ...${NC}"
+        read -r _ </dev/tty
+        render_persistent_header
         return 1
     fi
 

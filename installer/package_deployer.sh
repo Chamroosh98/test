@@ -187,16 +187,28 @@ deploy_targeted_packages()
 
     case "$PKG_MANAGER" in
         apk)
-            log_info "Executing : apk add --allow-untrusted ..."
-            if apk add --allow-untrusted $INSTALL_FILES; then
+            log_info "Installing packages into system via APK..."
+            APK_LOG=$(mktemp)
+            
+            if apk add --allow-untrusted --no-progress $INSTALL_FILES >"$APK_LOG" 2>&1; then
                 INSTALL_SUCCESS=1
+            else
+                log_error "APK installation failed! Output:"
+                cat "$APK_LOG"
             fi
+            rm -f "$APK_LOG"
             ;;
         opkg)
-            log_info "Executing : opkg install ..."
-            if opkg install $INSTALL_FILES; then
+            log_info "Installing packages into system via OPKG..."
+            OPKG_LOG=$(mktemp)
+            
+            if opkg install $INSTALL_FILES >"$OPKG_LOG" 2>&1; then
                 INSTALL_SUCCESS=1
+            else
+                log_error "OPKG installation failed! Output:"
+                cat "$OPKG_LOG"
             fi
+            rm -f "$OPKG_LOG"
             ;;
     esac
 

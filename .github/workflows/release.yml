@@ -181,7 +181,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}-${{ github.run_number }}
-          name: 🚀 DayPass v${{ env.VERSION }}
+          name: 🚀  v${{ env.VERSION }}
           prerelease: false
           body: |
             ## 🚀 DayPass Stable Release

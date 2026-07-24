@@ -32,33 +32,48 @@ restore_dns()
 
 dns_fix_menu()
 {
-    echo
-    log_warn "DNS failure detected! Select an action :"
-    echo "  1) Cloudflare (1.1.1.1)"
-    echo "  2) Google (8.8.8.8)"
-    echo "  3) Quad9 (9.9.9.9)"
+    render_persistent_header
+
+    echo "  ┌───────────────────────────────────────────────────────────┐"
+    echo "  │ 📡 DNS Resolution Recovery                                │"
+    echo "  ├───────────────────────────────────────────────────────────┤"
+    echo "  │  1) ☁️  Cloudflare DNS (1.1.1.1)                           │"
+    echo "  │  2) 🔍 Google DNS     (8.8.8.8)                           │"
+    echo "  │  3) 🛡️ Quad9 DNS      (9.9.9.9)                           │"
     
     if [ -f "$BACKUP_DNS_FILE" ]; then
-        echo "  4) Restore Original DNS (Reset to Default)"
-        echo "  5) Skip"
+        echo "  │  4) 🔄 Restore Original DNS                               │"
+        echo "  │  5) 🚫 Skip                                               │"
+        MAX_OPT="5"
     else
-        echo "  4) Skip"
+        echo "  │  4) 🚫 Skip                                               │"
+        MAX_OPT="4"
     fi
+    echo "  └───────────────────────────────────────────────────────────┘"
+    echo
 
-    printf "  ⁉️ Select : "
+    printf "  ⁉️  Select option [1-%s] (Default: 1) : " "$MAX_OPT"
     read -r dns_choice </dev/tty
 
     case "$dns_choice" in
-        1) apply_dns "1.1.1.1" ;;
-        2) apply_dns "8.8.8.8" ;;
-        3) apply_dns "9.9.9.9" ;;
+        1|"")
+            apply_dns "1.1.1.1"
+            ;;
+        2)
+            apply_dns "8.8.8.8"
+            ;;
+        3)
+            apply_dns "9.9.9.9"
+            ;;
         4) 
             if [ -f "$BACKUP_DNS_FILE" ]; then
                 restore_dns
             else
-                log_info "Skipping DNS fix!"
+                log_info "Skipping DNS fix."
             fi
             ;;
-        *) log_info "Skipping DNS fix!" ;;
+        *)
+            log_info "Skipping DNS fix."
+            ;;
     esac
 }

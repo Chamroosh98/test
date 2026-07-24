@@ -12,7 +12,7 @@ main_menu()
             printf "   🖥️ 2) Network Info & Speed Monitor\n"
             printf "   🚪 0) Exit\n\n"
 
-            printf "   ⁉️ Select : "
+            printf "   ⁉️ Select option [0-2] : "
             read -r choice </dev/tty
 
             case "$choice" in
