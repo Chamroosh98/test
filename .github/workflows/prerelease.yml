@@ -47,11 +47,18 @@ jobs:
         run: |
           go run .github/actions/fetch.go ${{ matrix.arch }} ${{ env.VERSION }} beta
 
-      - name: 📤 Upload Zip Artifact
+      - name: 📤 Upload Zip Artifact (For GitHub Releases)
         uses: actions/upload-artifact@v4
         with:
           name: beta-${{ matrix.arch }}
           path: DayPass_${{ matrix.arch }}_*_beta.zip
+          retention-days: 1
+
+      - name: 📤 Upload Raw Packages Artifact (For CDN 'packages' Branch)
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-beta-${{ matrix.arch }}
+          path: matrix-download/${{ matrix.arch }}
           retention-days: 1
 
   deploy:
@@ -89,6 +96,13 @@ jobs:
           path: merged-beta/
           merge-multiple: true
 
+      - name: 📥 Download All Raw Packages Artifacts (For CDN)
+        uses: actions/download-artifact@v4
+        with:
+          pattern: raw-beta-*
+          path: packages-branch-content/
+          merge-multiple: true
+
       - name: 🦫 Run Go Engine (Merger & Manifest Compiler)
         env:
           INPUT_TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -118,20 +132,11 @@ jobs:
           target-folder: beta             
           branch: gh-pages
 
-      - name: 📦 Prepare Extracted Binaries for 'packages' Branch
-        run: |
-          cd build-artifacts
-          for zipfile in *.zip; do
-            [ -f "$zipfile" ] || continue
-            unzip -q -o "$zipfile" -d "../packages-branch-content/"
-          done
-          echo "✅ Successfully extracted all package binaries for raw branch CDN deployment!"
-
-      - name: 🔍 Debug & Verify extracted packages content
+      - name: 🔍 Debug & Verify Raw Packages Tree Structure
         run: |
           echo "📂 Checking packages-branch-content directory:"
           ls -la packages-branch-content/
-          ls -la packages-branch-content/arm_cortex-a7_neon-vfpv4/ || true
+          find packages-branch-content/ -maxdepth 2 -type d
           
       - name: 🚀 Deploy Binary Packages to 'packages' Branch (Overwriting)
         uses: JamesIves/github-pages-deploy-action@v4

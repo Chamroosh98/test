@@ -128,7 +128,7 @@ func main() {
 
 		for _, feed := range arch.Feeds {
 			feedCacheDir := filepath.Join(persistentCacheDir, feed)
-			feedOutputDir := filepath.Join(baseDownloadDir, feed)
+			feedOutputDir := baseDownloadDir
 			os.MkdirAll(feedCacheDir, 0755)
 			os.MkdirAll(feedOutputDir, 0755)
 
@@ -205,6 +205,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	os.RemoveAll("matrix-download")
+	// os.RemoveAll("matrix-download")
 	fmt.Printf("\n📦 Package created successfully : [%s]\n", zipName)
 }

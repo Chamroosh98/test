@@ -123,10 +123,11 @@ func GenerateManifest(archConfigPath, outputDir string) error {
 
             archOut.Packages = append(archOut.Packages, PackageInfo{
                 Package: pkgName,
-                File:    fileName,
+                File:    fmt.Sprintf("%s/%s", arch.Name, fileName),
                 Sha256:  sha,
                 Size:    fileInfo.Size(),
             })
+
             return nil
         })
 
