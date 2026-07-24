@@ -2,22 +2,26 @@
 
 geo_menu()
 {
-    echo
-    echo "Geo Database"
-    echo "------------"
-    echo "  1) Skip"
-    echo "  2) Official"
-    echo "  3) Iran Full"
-    echo "  4) Iran Lite"
+    render_persistent_header
 
-    printf "  ⁉️ Choice: "
+    echo "  ┌───────────────────────────────────────────────────────────┐"
+    echo "  │  🕵️‍♀️ Select Geo Database                                    │"
+    echo "  ├───────────────────────────────────────────────────────────┤"
+    echo "  │  1) Skip       (Do not install Geo databases)             │"
+    echo "  │  2) Official   (Standard official release packages)       │"
+    echo "  │  3) Iran Full  (Custom ruleset - Full database)           │"
+    echo "  │  4) Iran Lite  (Custom ruleset - Compact database)        │"
+    echo "  └───────────────────────────────────────────────────────────┘"
+    echo
+
+    printf "  ⁉️ Select option [1-4] (Default: 1) : "
     read -r choice </dev/tty
 
     GEOIP_URL=""
     GEOSITE_URL=""
 
     case "$choice" in
-        1)
+        1|"")
             SELECTED_GEO="none"
             ;;
         2)
@@ -36,6 +40,7 @@ geo_menu()
             GEOSITE_URL="https://raw.githubusercontent.com/Chocolate4U/Iran-v2ray-rules/release/geosite-lite.dat"
             ;;
         *)
+            log_warn "Invalid choice! Defaulting to Skip."
             SELECTED_GEO="none"
             ;;
     esac
