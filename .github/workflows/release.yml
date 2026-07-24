@@ -47,11 +47,18 @@ jobs:
         run: |
           go run .github/actions/fetch.go ${{ matrix.arch }} ${{ env.VERSION }} release
 
-      - name: 📤 Upload Zip Artifact
+      - name: 📤 Upload Zip Artifact (For GitHub Releases)
         uses: actions/upload-artifact@v4
         with:
           name: release-${{ matrix.arch }}
           path: DayPass_${{ matrix.arch }}_*.zip
+          retention-days: 1
+
+      - name: 📤 Upload Raw Packages Artifact (For CDN 'packages' Branch)
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-release-${{ matrix.arch }}
+          path: matrix-download/${{ matrix.arch }}
           retention-days: 1
 
   deploy:
@@ -73,13 +80,14 @@ jobs:
       - name: 🛠️ Install Core Utilities
         run: |
           sudo apt-get update
-          sudo apt-get install -y bash jq coreutils findutils zip
+          sudo apt-get install -y bash jq coreutils findutils zip unzip
 
       - name: 📁 Prepare Workspace Tree
         run: |
           mkdir -p merged-beta
           mkdir -p manifest-workspace
           mkdir -p build-artifacts
+          mkdir -p packages-branch-content
 
       - name: 📥 Download All Zip Artifacts
         uses: actions/download-artifact@v4
@@ -87,6 +95,24 @@ jobs:
           pattern: release-*
           path: merged-beta/
           merge-multiple: true
+
+      - name: 📥 Download All Raw Packages Artifacts (For CDN)
+        uses: actions/download-artifact@v4
+        with:
+          pattern: raw-release-*
+          path: packages-branch-content/
+          merge-multiple: false
+
+      - name: 📂 Restructure Architecture Folders for CDN
+        run: |
+          cd packages-branch-content
+          for dir in raw-release-*; do
+            if [ -d "$dir" ]; then
+              arch_name="${dir#raw-release-}"
+              mv "$dir" "$arch_name"
+              echo "✅ Restructured : 📂 $dir -> ⛏️ $arch_name"
+            fi
+          done
 
       - name: 🦫 Run Go Engine (Merger & Manifest Compiler)
         env:
@@ -113,10 +139,30 @@ jobs:
       - name: 🌐 Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: github-pages-content  
-          target-folder: .              
+          folder: github-pages-content
+          target-folder: .
           branch: gh-pages
           single-commit: true
+
+      - name: 🔍 Debug & Verify Raw Packages Tree Structure
+        run: |
+          echo "📂 Checking packages-branch-content directory:"
+          ls -la packages-branch-content/
+          find packages-branch-content/ -maxdepth 2 -type d
+
+      - name: 🚀 Deploy Binary Packages to 'packages' Branch (Overwriting)
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: packages-branch-content
+          branch: packages
+          single-commit: true
+
+      - name: 🧹 Purge jsDelivr Cache for Manifest & Packages
+        run: |
+          echo "🌐 Purging jsDelivr CDN cache ..."
+          curl -s "https://purge.jsdelivr.net/gh/Chamroosh98/DayPass@gh-pages/manifest.json"
+          curl -s "https://purge.jsdelivr.net/gh/Chamroosh98/DayPass@gh-pages/install.sh"
+          echo "✅ CDN cache purged successfully!"
 
       - name: 📊 Verify Release Assets Size & Guardrail
         run: |
