@@ -1,10 +1,5 @@
 #!/bin/sh
 
-# ==============================================================================
-# Package Manager Abstraction Layer for OpenWrt (apk / opkg)
-# Provides resilient update, lookup, and installation mechanisms.
-# ==============================================================================
-
 detect_package_manager()
 {
     # 1. Identify standard package manager binary

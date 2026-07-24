@@ -91,7 +91,7 @@ EOF
         printf "   Public IP   : $PUBLIC_IP\n"
         printf "   Country     : $FLAG $COUNTRY ${GRAY}$CITY_STR${RESET}\n"
         [ -n "$ISP" ] && printf "   ISP         : $ISP\n"
-        [ -n "$ASN" ] && printf "   ASN         : AS${GRAY}$ASN${RESET}\n"
+        [ -n "$ASN" ] && printf "   ASN         : ${GRAY}$ASN${RESET}\n"
     fi
 
     printf "   ${GRAY}─────────────────────────────────────────${RESET}\n\n"
@@ -107,7 +107,7 @@ network_menu()
         printf "   🔄 ${CYAN}2${RESET}) Refresh Information\n"
         printf "   ⬅️ ${CYAN}0${RESET}) Back to Main Menu\n\n"
         
-        printf "   ⁉️  ${YELLOW}Choice${RESET} ${GRAY}:${RESET} "
+        printf "   ⁉️ ${YELLOW}Select${RESET} ${GRAY}:${RESET} "
         read -r net_choice </dev/tty
 
         case "$net_choice" in

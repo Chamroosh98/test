@@ -140,6 +140,10 @@ deploy_targeted_packages()
     rm -f "$TRANSACTION_LOG"
     touch "$TRANSACTION_LOG"
 
+    if command -v pkg_update >/dev/null 2>&1; then
+        pkg_update
+    fi
+
     echo
     log_info "=================================================="
     log_info "Starting Package Deployment Pipeline"
@@ -170,7 +174,7 @@ deploy_targeted_packages()
         INSTALL_FILES="$INSTALL_FILES $TMP_DIR/$file_basename"
         
         # Record package in transaction log BEFORE installation
-        echo "$pkg" >> "$TRANSACTION_LOG"
+        echo "[$pkg]" >> "$TRANSACTION_LOG"
     done
 
     echo
@@ -189,7 +193,7 @@ deploy_targeted_packages()
             fi
             ;;
         opkg)
-            log_info "Executing: opkg install ..."
+            log_info "Executing : opkg install ..."
             if opkg install $INSTALL_FILES; then
                 INSTALL_SUCCESS=1
             fi

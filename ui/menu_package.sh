@@ -30,13 +30,33 @@ package_menu()
 
     export SELECTED_PROFILE
 
-    menu_mode
+    render_persistent_header
+    echo " Installation Mode"
+    echo " ──────────────────"
+    echo "  1) ⚡ Recommended (Quick & Pre-configured for standard users)"
+    echo "  2) 🛠️ Custom      (Advanced package selection)"
+    echo
 
-    engine_menu
+    printf "  ⁉️ Select : "
+    read -r mode_choice </dev/tty
 
-    language_menu
+    if [ "$mode_choice" = "1" ] || [ -z "$mode_choice" ]; then
+        # RECOMMENDED 
+        handle_recommended_profile
+        
+        # Default values
+        SELECTED_ENGINE="xray"
+        SELECTED_LANGUAGE="fa"
+        SELECTED_GEO="official"
+        export SELECTED_ENGINE SELECTED_LANGUAGE SELECTED_GEO
 
-    geo_menu
+    else
+        # CUSTOM 
+        handle_custom_profile
+        engine_menu
+        language_menu
+        geo_menu
+    fi
 
     review_install || return 1
 
