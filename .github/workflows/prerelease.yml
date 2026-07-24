@@ -156,6 +156,13 @@ jobs:
           branch: packages
           single-commit: true
 
+      - name: 🧹 Purge jsDelivr Cache for Manifest & Packages
+        run: |
+          echo "🌐 Purging jsDelivr CDN cache ..."
+          curl -s "https://purge.jsdelivr.net/gh/Chamroosh98/DayPass@gh-pages/beta/manifest.json"
+          curl -s "https://purge.jsdelivr.net/gh/Chamroosh98/DayPass@gh-pages/beta/install.sh"
+          echo "✅ CDN cache purged successfully!"
+
       - name: 📊 Verify Release Assets Size & Guardrail
         run: |
           echo "📁 Listing all files in build-artifacts with their sizes :"
