@@ -2,11 +2,7 @@
 
 handle_recommended_profile()
 {
-
-    add_selected_package "luci-app-passwall2"
-
-    add_selected_package "xray-core"
-    add_selected_package "geoview"
-    add_selected_package "tcping"
-
+    # Clear manually selected packages so resolver handles strict ordering
+    SELECTED_PACKAGES=""
+    export SELECTED_PACKAGES
 }

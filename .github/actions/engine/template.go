@@ -16,7 +16,9 @@ func generateInstallScript(outputFile string) error {
 	}
 
 	var scriptBuilder strings.Builder
-	scriptBuilder.WriteString("#!/bin/sh\nset -eu\n\n")
+	scriptBuilder.WriteString("#!/bin/sh\n\n")
+	// scriptBuilder.WriteString("#!/bin/sh\nset -eu\n\n")
+
 	scriptBuilder.WriteString("###############################################################################\n")
 	scriptBuilder.WriteString("# DayPass Installer (Auto-generated via Go Action)\n")
 	scriptBuilder.WriteString("###############################################################################\n\n")
@@ -70,7 +72,7 @@ func generateInstallScript(outputFile string) error {
 	for _, file := range installerFiles {
 		data, err := os.ReadFile(file)
 		if err != nil {
-			fmt.Printf("⚠️ Warning: File [%s] not found, skipping ...\n", file)
+			fmt.Printf("⚠️ Warning : File [%s] not found, skipping ...\n", file)
 			continue
 		}
 		
@@ -85,19 +87,35 @@ func generateInstallScript(outputFile string) error {
 		fmt.Printf("✅ [%s] appended dynamically!\n", filepath.Base(file))
 	}
 
+
 	scriptBuilder.WriteString(`
 ###############################################################################
 # Runtime Execution Pipeline
 ###############################################################################
 DEPLOYMENT_FAILED=0
 
+# 🔴🔴🔴🔴🔴🔴🔴 The execution order of the modules is important! 🔴🔴🔴🔴🔴🔴🔴
+# ============= Checking network connection =============
 network_check || exit 1
+
+# ============= Installing requirements =================
 deploy_system_dependencies
+
+# Continue initialization
 check_version
 detect_arch
 initialize_installer
 
+# ============= Pre-TUI Smooth Transition =============
+for i in 3 2 1; do
+    printf "\r🚀 Launching DayPass Interactive UI in \033[1;33m%d\033[0m seconds... (Press \033[1;36m[Enter]\033[0m to skip) " "$i"
+    if read -t 1 -r; then
+        break
+    fi
+done
+
 # Launching TUI Interface
+clear
 reset_state
 main_menu
 
@@ -108,6 +126,7 @@ echo
 echo "🎉 DayPass installation completed successfully! ;))"
 exit 0
 `)
+
 
 	os.MkdirAll(filepath.Dir(outputFile), 0755)
 	return os.WriteFile(outputFile, []byte(scriptBuilder.String()), 0755)

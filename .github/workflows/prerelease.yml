@@ -47,11 +47,18 @@ jobs:
         run: |
           go run .github/actions/fetch.go ${{ matrix.arch }} ${{ env.VERSION }} beta
 
-      - name: 📤 Upload Zip Artifact
+      - name: 📤 Upload Zip Artifact (For GitHub Releases)
         uses: actions/upload-artifact@v4
         with:
           name: beta-${{ matrix.arch }}
           path: DayPass_${{ matrix.arch }}_*_beta.zip
+          retention-days: 1
+
+      - name: 📤 Upload Raw Packages Artifact (For CDN 'packages' Branch)
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-beta-${{ matrix.arch }}
+          path: matrix-download/${{ matrix.arch }}
           retention-days: 1
 
   deploy:
@@ -73,13 +80,14 @@ jobs:
       - name: 🛠️ Install Core Utilities
         run: |
           sudo apt-get update
-          sudo apt-get install -y bash jq coreutils findutils zip
+          sudo apt-get install -y bash jq coreutils findutils zip unzip
 
       - name: 📁 Prepare Workspace Tree
         run: |
           mkdir -p merged-beta
           mkdir -p manifest-workspace
           mkdir -p build-artifacts
+          mkdir -p packages-branch-content
 
       - name: 📥 Download All Zip Artifacts
         uses: actions/download-artifact@v4
@@ -87,6 +95,24 @@ jobs:
           pattern: beta-*
           path: merged-beta/
           merge-multiple: true
+
+      - name: 📥 Download All Raw Packages Artifacts (For CDN)
+        uses: actions/download-artifact@v4
+        with:
+          pattern: raw-beta-*
+          path: packages-branch-content/
+          merge-multiple: false
+
+      - name: 📂 Restructure Architecture Folders for CDN
+        run: |
+          cd packages-branch-content
+          for dir in raw-beta-*; do
+            if [ -d "$dir" ]; then
+              arch_name="${dir#raw-beta-}"
+              mv "$dir" "$arch_name"
+              echo "✅ Restructured : 📂 $dir -> ⛏️ $arch_name"
+            fi
+          done
 
       - name: 🦫 Run Go Engine (Merger & Manifest Compiler)
         env:
@@ -103,21 +129,40 @@ jobs:
           cd .github/actions/engine/
           go run .
 
-      - name: 🕵️‍♀️ Prepare GitHub Pages Assets for ignoring zip heavy files
+      - name: 🕵️‍♀️ Prepare GitHub Pages Assets
         run: |
           mkdir -p github-pages-content
           cp build-artifacts/install.sh github-pages-content/
           cp build-artifacts/manifest.json github-pages-content/
           echo "✅ Isolated install.sh and manifest.json for Pages deployment!"
 
-          
       - name: 🌐 Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: github-pages-content  
           target-folder: beta             
           branch: gh-pages
-        
+
+      - name: 🔍 Debug & Verify Raw Packages Tree Structure
+        run: |
+          echo "📂 Checking packages-branch-content directory:"
+          ls -la packages-branch-content/
+          find packages-branch-content/ -maxdepth 2 -type d
+          
+      - name: 🚀 Deploy Binary Packages to 'packages' Branch (Overwriting)
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: packages-branch-content
+          branch: packages
+          single-commit: true
+
+      - name: 🧹 Purge jsDelivr Cache for Manifest & Packages
+        run: |
+          echo "🌐 Purging jsDelivr CDN cache ..."
+          curl -s "https://purge.jsdelivr.net/gh/Chamroosh98/DayPass@gh-pages/beta/manifest.json"
+          curl -s "https://purge.jsdelivr.net/gh/Chamroosh98/DayPass@gh-pages/beta/install.sh"
+          echo "✅ CDN cache purged successfully!"
+
       - name: 📊 Verify Release Assets Size & Guardrail
         run: |
           echo "📁 Listing all files in build-artifacts with their sizes :"
@@ -135,7 +180,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}-beta-${{ github.run_number }}
-          name: 🧪 DayPass v${{ env.VERSION }}
+          name: 🧪 v${{ env.VERSION }}
           prerelease: true
           body: |
             ## 🧪 DayPass Beta Release

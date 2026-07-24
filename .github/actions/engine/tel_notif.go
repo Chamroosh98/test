@@ -39,14 +39,27 @@ func SendTelegramNotification(
 
 	var keyboard [][]InlineKeyboardButton
 	for _, arch := range architectures {
-		zipMatch, _ := filepath.Glob(fmt.Sprintf("merged-beta/DayPass_%s_*.zip", arch.Name))
+		// 1. Secarch in build-artifacts
+		zipMatch, _ := filepath.Glob(fmt.Sprintf("build-artifacts/DayPass_%s_*.zip", arch.Name))
+		
+		// 2. Fallback : if the basic path doesn't exits, so search in : merged-beta
+		if len(zipMatch) == 0 {
+			zipMatch, _ = filepath.Glob(fmt.Sprintf("merged-beta/DayPass_%s_*.zip", arch.Name))
+		}
+
 		if len(zipMatch) > 0 {
 			actualFileName := filepath.Base(zipMatch[0])
+			
+			// Create direct links from GitHub Release
+			downloadURL := fmt.Sprintf("https://github.com/%s/releases/download/%s/%s", repo, tagFormat, actualFileName)
+
 			btn := InlineKeyboardButton{
 				Text: btnEmoji + arch.Name,
-				URL:  fmt.Sprintf("https://github.com/%s/releases/download/%s/%s", repo, tagFormat, actualFileName),
+				URL:  downloadURL,
 			}
 			keyboard = append(keyboard, []InlineKeyboardButton{btn})
+		} else {
+			fmt.Printf("⚠️ No zip found for architecture: [%s]\n", arch.Name)
 		}
 	}
 

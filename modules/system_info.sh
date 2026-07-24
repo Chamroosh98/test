@@ -18,11 +18,11 @@ detect_arch()
 show_system_info_content()
 {
     detect_arch
-    box_line "🩻 Architecture     : $ARCH"
-
+    
+    OW_VER="Unknown"
     if [ -f /etc/openwrt_release ]; then
         . /etc/openwrt_release
-        box_line "💡 OpenWrt version  : ${DISTRIB_RELEASE:-Unknown}"
+        OW_VER="${DISTRIB_RELEASE:-Unknown}"
     fi
 
     TOTAL_RAM_MB=$(get_total_ram_mb)
@@ -32,10 +32,6 @@ show_system_info_content()
     MEM_PCT=0
     [ "$TOTAL_RAM_MB" -gt 0 ] && MEM_PCT=$((USED_RAM_MB * 100 / TOTAL_RAM_MB))
 
-    printf "   ${CYAN}│${RESET} 🧠 Memory  "
-    draw_bar "$MEM_PCT" 20
-    printf " %s%% (%s/%s MB)\n" "$MEM_PCT" "$USED_RAM_MB" "$TOTAL_RAM_MB"
-
     TOTAL_STO_MB=$(get_total_storage_mb)
     FREE_STO_MB=$(get_free_storage_mb)
     USED_STO_MB=$((TOTAL_STO_MB - FREE_STO_MB))
@@ -43,17 +39,25 @@ show_system_info_content()
     STO_PCT=0
     [ "$TOTAL_STO_MB" -gt 0 ] && STO_PCT=$((USED_STO_MB * 100 / TOTAL_STO_MB))
 
-    printf "   ${CYAN}│${RESET} 💾 Storage "
-    draw_bar "$STO_PCT" 20
-    printf " %s%% (%s/%s MB)\n" "$STO_PCT" "$USED_STO_MB" "$TOTAL_STO_MB"
+    # Tree-Style Clean Rendering
+    printf " 🖥️  ${BOLD}System Overview${RESET}\n"
+    printf " ├── 🩻 Architecture : ${CYAN}%s${RESET}\n" "$ARCH"
+    printf " ├── 💡 OpenWrt      : ${CYAN}%s${RESET}\n" "$OW_VER"
+    
+    printf " ├── 🧠 Memory       : "
+    draw_bar "$MEM_PCT" 16 "usage"
+    printf " ${BOLD}%3d%%${RESET} (%s/%s MB)\n" "$MEM_PCT" "$USED_RAM_MB" "$TOTAL_RAM_MB"
+
+    printf " └── 💾 Storage      : "
+    draw_bar "$STO_PCT" 16 "usage"
+    printf " ${BOLD}%3d%%${RESET} (%s/%s MB)\n" "$STO_PCT" "$USED_STO_MB" "$TOTAL_STO_MB"
+    echo
 }
 
 show_system_info()
 {
     echo
-    box_header " 🖥️ System Information"
     show_system_info_content
-    box_footer
 }
 
 case "$0" in

@@ -77,7 +77,7 @@ estimate_install_size()
     echo
     log_info "Installation Estimate "
     echo " ============================================================ "
-    echo "  📦 Packages : $(echo "$FINAL_PACKAGES" | wc -w)"
-    echo "  📥 Download : ${TOTAL_SIZE_MB} MB"
+    echo "   📦 Packages : $(echo "$FINAL_PACKAGES" | wc -w)"
+    echo "   📥 Download : ${TOTAL_SIZE_MB} MB"
     echo
 }

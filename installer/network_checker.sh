@@ -33,7 +33,7 @@ redraw_row()
         https) h="$spin" ;;
     esac
 
-    printf "\r  %-16s %-6b %-7b %-6b\033[K" "$ROW_HOST" "$d" "$p" "$h"
+    printf "\r  %-16s %-6s %-7s %-6s\033[K" "$ROW_HOST" "$d" "$p" "$h"
 }
 
 run_cell()
@@ -49,7 +49,12 @@ run_cell()
     i=0
     while kill -0 "$pid" 2>/dev/null; do
         c="$(printf '%s' "$spin_chars" | cut -c$(( (i % 4) + 1 )))"
-        redraw_row "${CYAN}$c${RESET}"
+
+        if [ -n "$CYAN" ] && [ -n "$RESET" ]; then
+            redraw_row "${CYAN}${c}${RESET}"
+        else
+            redraw_row "$c"
+        fi
         i=$((i + 1))
         spin_sleep
     done
@@ -69,7 +74,7 @@ process_host()
     ROW_ACTIVE=""
     redraw_row "·"
 
-    # ۱. تست DNS
+    # DNS
     run_cell "dns" "/tmp/.nc_dns_$$" nslookup "$ROW_HOST" 127.0.0.1
     if [ "$CELL_EXIT" -eq 0 ]; then
         ROW_DNS_ICON="🟢"
@@ -78,7 +83,7 @@ process_host()
         DNS_FAILED=1
     fi
 
-    # ۲. تست Ping
+    # Ping
     run_cell "ping" "/tmp/.nc_ping_$$" ping -c 2 -W 2 "$ROW_HOST"
     LOSS="$(printf '%s' "$CELL_OUTPUT" | grep -o '[0-9]*% packet loss' | grep -o '^[0-9]*')"
     [ -z "$LOSS" ] && LOSS=100
@@ -90,16 +95,26 @@ process_host()
         ROW_PING_ICON="🔴"
     fi
 
-    # ۳. تست HTTPS
-    run_cell "https" "/tmp/.nc_https_$$" curl -fsS -o /dev/null -w '%{time_total}' --connect-timeout 5 "https://$ROW_HOST"
+    # HTTPS Check (Dual-Engine: curl or wget fallback)
+    if command -v curl >/dev/null 2>&1; then
+        run_cell "https" "/tmp/.nc_https_$$" curl -fsS -o /dev/null -w '%{time_total}' --connect-timeout 5 "https://$ROW_HOST"
+    else
+        # Fallback for minimal systems using wget
+        run_cell "https" "/tmp/.nc_https_$$" wget -q --spider --timeout=5 "https://$ROW_HOST"
+    fi
+
     if [ "$CELL_EXIT" -ne 0 ]; then
         ROW_HTTPS_ICON="🔴"
     else
-        IS_FAST="$(awk -v t="$CELL_OUTPUT" 'BEGIN { print (t < 2) ? "1" : "0" }' 2>/dev/null)"
-        if [ "$IS_FAST" = "1" ]; then
-            ROW_HTTPS_ICON="🟢"
+        if command -v curl >/dev/null 2>&1; then
+            IS_FAST="$(awk -v t="$CELL_OUTPUT" 'BEGIN { print (t < 2) ? "1" : "0" }' 2>/dev/null)"
+            if [ "$IS_FAST" = "1" ]; then
+                ROW_HTTPS_ICON="🟢"
+            else
+                ROW_HTTPS_ICON="🟡"
+            fi
         else
-            ROW_HTTPS_ICON="🟡"
+            ROW_HTTPS_ICON="🟢"
         fi
     fi
 
@@ -126,42 +141,69 @@ network_check()
     DNS_FAILED=0
 
     echo
-    printf "  ${BOLD}${CYAN}🔎 DayPass Network Health Check${RESET}\n\n"
-
-    printf "  ${BOLD}%-16s %-6s %-6s %-6s${RESET}\n" "Host" "DNS" "Ping" "HTTPS"
+    printf "  ${BOLD}${CYAN}🔎 DayPass Network Health Check${RESET}\n"
+    
     printf "  ${GRAY}──────────────────────────────────────────${RESET}\n"
 
-    process_host "google.com"
-    process_host "github.com"
-    process_host "openwrt.org"
-    process_host "cloudflare.com"
-
+    printf "  ${BOLD}%-16s %-6s %-7s %-6s${RESET}\n" "Host" "DNS" "Ping" "HTTPS"
     printf "  ${GRAY}──────────────────────────────────────────${RESET}\n"
+
+    process_host "Google.com"
+    process_host "Github.com"
+    process_host "Openwrt.org"
+    process_host "Cloudflare.com"
+
+    # printf "  ${GRAY}──────────────────────────────────────────${RESET}\n"
+    # printf "  ${BOLD}Status Legend :${RESET}\n"
+    # printf "    🟢 ${GREEN}Passed / Fast${RESET}  |  🟡 ${YELLOW}Degraded / Slow${RESET}  |  🔴 ${RED}Failed / Blocked${RESET}\n"
+    
+    printf "  ${GRAY}──────────────────────────────────────────${RESET}\n\n"
 
     PCT=0
     [ "$TOTAL_CHECKS" -gt 0 ] && PCT=$((GREEN_COUNT * 100 / TOTAL_CHECKS))
 
-    printf "  ${BOLD}Overall Status:${RESET} "
+    printf "  ${BOLD}Overall Score :${RESET} "
     if command -v draw_bar >/dev/null 2>&1; then
         draw_bar "$PCT" 12 "score"
     fi
-    printf " %s%% (🟢%s  🟡%s  🔴%s)\n\n" "$PCT" "$GREEN_COUNT" "$YELLOW_COUNT" "$RED_COUNT"
+    printf " %s%% (🟢 %s  🟡 %s  🔴 %s)\n\n" "$PCT" "$GREEN_COUNT" "$YELLOW_COUNT" "$RED_COUNT"
 
-    if [ "$DNS_FAILED" -eq 0 ] && [ "$RED_COUNT" -eq 0 ]; then
-        log_success "Network is fully functional!"
-    fi
-
+    printf "  ${BOLD}Diagnostic Report :${RESET}"
     if [ "$DNS_FAILED" -eq 1 ]; then
-        log_error "DNS failure detected!"
+        if command -v log_error >/dev/null 2>&1; then
+            log_error "DNS resolution is failing! Router cannot translate domain names."
+        else
+            printf "❌${RED}DNS resolution failed! Domain name lookup is broken.${RESET}\n"
+        fi
         if ping -c 1 -W 2 1.1.1.1 >/dev/null 2>&1; then
             if command -v dns_fix_menu >/dev/null 2>&1; then
                 dns_fix_menu
             fi
         fi
+    elif [ "$RED_COUNT" -gt 0 ]; then
+        if command -v log_warn >/dev/null 2>&1; then
+            log_warn "HTTPS connections are blocked or filtered (Possible Censorship/DPI)."
+        else
+            printf "⚠️${YELLOW}HTTPS traffic is blocked or severely interfered with.${RESET}\n"
+        fi
     elif [ "$YELLOW_COUNT" -gt 0 ]; then
-        log_warn "Network is active but experiencing high latency/degradation."
+        if command -v log_warn >/dev/null 2>&1; then
+            log_warn "Network is active but experiencing high packet loss/latency (>2s)."
+        else
+            printf "⚠️${YELLOW}High latency or degraded response time detected.${RESET}\n"
+        fi
+    else
+        if command -v log_success >/dev/null 2>&1; then
+            log_success "Network is fully functional with clean connectivity!"
+        else
+            printf "✅${GREEN}Network is fully functional!${RESET}\n"
+        fi
     fi
 
+    echo
+    printf "  ${GRAY}Press [Enter] to continue ...${RESET}"
+    read -r _ </dev/tty
+    echo
     return 0
 }
 

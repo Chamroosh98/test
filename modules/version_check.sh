@@ -2,7 +2,7 @@
 
 check_version() {
     if ! command -v opkg >/dev/null 2>&1 && ! command -v apk >/dev/null 2>&1; then
-        log_error "No supported package manager found."
+        log_error "No supported package manager found!"
         return 1
     fi
 
@@ -12,7 +12,7 @@ check_version() {
     )"
 
     if [ -z "$OPENWRT_VERSION" ]; then
-        log_warn "Unable to detect OpenWrt version."
+        log_warn "Unable to detect OpenWrt version!"
     else
         log_info "OpenWrt Version : ${OPENWRT_VERSION}"
     fi

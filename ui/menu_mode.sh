@@ -10,7 +10,7 @@ menu_mode()
     echo "  2) 🛠️ Custom / On-demand (Advanced package selection)"
     echo
 
-    printf "  ⁉️ Choice : "
+    printf "  ⁉️ Select : "
     read -r choice </dev/tty
 
     case "$choice" in
