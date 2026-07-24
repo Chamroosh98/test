@@ -101,7 +101,18 @@ jobs:
         with:
           pattern: raw-beta-*
           path: packages-branch-content/
-          merge-multiple: true
+          merge-multiple: false
+
+      - name: 📂 Restructure Architecture Folders for CDN
+        run: |
+          cd packages-branch-content
+          for dir in raw-beta-*; do
+            if [ -d "$dir" ]; then
+              arch_name="${dir#raw-beta-}"
+              mv "$dir" "$arch_name"
+              echo "✅ Restructured : 📂 $dir -> ⛏️ $arch_name"
+            fi
+          done
 
       - name: 🦫 Run Go Engine (Merger & Manifest Compiler)
         env:
