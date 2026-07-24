@@ -127,12 +127,18 @@ jobs:
           done
           echo "✅ Successfully extracted all package binaries for raw branch CDN deployment!"
 
+      - name: 🔍 Debug & Verify extracted packages content
+        run: |
+          echo "📂 Checking packages-branch-content directory:"
+          ls -la packages-branch-content/
+          ls -la packages-branch-content/arm_cortex-a7_neon-vfpv4/ || true
+          
       - name: 🚀 Deploy Binary Packages to 'packages' Branch (Overwriting)
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: packages-branch-content
           branch: packages
-          force: true
+          single-commit: true
 
       - name: 📊 Verify Release Assets Size & Guardrail
         run: |
